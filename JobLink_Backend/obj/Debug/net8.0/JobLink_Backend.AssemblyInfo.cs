@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("JobLink_Backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+69223bb6e2d90c41e3d85119299d45e9ae53a7b2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+42496263547ba0e16a4960f347fa28cd479648eb")]
 [assembly: System.Reflection.AssemblyProductAttribute("JobLink_Backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("JobLink_Backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
