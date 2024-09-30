@@ -11,9 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
-    <Folder Include="Repositories\RepositoryImpl\" />
-    <Folder Include="Services\" />
+    <Folder Include="Entities\" />
+    <Folder Include="DTOs\" />
+    <Folder Include="Repositories\RepositoryImpls\" />
+    <Folder Include="Services\ServiceImpls\" />
   </ItemGroup>
 
 </Project>
