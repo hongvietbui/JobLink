@@ -14,6 +14,7 @@ public class Job : BaseEntity<Guid>
     public string Address { get; set; }
     public int Lat { get; set; }
     public int Lon { get; set; }
+    public JobStatus Status { get; set; }
 
     public User Owner { get; set; }
     public User Worker { get; set; }
