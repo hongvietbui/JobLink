@@ -7,4 +7,7 @@ public class Role : BaseEntity<Guid>
 {
     [Required]
     public string Name { get; set; }
+    
+    //Navigation properties
+    public ICollection<User> Users { get; set; }
 }

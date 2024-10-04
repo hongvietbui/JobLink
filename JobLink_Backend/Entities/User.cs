@@ -26,4 +26,9 @@ public class User : BaseEntity<Guid>
     public string Avatar { get; set; }
     public Guid RoleId { get; set; }
     public string RefreshToken { get; set; }
+    
+    //Navigation properties
+    public Role Role { get; set; }
+    public ICollection<Job> OwnedJobs { get; set; }
+    public ICollection<Job> WorkedJobs { get; set; }
 }
