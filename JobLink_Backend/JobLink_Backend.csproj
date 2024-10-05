@@ -27,7 +27,6 @@
     <Folder Include="Migrations\" />
     <Folder Include="Services\IServices\" />
     <Folder Include="Services\ServiceImpls\" />
-    <Folder Include="Utilities\Pagination\" />
   </ItemGroup>
 
 </Project>
