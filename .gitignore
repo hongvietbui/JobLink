@@ -1,3 +1,4 @@
 
 /.vs
 JobLink_Backend/appsettings.Development.json
+/JobLink_Backend/obj
