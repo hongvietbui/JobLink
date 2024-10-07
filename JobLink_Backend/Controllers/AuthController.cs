@@ -49,7 +49,7 @@ public class AuthController(JwtService jwtService, IUserService userService) : B
                 AccessToken = accessToken,
                 RefreshToken = refreshToken
             },
-            Message = "Login successful",
+            Message = "Login successfully",
             Status = 200,
             Timestamp = DateTime.Now.Ticks
         };

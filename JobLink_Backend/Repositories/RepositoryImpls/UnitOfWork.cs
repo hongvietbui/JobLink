@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JobLink_Backend.Repositories.RepositoryImpls;
 
-public class UnitOfWork(DbContext context) : IUnitOfWork
+public class UnitOfWork(JobLinkContext context) : IUnitOfWork
 {
     private readonly DbContext _context = context;
     

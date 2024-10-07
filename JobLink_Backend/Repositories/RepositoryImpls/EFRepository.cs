@@ -37,6 +37,26 @@ public class EFRepository<T> : IRepository<T> where T : class
         return _dbSet;
     }
 
+    public IQueryable<T> GetAll(Expression<Func<T, bool>> filter = null, params Expression<Func<T, object>>[] includes)
+    {
+        IQueryable<T> query = _dbSet;
+        
+        if (includes != null)
+        {
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+        }
+        
+        if (filter != null)
+        {
+            query = query.Where(filter);
+        }
+
+        return query.AsNoTracking();
+    }
+
     public async Task<Pagination<T>> GetAllAsync(int pageIndex = 1, int pageSize = 10)
     {
         var itemCount = await _dbSet.CountAsync();
@@ -99,6 +119,21 @@ public class EFRepository<T> : IRepository<T> where T : class
         return (await _dbSet.IgnoreQueryFilters()
             .AsNoTracking()
             .FirstOrDefaultAsync(filter))!;
+    }
+
+    public Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> filter, params Expression<Func<T, object>>[] includes)
+    {
+        IQueryable<T> query = _dbSet;
+        
+        if (includes != null)
+        {
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+        }
+
+        return query.AsNoTracking().FirstOrDefaultAsync(filter);
     }
 
     public async Task<int> CountAsync()

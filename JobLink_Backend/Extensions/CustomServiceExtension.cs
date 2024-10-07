@@ -11,6 +11,8 @@ public static class CustomServiceExtension
     {
         services.AddScoped<IUserRepository, UserRepositoryImpl>();
         
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        
         services.AddScoped<IUserService, UserServiceImpl>();
         return services;
     }

@@ -14,6 +14,7 @@ public interface IRepository<T> where T : class
     #region Read
     Task<IEnumerable<T>> GetAllAsync();
     IQueryable<T> GetAll();
+    IQueryable<T> GetAll(Expression<Func<T, bool>> filter = null, params Expression<Func<T, object>>[] includes);
     Task<Pagination<T>> GetAllAsync(int pageIndex = 1, int pageSize = 10);
     Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> filter);
     Task<Pagination<T>> GetAllAsync(Expression<Func<T, bool>> filter, int pageIndex = 1, int pageSize = 10);
@@ -21,6 +22,7 @@ public interface IRepository<T> where T : class
     Task<bool> AnyAsync();
     Task<T> GetByIdAsync(object id);
     Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> filter);
+    Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> filter, params Expression<Func<T, object>>[] includes);
     Task<int> CountAsync();
     Task<int> CountAsync(Expression<Func<T, bool>> filter);
     #endregion
