@@ -1,4 +1,6 @@
 
 /.vs
 JobLink_Backend/appsettings.Development.json
+/.idea
 /JobLink_Backend/obj
+/JobLink_Backend/bin
