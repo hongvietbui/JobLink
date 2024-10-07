@@ -6,158 +6,43 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JobLink_Backend.Repositories.RepositoryImpls;
 
-public class UnitOfWork<T>(JobLinkContext context) : IUnitOfWork<T> where T : class
+public class UnitOfWork(JobLinkContext context) : IUnitOfWork
 {
-    private readonly JobLinkContext _context = context;
-    private readonly DbSet<T> _dbSet = context.Set<T>();
+    private readonly DbContext _context = context;
     
-    public async Task AddAsync(T entity)
-    {
-        await _dbSet.AddAsync(entity);
-    }
+    // Using a dictionary to store repositories
+    private readonly Dictionary<Type, object> _repositories = new();
 
-    public async Task AddRangeAsync(IEnumerable<T> entities)
+    // Implement IRepository method
+    public IRepository<T> Repository<T>() where T : class
     {
-        await _dbSet.AddRangeAsync(entities);
-    }
-
-    public async Task<IEnumerable<T>> GetAllAsync()
-    {
-        return await _dbSet.ToListAsync();
-    }
-
-    public IQueryable<T> GetAll()
-    {
-        return _dbSet;
-    }
-
-    public async Task<Pagination<T>> GetAllAsync(int pageIndex = 1, int pageSize = 10)
-    {
-        var itemCount = await _dbSet.CountAsync();
-        var item = await _dbSet
-            .Skip((pageIndex - 1) * pageSize)
-            .Take(pageSize)
-            .AsNoTracking()
-            .ToListAsync();
-
-        var result = new Pagination<T>()
+        // Check if repository exists
+        if (_repositories.ContainsKey(typeof(T)))
         {
-            PageIndex = pageIndex,
-            PageSize = pageSize,
-            TotalItems = itemCount,
-            Items = item
-        };
-
-        return result;
-    }
-
-    public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> filter)
-    {
-        return await _dbSet.Where(filter).ToListAsync();
-    }
-
-    public async Task<Pagination<T>> GetAllAsync(Expression<Func<T, bool>> filter, int pageIndex = 1, int pageSize = 10)
-    {
-        var itemCount = await _dbSet.CountAsync();
-        var item = await _dbSet.Where(filter)
-            .Skip((pageIndex - 1) * pageSize)
-            .Take(pageSize)
-            .AsNoTracking()
-            .ToListAsync();
-
-        var result = new Pagination<T>()
-        {
-            PageIndex = pageIndex,
-            PageSize = pageSize,
-            TotalItems = itemCount,
-            Items = item
-        };
-
-        return result;
-    }
-
-    public async Task<bool> AnyAsync(Expression<Func<T, bool>> filter)
-    {
-        return await _dbSet.AnyAsync(filter);
-    }
-
-    public async Task<bool> AnyAsync()
-    {
-        return await _dbSet.AnyAsync();
-    }
-
-    public async Task<T> GetByIdAsync(object id)
-    {
-        return (await _dbSet.FindAsync(id))!;
-    }
-
-    public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> filter)
-    {
-        return (await _dbSet.IgnoreQueryFilters()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(filter))!;
-    }
-
-    public async Task<int> CountAsync()
-    {
-        return await _dbSet.CountAsync();
-    }
-
-    public async Task<int> CountAsync(Expression<Func<T, bool>> filter)
-    {
-        return await _dbSet.CountAsync(filter);
-    }
-
-    public void Update(T entity)
-    {
-        _dbSet.Update(entity);
-    }
-
-    public void UpdateRange(IEnumerable<T> entities)
-    {
-        _dbSet.UpdateRange(entities);
-    }
-
-    public void Delete(T entity)
-    {
-        _dbSet.Remove(entity);
-    }
-    
-    public async Task DeleteByIdAsync(object id)
-    {
-        var entity = await GetByIdAsync(id);
-        if (entity != null)
-        {
-            _dbSet.Remove(entity);
+            return (IRepository<T>)_repositories[typeof(T)];
         }
+
+        // Create a new repository
+        var repository = new EFRepository<T>(_context);
+        _repositories.Add(typeof(T), repository);
+        return repository;
     }
 
-    public void DeleteRange(IEnumerable<T> entities)
-    {
-        _dbSet.RemoveRange(entities);
-    }
-
+    // Implement SaveChangesAsync method
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();
     }
 
-    public async Task<Pagination<T>> ToPagination(int pageIndex = 1, int pageSize = 10)
+    // Implement SaveChanges method
+    public void SaveChanges()
     {
-        var itemCount = await _dbSet.CountAsync();
-        var item = await _dbSet
-            .Skip((pageIndex - 1) * pageSize)
-            .Take(pageSize)
-            .AsNoTracking()
-            .ToListAsync();
-        
-        var result = new Pagination<T>()
-        {
-            PageIndex = pageIndex,
-            PageSize = pageSize,
-            TotalItems = itemCount,
-            Items = item
-        };
-        return result;
+        _context.SaveChanges();
+    }
+
+    // Implement Dispose method
+    public void Dispose()
+    {
+        _context.Dispose();
     }
 }

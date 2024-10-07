@@ -1,4 +1,5 @@
 using JobLink_Backend.Entities;
+using JobLink_Backend.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,12 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<JobLinkContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+//Add custom authentication
+builder.Services.AddCustomAuthentication();
+builder.Services.AddCustomCors();
+//Add custom services
+builder.Services.AddCustomServices();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -23,7 +30,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+//use authentication and authentication
+app.UseAuthentication();
 app.UseAuthorization();
+app.UseCors();
 
 app.MapControllers();
 
