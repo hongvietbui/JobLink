@@ -32,18 +32,7 @@ public class JwtService(IConfiguration config)
     
     public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
     {
-        var jwtSettings = _config.GetSection("JwtSettings");
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]));
-        var tokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = jwtSettings["Issuer"],
-            ValidateAudience = true,
-            ValidAudience = jwtSettings["Audience"],
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = key,
-            ValidateLifetime = false
-        };
+        var tokenValidationParameters = GetTokenValidationParameters();
 
         var tokenHandler = new JwtSecurityTokenHandler();
         SecurityToken securityToken;
@@ -53,5 +42,21 @@ public class JwtService(IConfiguration config)
             throw new SecurityTokenException("Invalid token");
 
         return principal;
+    }
+    
+    public TokenValidationParameters GetTokenValidationParameters()
+    {
+        var jwtSettings = _config.GetSection("JwtSettings");
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]));
+        return new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidateAudience = true,
+            ValidAudience = jwtSettings["Audience"],
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = key,
+            ValidateLifetime = true
+        };
     }
 }

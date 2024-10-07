@@ -4,6 +4,7 @@ using JobLink_Backend.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JobLink_Backend.Migrations
 {
     [DbContext(typeof(JobLinkContext))]
-    partial class JobLinkContextModelSnapshot : ModelSnapshot
+    [Migration("20241007101059_update-database-v4")]
+    partial class updatedatabasev4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -131,6 +134,7 @@ namespace JobLink_Backend.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Avatar")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("CreatedAt")
@@ -181,6 +185,7 @@ namespace JobLink_Backend.Migrations
                         .HasColumnType("nvarchar(11)");
 
                     b.Property<string>("RefreshToken")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("RoleId")
