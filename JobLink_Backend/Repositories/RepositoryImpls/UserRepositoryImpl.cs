@@ -1,5 +1,6 @@
 using JobLink_Backend.Entities;
 using JobLink_Backend.Repositories.IRepositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace JobLink_Backend.Repositories.RepositoryImpls;
 
@@ -12,18 +13,16 @@ public class UserRepositoryImpl : EFRepository<User>, IUserRepository
         _context = context;
     }
 
-    public User GetById(int userId)
+    public override async Task AddAsync(User entity)
     {
-        return _context.Set<User>().Find(userId);
-    }
-
-    public void Update(User user)
-    {
-        _context.Set<User>().Update(user);
-    }
-
-    public void SaveChanges()
-    {
-        _context.SaveChanges();
+        var roleNames = entity.Roles.Select(r => r.Name).ToList();
+        
+        var roles = await _context.Roles
+            .Where(r => roleNames.Contains(r.Name))
+            .ToListAsync();
+        
+        entity.Roles = roles;
+        
+        await _context.AddAsync(entity);
     }
 }

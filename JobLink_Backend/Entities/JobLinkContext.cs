@@ -25,11 +25,10 @@ public class JobLinkContext : DbContext
             .WithMany(u => u.WorkedJobs)
             .HasForeignKey(j => j.WorkerId)
             .OnDelete(DeleteBehavior.NoAction);
-        
+
         modelBuilder.Entity<User>()
-            .HasOne(u => u.Role)
+            .HasMany(u => u.Roles)
             .WithMany(r => r.Users)
-            .HasForeignKey(u => u.RoleId)
-            .OnDelete(DeleteBehavior.NoAction);
+            .UsingEntity(userRole => userRole.ToTable("UserRole"));
     }
 }
