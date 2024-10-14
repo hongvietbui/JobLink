@@ -5,7 +5,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/dd" element={<Home />} />
+        <Route path="/" element={<Home />} />
         <Route path="/verifyEmail" element={<VerifyEmailPage />} />
       </Routes>
     </Router>

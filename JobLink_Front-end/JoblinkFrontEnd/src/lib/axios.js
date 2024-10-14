@@ -1,34 +1,16 @@
-import { META } from '../utils/helper/env'
+import { META } from './env'
 import axios from 'axios'
-import { Toaster } from '@/components/ui/toaster'
-
-
-import axiosRetry from 'axios-retry'
 
 import { convertParams } from './convertUrlParams'
 
 
 //axios.defaults.baseURL = (META.BASE_URL ?? 'http://localhost:3000') as string
 axios.defaults.withCredentials = true
-axios.defaults.timeout = 1000
 
 const responseBody = (response)=> {
   return response.data.data
 }
 
-// Config axios retry
-axiosRetry(axios, {
-  retries: 1,
-  retryDelay: (retryCount) => {
-    return retryCount * 1000
-  },
-  retryCondition: (error) => {
-    if (error.response && error.response.status === 401) {
-      return false
-    }
-    return (error.response && error.response.status >= 500) || error.code === 'ECONNABORTED'
-  },
-})
 
 axios.interceptors.request.use(async (config) => {
   
@@ -52,16 +34,12 @@ axios.interceptors.response.use(
           }
           throw modelStateErrors.flat()
         }
-        Toaster.error(data.title)
         break
       case 401:
-        if (data.message === 'Access token has expired') {
-          return refreshToken(error)
-        }
+        
         break
 
       case 403:
-        Toaster.error('You are not allowed to do that!')
         break
       case 500:
        
@@ -122,7 +100,7 @@ const requests = {
   },
   putFile: async (url, data) => {
     return axios
-      .put<ApiResponse<T>>(url, data, {
+      .put(url, data, {
         headers: {
           'Content-type': 'multipart/form-data',
         },
@@ -163,7 +141,7 @@ const EmailTemplate = {
   list: () => requests.get(META.BACKEND + '/api/email-template'),
 }
 const EmailInput ={
-  OtpSend: (Email) => requests.post('https://localhost:8081/api/Auth/sent-otp',Email),
+  OtpSend: (Email) => requests.post('https://localhost:44395/api/Auth/sent-otp',Email),
 }
 
 const agent = {

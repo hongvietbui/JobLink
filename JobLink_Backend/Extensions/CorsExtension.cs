@@ -6,13 +6,12 @@ public static class CorsExtension
     {
         services.AddCors(options =>
         {
-            options.AddPolicy("AllowAllOrigins", builder =>
-            {
-                builder
-                    .AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
-            });
+            options.AddDefaultPolicy(
+                policy =>
+                {
+                    policy.WithOrigins("http://localhost:5173",
+                        "http://www.contoso.com");
+                });
         });
 
         return services;

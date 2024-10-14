@@ -8,7 +8,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // Call the custom CORS method to set up CORS policies
-builder.Services.AddCustomCors(); // Ensure you have this line
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder.AllowAnyMethod()
+                .AllowAnyHeader()
+                .SetIsOriginAllowed((host) => true)
+                .AllowCredentials();
+        });
+}); // Ensure you have this line
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -24,7 +34,7 @@ builder.Services.AddCustomAuthentication();
 builder.Services.AddCustomServices();
 
 var app = builder.Build();
-
+app.UseCors("AllowAll");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -35,7 +45,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // **Important**: Apply the CORS policy here
-app.UseCors("AllowAllOrigins"); // Ensure you include this line
+ // Ensure you include this line
 
 app.UseAuthentication();
 app.UseAuthorization();
