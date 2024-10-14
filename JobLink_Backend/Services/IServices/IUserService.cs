@@ -18,6 +18,6 @@ namespace JobLink_Backend.Services.IServices
         Task<bool> VerifyOtpAsync(string email, string otp); 
 
         Task ResetPasswordAsync(string email, string newPassword);
-          bool ChangePassword(int userId, string currentPassword, string newPassword);
+        Task<bool> ChangePassword(int userId, string currentPassword, string newPassword);
     }
 }
