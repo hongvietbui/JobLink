@@ -58,6 +58,31 @@ namespace JobLink_Backend.Controllers
             };
             return Ok(loginResponse);
         }
+        
+        [HttpPost("register")]
+        public async Task<IActionResult> RegisterAsync([FromBody] ApiRequest<RegisterRequest> request)
+        {
+            var user = request.Data;
+            var result = await _userService.RegisterAsync(user);
+            if (result == null)
+            {
+                return BadRequest(new ApiResponse<string>
+                {
+                    Data = "",
+                    Message = "Username or email is already existed",
+                    Status = 400,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+
+            return Ok(new ApiResponse<string>
+            {
+                Data = "Register successfully!",
+                Message = "Register successfully",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
 
         [HttpPost("sent-otp")]
         public async Task<IActionResult> ForgotPasswordAsync([FromBody] ApiRequest<ForgotPassRequest> request)
@@ -108,30 +133,5 @@ namespace JobLink_Backend.Controllers
                 Timestamp = DateTime.Now.Ticks
             });
         }
-    }
-    
-    [HttpPost("register")]
-    public async Task<IActionResult> RegisterAsync([FromBody] ApiRequest<RegisterRequest> request)
-    {
-        var user = request.Data;
-        var result = await _userService.RegisterAsync(user);
-        if (result == null)
-        {
-            return BadRequest(new ApiResponse<string>
-            {
-                Data = "",
-                Message = "Username or email is already existed",
-                Status = 400,
-                Timestamp = DateTime.Now.Ticks
-            });
-        }
-
-        return Ok(new ApiResponse<string>
-        {
-            Data = "Register successfully!",
-            Message = "Register successfully",
-            Status = 200,
-            Timestamp = DateTime.Now.Ticks
-        });
     }
 }
