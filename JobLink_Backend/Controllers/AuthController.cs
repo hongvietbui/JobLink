@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.Request;
 using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.Services.IServices;
@@ -7,8 +8,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JobLink_Backend.Controllers;
-[Route("api/[controller]")]
-[ApiController]
 
 [AllowAnonymous]
 public class AuthController(JwtService jwtService, IUserService userService) : BaseController
@@ -32,10 +31,12 @@ public class AuthController(JwtService jwtService, IUserService userService) : B
             });
         }
 
+        string roleList = user.Roles.Select(r => r.Name).ToList().ToString();
+        
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Role, user.Role.Name)
+            new Claim(ClaimTypes.Role, roleList ?? "")
         };
         
         var accessToken = _jwtService.GenerateAccessToken(claims);
@@ -54,5 +55,30 @@ public class AuthController(JwtService jwtService, IUserService userService) : B
             Timestamp = DateTime.Now.Ticks
         };
         return Ok(loginResponse);
+    }
+    
+    [HttpPost("register")]
+    public async Task<IActionResult> RegisterAsync([FromBody] ApiRequest<RegisterRequest> request)
+    {
+        var user = request.Data;
+        var result = await _userService.RegisterAsync(user);
+        if (result == null)
+        {
+            return BadRequest(new ApiResponse<string>
+            {
+                Data = "",
+                Message = "Username or email is already existed",
+                Status = 400,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+
+        return Ok(new ApiResponse<string>
+        {
+            Data = "Register successfully!",
+            Message = "Register successfully",
+            Status = 200,
+            Timestamp = DateTime.Now.Ticks
+        });
     }
 }
