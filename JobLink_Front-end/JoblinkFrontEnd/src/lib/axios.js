@@ -141,7 +141,7 @@ const EmailTemplate = {
   list: () => requests.get(META.BACKEND + '/api/email-template'),
 }
 const EmailInput ={
-  OtpSend: (Email) => requests.post('https://localhost:44395/api/Auth/sent-otp',Email),
+  OtpSend: (Email) => requests.post('https://localhost:8081/api/Auth/sent-otp',Email),
 }
 
 const agent = {
