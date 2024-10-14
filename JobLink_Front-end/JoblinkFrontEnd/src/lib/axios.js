@@ -13,7 +13,13 @@ const responseBody = (response)=> {
 
 
 axios.interceptors.request.use(async (config) => {
-  
+  if (config.method === 'post' || config.method === 'put' || config.method === 'delete') {
+    const originalData = config.data || {} // preserve original body data
+    config.data = {
+      data: originalData,
+      timestamp: Date.now(),
+    }
+  }
   return config
 })
 
