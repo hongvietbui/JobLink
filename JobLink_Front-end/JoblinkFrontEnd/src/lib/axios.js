@@ -10,7 +10,6 @@ import { convertParams } from './convertUrlParams'
 
 //axios.defaults.baseURL = (META.BASE_URL ?? 'http://localhost:3000') as string
 axios.defaults.withCredentials = true
-axios.defaults.timeout = 1000
 
 const responseBody = (response)=> {
   return response.data.data
