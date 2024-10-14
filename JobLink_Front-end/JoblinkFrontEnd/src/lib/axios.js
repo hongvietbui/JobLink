@@ -1,13 +1,11 @@
-import { META } from '#utils/helper/env.js'
+import { META } from '../utils/helper/env'
 import axios from 'axios'
-import { toast } from 'react-toastify'
-import { redirect } from 'vike/abort'
+import { Toaster } from '@/components/ui/toaster'
 
-import refreshToken from './authenHelper'
 
 import axiosRetry from 'axios-retry'
 
-import { convertParams } from './convertParams'
+import { convertParams } from './convertUrlParams'
 
 
 //axios.defaults.baseURL = (META.BASE_URL ?? 'http://localhost:3000') as string
@@ -54,7 +52,7 @@ axios.interceptors.response.use(
           }
           throw modelStateErrors.flat()
         }
-        toast.error(data.title)
+        Toaster.error(data.title)
         break
       case 401:
         if (data.message === 'Access token has expired') {
@@ -63,10 +61,10 @@ axios.interceptors.response.use(
         break
 
       case 403:
-        toast.error('You are not allowed to do that!')
+        Toaster.error('You are not allowed to do that!')
         break
       case 500:
-        throw redirect('/login')
+       
         break
       default:
         break
@@ -130,26 +128,7 @@ const requests = {
         },
       })
       .then(responseBody)
-  },
-  postFront: async (url, body) => {
-    return axios
-      .post(url, body, {
-        headers: {
-          'Content-type': 'application/json',
-        },
-      })
-      .then(responseBody)
-  },
-  delFront: async (url, params) => {
-    return axios
-      .delete(url, {
-        params,
-        headers: {
-          'Content-type': 'application/json',
-        },
-      })
-      .then(responseBody)
-  },
+  }
 }
 
 const CsrfToken = {
@@ -183,13 +162,16 @@ const Attendance = {
 const EmailTemplate = {
   list: () => requests.get(META.BACKEND + '/api/email-template'),
 }
-
+const EmailInput ={
+  OtpSend: (Email) => requests.post('https://localhost:8081/api/Auth/sent-otp',Email),
+}
 
 const agent = {
   CsrfToken,
   Account,
   Attendance,
   EmailTemplate,
+  EmailInput
 }
 
 export default agent
