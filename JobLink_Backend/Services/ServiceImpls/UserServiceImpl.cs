@@ -16,17 +16,11 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IUserRepository _userRepository = userRepository;
 
-    public async Task SaveRefreshTokenAsync(string username, string refreshToken)
-    {
-        private readonly IUnitOfWork _unitOfWork;
 
-        // In-memory storage for OTPs
+
         private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
 
-        public UserServiceImpl(IUnitOfWork unitOfWork)
-        {
-            _unitOfWork = unitOfWork;
-        }
+
 
         public async Task SaveRefreshTokenAsync(string username, string refreshToken)
         {
@@ -142,4 +136,4 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         return true;
     }
     }
-}
+
