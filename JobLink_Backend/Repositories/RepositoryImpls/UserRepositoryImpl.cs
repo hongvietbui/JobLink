@@ -11,4 +11,19 @@ public class UserRepositoryImpl : EFRepository<User>, IUserRepository
     {
         _context = context;
     }
+
+    public User GetById(int userId)
+    {
+        return _context.Set<User>().Find(userId);
+    }
+
+    public void Update(User user)
+    {
+        _context.Set<User>().Update(user);
+    }
+
+    public void SaveChanges()
+    {
+        _context.SaveChanges();
+    }
 }
