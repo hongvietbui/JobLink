@@ -21,4 +21,5 @@ public class UserServiceImpl(IUnitOfWork unitOfWork) : IUserService
         var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == username && u.Password == password, u => u.Role);
         return user;
     }
+
 }
