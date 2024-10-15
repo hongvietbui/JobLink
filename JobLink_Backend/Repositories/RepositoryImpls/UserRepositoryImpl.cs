@@ -12,7 +12,7 @@ public class UserRepositoryImpl : EFRepository<User>, IUserRepository
         _context = context;
     }
 
-    public User GetById(int userId)
+    public User GetById(Guid userId)
     {
         return _context.Set<User>().Find(userId);
     }
