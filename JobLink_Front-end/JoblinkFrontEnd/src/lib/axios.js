@@ -4,6 +4,7 @@ import axios from 'axios'
 import { convertParams } from './convertUrlParams'
 
 
+
 //axios.defaults.baseURL = (META.BASE_URL ?? 'http://localhost:3000') as string
 axios.defaults.withCredentials = true
 
@@ -149,13 +150,20 @@ const EmailTemplate = {
 const EmailInput ={
   OtpSend: (Email) => requests.post('https://localhost:8081/api/Auth/sent-otp',Email),
 }
+const VerifyOtp = {
+  verifyCode: (email,code) => requests.post('https://localhost:8081/api/Auth/verify-otp',email,code),
+}
+const ForgetPassChange = {
+  changePass: (email,password) => requests.post('https://localhost:8081/api/Auth/reset-password',email,password),
+}
 
 const agent = {
   CsrfToken,
   Account,
   Attendance,
   EmailTemplate,
-  EmailInput
+  EmailInput,
+  VerifyOtp,ForgetPassChange
 }
 
 export default agent
