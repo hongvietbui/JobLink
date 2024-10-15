@@ -11,6 +11,7 @@ public static class CustomServiceExtension
     {
         //repositories
         services.AddScoped<IUserRepository, UserRepositoryImpl>();
+        services.AddScoped<IRoleRepository, RoleRepositoryImpl>();
         
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         

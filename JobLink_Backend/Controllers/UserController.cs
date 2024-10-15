@@ -16,11 +16,11 @@ namespace JobLink_Backend.Controllers
         }
 
         [HttpPost("change-password")]
-        public IActionResult ChangePassword(int userId, string currentPassword, string newPassword)
+        public async Task<IActionResult> ChangePassword(int userId, string currentPassword, string newPassword)
         {
             try
             {
-                var result = _userService.ChangePassword(userId, currentPassword, newPassword);
+                var result = await _userService.ChangePassword(userId, currentPassword, newPassword);
                 if (result)
                     return Ok(new { message = "Change password successfully" });
                 else
