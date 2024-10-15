@@ -9,5 +9,5 @@ public interface IUserService
     
     Task<User> LoginAsync(string username, string password);
 
-
+    bool ChangePassword(int userId, string currentPassword, string newPassword);
 }
