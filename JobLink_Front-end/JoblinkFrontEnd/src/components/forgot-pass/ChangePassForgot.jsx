@@ -1,17 +1,16 @@
-"use client";
 
 import { useState } from "react";
 import { useLocation } from "react-router-dom"; // Import useLocation
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Toaster } from "@/components/ui/toaster";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import agent from '../../lib/axios'
+import { useToast } from "../../hooks/use-toast" 
 export default function ChangePasswordPage() {
   const location = useLocation();
   const { email } = location.state || {}; 
-
+  const { toast} = useToast()
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -34,11 +33,10 @@ export default function ChangePasswordPage() {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      
         const password =confirmPassword
         await agent.ForgetPassChange.changePass({email,password})
-        Toaster({
+        toast({
         title: "Password changed successfully",
         description: "Your password has been updated.",
       });

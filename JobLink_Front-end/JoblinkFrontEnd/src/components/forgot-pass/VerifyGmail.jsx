@@ -1,13 +1,12 @@
-'use client'
-
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
-import { Toaster } from "@/components/ui/toaster" // Adjust the import path accordingly
+import { Toaster } from "@/components/ui/toaster" // Ensure the correct path
 import agent from '../../lib/axios'
+import { useToast } from "../../hooks/use-toast"  // Import the custom toast hook
 
 export default function VerifyEmailPage() {
   const [email, setEmail] = useState("")
@@ -15,8 +14,8 @@ export default function VerifyEmailPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [showOtpInput, setShowOtpInput] = useState(false)
   const navigate = useNavigate()
-  
-  const { toast } = Toaster() // Use the toast hook here
+
+  const { toast } = useToast() 
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -27,9 +26,8 @@ export default function VerifyEmailPage() {
         await agent.EmailInput.OtpSend({ email })
         localStorage.setItem("verificationEmail", email)
         setShowOtpInput(true)
-        
+
         toast({
-          id: 1,
           title: "OTP Sent",
           description: "Please check your email for the verification code.",
         })
@@ -41,17 +39,16 @@ export default function VerifyEmailPage() {
         navigate('/changePasswordPage', { state: { email } });
       }
     } catch (error) {
-      // Use the toast function
+      // Trigger an error toast
       toast({
-        id:2,
         title: "Error",
         description: showOtpInput 
           ? "Failed to verify OTP. Please try again." 
           : "Failed to send OTP. Please try again.",
         variant: "destructive",
       })
-      
-      if (!showOtpInput) setShowOtpInput(false) 
+
+      if (!showOtpInput) setShowOtpInput(false)
     } finally {
       setIsLoading(false)
     }
@@ -130,6 +127,7 @@ export default function VerifyEmailPage() {
           </CardFooter>
         </form>
       </Card>
+      <Toaster /> {/* Ensure this is included to render toasts */}
     </div>
   )
 }
