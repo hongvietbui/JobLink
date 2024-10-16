@@ -31,6 +31,8 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  justify-content: center; 
+  align-items: center; 
 }
 
 h1 {
