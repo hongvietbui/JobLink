@@ -28,9 +28,9 @@ namespace JobLink_Backend.Controllers
             var user = await _userService.LoginAsync(request.Data.Username, request.Data.Password);
             if (user == null)
             {
-                return BadRequest(new ApiResponse<string>
+                return BadRequest(new ApiResponse<LoginResponse>
                 {
-                    Data = "",
+                    Data = null,
                     Message = "Invalid username or password",
                     Status = 400,
                     Timestamp = DateTime.Now.Ticks
@@ -61,6 +61,20 @@ namespace JobLink_Backend.Controllers
                     Timestamp = DateTime.Now.Ticks
             };
             return Ok(loginResponse);
+        }
+        
+        //logout
+        [HttpGet("logout")]
+        public async Task<IActionResult> LogoutAsync([FromQuery] string username)
+        {
+            await _userService.LogoutAsync(username);
+            return Ok(new ApiResponse<string>
+            {
+                Data = "Logout successfully",
+                Message = "Logout successfully",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
         }
         
         [HttpPost("register")]
