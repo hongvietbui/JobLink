@@ -19,5 +19,6 @@ namespace JobLink_Backend.Services.IServices
 
         Task ResetPasswordAsync(string email, string newPassword);
         Task<bool> ChangePassword(int userId, string currentPassword, string newPassword);
+
     }
 }

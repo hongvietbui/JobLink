@@ -1,4 +1,6 @@
-﻿using JobLink_Backend.Services.IServices;
+﻿using JobLink_Backend.DTOs.Request;
+using JobLink_Backend.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,7 +8,8 @@ namespace JobLink_Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    [AllowAnonymous]
+    public class UserController : BaseController
     {
         private readonly IUserService _userService;
 
@@ -16,12 +19,12 @@ namespace JobLink_Backend.Controllers
         }
 
         [HttpPost("change-password")]
-        public async Task<IActionResult> ChangePassword(int userId, string currentPassword, string newPassword)
+        public IActionResult ChangePassword([FromBody] ApiRequest<ChangePassworDTO> changePassword)
         {
             try
             {
-                var result = await _userService.ChangePassword(userId, currentPassword, newPassword);
-                if (result)
+               var result = _userService.ChangePassword(changePassword.Data);
+                if (true)
                     return Ok(new { message = "Change password successfully" });
                 else
                     return BadRequest(new { message = "Change password failed" });
