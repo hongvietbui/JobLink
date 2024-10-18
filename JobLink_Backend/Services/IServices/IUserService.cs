@@ -15,6 +15,6 @@ namespace JobLink_Backend.Services.IServices
         Task<bool> VerifyOtpAsync(string email, string otp); 
 
         Task ResetPasswordAsync(string email, string newPassword);
-          bool ChangePassword(ChangePassworDTO changePasswor);
+        Task<bool> ChangePassword(ChangePassworDTO changePasswor);
     }
 }

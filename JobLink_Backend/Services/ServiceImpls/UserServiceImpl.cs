@@ -117,9 +117,9 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         public DateTime ExpiryTime { get; set; }
     }
 
-    public bool ChangePassword(ChangePassworDTO changePassword)
+    public async Task<bool> ChangePassword(ChangePassworDTO changePassword)
     {
-        var user = _userRepository.GetById(changePassword.UserId);
+        var user = await _userRepository.GetById(changePassword.UserId);
         if (user == null)
         {
             throw new Exception("User not found");
@@ -131,8 +131,8 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         }
 
         user.Password = changePassword.NewPassword;
-        _userRepository.Update(user);
-        _userRepository.SaveChanges();
+        await _userRepository.Update(user);
+        await _userRepository.SaveChangeAsync();
 
         return true;
     }

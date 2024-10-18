@@ -1,29 +1,27 @@
 using JobLink_Backend.Entities;
 using JobLink_Backend.Repositories.IRepositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace JobLink_Backend.Repositories.RepositoryImpls;
 
 public class UserRepositoryImpl : EFRepository<User>, IUserRepository
 {
     private readonly JobLinkContext _context;
-    
+
     public UserRepositoryImpl(JobLinkContext context) : base(context)
     {
         _context = context;
     }
 
-    public User GetById(Guid userId)
+    public async Task<User> GetById(Guid userId)
     {
-        return _context.Set<User>().Find(userId);
+        return await _context.Set<User>().FindAsync(userId);
     }
 
-    public void Update(User user)
+    public async Task Update(User user)
     {
-        _context.Set<User>().Update(user);
-    }
+        _context.Set<User>().Update(user); 
+          }
 
-    public void SaveChanges()
-    {
-        _context.SaveChanges();
-    }
+    public async Task SaveChangeAsync() => await _context.SaveChangesAsync();
 }
