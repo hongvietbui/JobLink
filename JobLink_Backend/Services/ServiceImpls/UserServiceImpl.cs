@@ -9,14 +9,20 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.Mail;
 using System.Net;
+using System.Security.Claims;
+using JobLink_Backend.Utilities;
+using JobLink_Backend.Utilities.Jwt;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace JobLink_Backend.Services.ServiceImpls;
 
-public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userRepository, IMapper mapper) : IUserService
+public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userRepository, IMapper mapper, JwtService jwtService) : IUserService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IMapper _mapper = mapper;
+    private readonly JwtService _jwtService = jwtService;
     private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
         
     public async Task SaveRefreshTokenAsync(string username, string refreshToken)
@@ -26,6 +32,21 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 
         user.RefreshToken = refreshToken;
         _unitOfWork.Repository<User>().Update(user);
+    }
+
+    public async Task<string> GetNewAccessTokenAsync(string username, string refreshToken)
+    {
+        //get user by username
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
+        //Todo: check if refreshToken is valid
+        //change accessToken
+        var clams = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.Role, user.Roles.Select(r => r.Name).ToList().ToString())
+        };
+
+        return _jwtService.GenerateAccessToken(clams);
     }
 
     public async Task<OtpReponse> SendResetPasswordOtpAsync(string email)
@@ -126,10 +147,29 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         return true;
     }
     
-    public async Task<User> LoginAsync(string username, string password)
+    public async Task<User?> LoginAsync(string username, string password)
     {
-        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == username && u.Password == password, u => u.Roles);
-        return user;
+        var user = await _unitOfWork.Repository<User>().FindByConditionAsync(filter: u => u.Username == username, include: u => u.Include(u => u.Roles));
+        var foundedUser = user.FirstOrDefault();
+        if(foundedUser == null) 
+            return null;
+        if(PasswordHelper.VerifyPassword(password, foundedUser.Password))
+            return foundedUser;
+        return null;
+    }
+
+    public async Task LogoutAsync(string username)
+    {
+        //find user
+        var userList = await _unitOfWork.Repository<User>().FindByConditionAsync(filter: u => u.Username == username, include: u => u.Include(user => user.Roles));
+
+        //delete refresh token
+        var user = userList?.FirstOrDefault();
+        if (user != null)
+        {
+            user.RefreshToken = null;
+            _unitOfWork.Repository<User>().Update(user);
+        }
     }
 
     public async Task<UserDTO> RegisterAsync(RegisterRequest request)
@@ -143,7 +183,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         {
             Id = Guid.NewGuid(),
             Username = request.Username,
-            Password = request.Password,
+            Password = PasswordHelper.HashPassword(request.Password),
             Email = request.Email,
             FirstName = request.FirstName,
             LastName = request.LastName,
