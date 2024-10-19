@@ -12,11 +12,13 @@ public static class CustomServiceExtension
         //repositories
         services.AddScoped<IUserRepository, UserRepositoryImpl>();
         services.AddScoped<IRoleRepository, RoleRepositoryImpl>();
+        services.AddScoped<IJobRepository, JobRepositoryImpl>();
         
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         //services
         services.AddScoped<IUserService, UserServiceImpl>();
+        services.AddScoped<IJobService, JobServiceImpl>();
         return services;
     }
 }

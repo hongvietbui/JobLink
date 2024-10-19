@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using JobLink_Backend.Utilities.Pagination;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace JobLink_Backend.Repositories.IRepositories;
 
@@ -22,7 +23,7 @@ public interface IRepository<T> where T : class
     Task<bool> AnyAsync();
     Task<T> GetByIdAsync(object id);
     Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> filter);
-    Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> filter, params Expression<Func<T, object>>[] includes);
+    Task<IEnumerable<T>?> FindByConditionAsync(Expression<Func<T, bool>> filter = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, bool disableTracking = true);
     Task<int> CountAsync();
     Task<int> CountAsync(Expression<Func<T, bool>> filter);
     #endregion
