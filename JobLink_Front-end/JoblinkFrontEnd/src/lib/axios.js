@@ -1,39 +1,26 @@
-import { META } from '#utils/helper/env.js'
+import { META } from './env'
 import axios from 'axios'
-import { toast } from 'react-toastify'
-import { redirect } from 'vike/abort'
 
-import refreshToken from './authenHelper'
+import { convertParams } from './convertUrlParams'
 
-import axiosRetry from 'axios-retry'
-
-import { convertParams } from './convertParams'
 
 
 //axios.defaults.baseURL = (META.BASE_URL ?? 'http://localhost:3000') as string
 axios.defaults.withCredentials = true
-axios.defaults.timeout = 1000
 
 const responseBody = (response)=> {
   return response.data.data
 }
 
-// Config axios retry
-axiosRetry(axios, {
-  retries: 1,
-  retryDelay: (retryCount) => {
-    return retryCount * 1000
-  },
-  retryCondition: (error) => {
-    if (error.response && error.response.status === 401) {
-      return false
-    }
-    return (error.response && error.response.status >= 500) || error.code === 'ECONNABORTED'
-  },
-})
 
 axios.interceptors.request.use(async (config) => {
-  
+  if (config.method === 'post' || config.method === 'put' || config.method === 'delete') {
+    const originalData = config.data || {} // preserve original body data
+    config.data = {
+      data: originalData,
+      timestamp: Date.now(),
+    }
+  }
   return config
 })
 
@@ -54,19 +41,15 @@ axios.interceptors.response.use(
           }
           throw modelStateErrors.flat()
         }
-        toast.error(data.title)
         break
       case 401:
-        if (data.message === 'Access token has expired') {
-          return refreshToken(error)
-        }
+        
         break
 
       case 403:
-        toast.error('You are not allowed to do that!')
         break
       case 500:
-        throw redirect('/login')
+       
         break
       default:
         break
@@ -124,32 +107,13 @@ const requests = {
   },
   putFile: async (url, data) => {
     return axios
-      .put<ApiResponse<T>>(url, data, {
+      .put(url, data, {
         headers: {
           'Content-type': 'multipart/form-data',
         },
       })
       .then(responseBody)
-  },
-  postFront: async (url, body) => {
-    return axios
-      .post(url, body, {
-        headers: {
-          'Content-type': 'application/json',
-        },
-      })
-      .then(responseBody)
-  },
-  delFront: async (url, params) => {
-    return axios
-      .delete(url, {
-        params,
-        headers: {
-          'Content-type': 'application/json',
-        },
-      })
-      .then(responseBody)
-  },
+  }
 }
 
 const CsrfToken = {
@@ -183,13 +147,23 @@ const Attendance = {
 const EmailTemplate = {
   list: () => requests.get(META.BACKEND + '/api/email-template'),
 }
-
+const EmailInput ={
+  OtpSend: (Email) => requests.post('https://localhost:8081/api/Auth/sent-otp',Email),
+}
+const VerifyOtp = {
+  verifyCode: (email,code) => requests.post('https://localhost:8081/api/Auth/verify-otp',email,code),
+}
+const ForgetPassChange = {
+  changePass: (email,password) => requests.post('https://localhost:8081/api/Auth/reset-password',email,password),
+}
 
 const agent = {
   CsrfToken,
   Account,
   Attendance,
   EmailTemplate,
+  EmailInput,
+  VerifyOtp,ForgetPassChange
 }
 
 export default agent

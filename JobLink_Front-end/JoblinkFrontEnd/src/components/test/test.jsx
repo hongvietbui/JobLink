@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
+import agent from "@/lib/axios";
 import { useState } from "react";
 
 export default function Home() {
   const [clickCount, setClickCount] = useState(0);
 
-  const handleClick = () => {
-    setClickCount(clickCount + 1);
+  const handleClick = async () => {
+    await agent.CsrfToken.getCsrf()
   };
 
   return (

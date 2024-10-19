@@ -1,6 +1,6 @@
 namespace JobLink_Backend.DTOs.All;
 
-public class Login
+public class LoginDTO
 {
   
     public string Username { get; set; }

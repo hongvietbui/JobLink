@@ -5,6 +5,7 @@ using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.Services.IServices;
 using JobLink_Backend.Utilities.Jwt;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JobLink_Backend.Controllers
@@ -12,8 +13,11 @@ namespace JobLink_Backend.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [AllowAnonymous]
+    [EnableCors]
+
     public class AuthController(JwtService jwtService, IUserService userService) : BaseController
     {
+        
         private readonly JwtService _jwtService = jwtService;
         private readonly IUserService _userService = userService;
 
@@ -24,9 +28,9 @@ namespace JobLink_Backend.Controllers
             var user = await _userService.LoginAsync(request.Data.Username, request.Data.Password);
             if (user == null)
             {
-                return BadRequest(new ApiResponse<string>
+                return BadRequest(new ApiResponse<LoginResponse>
                 {
-                    Data = "",
+                    Data = null,
                     Message = "Invalid username or password",
                     Status = 400,
                     Timestamp = DateTime.Now.Ticks
@@ -37,7 +41,7 @@ namespace JobLink_Backend.Controllers
         
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Role, roleList ?? "")
             };
             
@@ -57,6 +61,20 @@ namespace JobLink_Backend.Controllers
                     Timestamp = DateTime.Now.Ticks
             };
             return Ok(loginResponse);
+        }
+        
+        //logout
+        [HttpGet("logout")]
+        public async Task<IActionResult> LogoutAsync([FromQuery] string username)
+        {
+            await _userService.LogoutAsync(username);
+            return Ok(new ApiResponse<string>
+            {
+                Data = "Logout successfully",
+                Message = "Logout successfully",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
         }
         
         [HttpPost("register")]
