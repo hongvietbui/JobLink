@@ -5,13 +5,17 @@ using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.Services.IServices;
 using JobLink_Backend.Utilities.Jwt;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JobLink_Backend.Controllers
 {
     [AllowAnonymous]
+    [EnableCors]
+
     public class AuthController(JwtService jwtService, IUserService userService) : BaseController
     {
+        
         private readonly JwtService _jwtService = jwtService;
         private readonly IUserService _userService = userService;
 
