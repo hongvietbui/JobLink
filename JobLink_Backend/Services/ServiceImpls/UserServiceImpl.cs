@@ -14,148 +14,149 @@ namespace JobLink_Backend.Services.ServiceImpls;
 
 public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userRepository, IMapper mapper) : IUserService
 {
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
-    private readonly IUserRepository _userRepository = userRepository;
-    private readonly IMapper _mapper = mapper;
-    private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
-        
-    public async Task SaveRefreshTokenAsync(string username, string refreshToken)
-    {
-        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
-        if (user == null) throw new ArgumentException("User not found");
+	private readonly IUnitOfWork _unitOfWork = unitOfWork;
+	private readonly IUserRepository _userRepository = userRepository;
+	private readonly IMapper _mapper = mapper;
+	private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
 
-        user.RefreshToken = refreshToken;
-        _unitOfWork.Repository<User>().Update(user);
-    }
+	public async Task SaveRefreshTokenAsync(string username, string refreshToken)
+	{
+		var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
+		if (user == null) throw new ArgumentException("User not found");
 
-    public async Task<OtpReponse> SendResetPasswordOtpAsync(string email)
-    {
-        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Email == email);
-        if (user == null) throw new ArgumentException("User not found");
+		user.RefreshToken = refreshToken;
+		_unitOfWork.Repository<User>().Update(user);
+	}
 
-        string otp = GenerateOtp();
-        var otpResponse = new OtpReponse
-        {
-            Email = email,
-            Code = otp,
-            ExpiryTime = DateTime.UtcNow.AddMinutes(5)
-        };
+	public async Task<OtpReponse> SendResetPasswordOtpAsync(string email)
+	{
+		var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Email == email);
+		if (user == null) throw new ArgumentException("User not found");
 
-        await SendEmailAsync(email, "Reset Password OTP", $"Your OTP is: {otp}. It only generate for 5 minutes");
+		string otp = GenerateOtp();
+		var otpResponse = new OtpReponse
+		{
+			Email = email,
+			Code = otp,
+			ExpiryTime = DateTime.UtcNow.AddMinutes(5)
+		};
 
-        OtpStore[email] = new OtpRecord { Code = otp, ExpiryTime = otpResponse.ExpiryTime };
+		await SendEmailAsync(email, "Reset Password OTP", $"Your OTP is: {otp}. It only generate for 5 minutes");
 
-        return otpResponse;
-    }
+		OtpStore[email] = new OtpRecord { Code = otp, ExpiryTime = otpResponse.ExpiryTime };
 
-    public async Task<bool> VerifyOtpAsync(string email, string otp)
-    {
-        if (OtpStore.TryGetValue(email, out var otpRecord))
-        {
-            if (otpRecord.Code == otp && otpRecord.ExpiryTime > DateTime.UtcNow)
-            {
-                return true; 
-            }
-        }
-        return false; 
-    }
+		return otpResponse;
+	}
 
-    public async Task ResetPasswordAsync(string email, string newPassword)
-    {
-        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Email == email);
-        if (user == null) throw new ArgumentException("User not found");
+	public async Task<bool> VerifyOtpAsync(string email, string otp)
+	{
+		if (OtpStore.TryGetValue(email, out var otpRecord))
+		{
+			if (otpRecord.Code == otp && otpRecord.ExpiryTime > DateTime.UtcNow)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 
-        user.Password = newPassword; 
-        _unitOfWork.Repository<User>().Update(user);
-        await _unitOfWork.SaveChangesAsync();
-    }
+	public async Task ResetPasswordAsync(string email, string newPassword)
+	{
+		var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Email == email);
+		if (user == null) throw new ArgumentException("User not found");
 
-    private string GenerateOtp()
-    {
-        Random random = new Random();
-        return random.Next(100000, 999999).ToString();
-    }
+		user.Password = newPassword;
+		_unitOfWork.Repository<User>().Update(user);
+		await _unitOfWork.SaveChangesAsync();
+	}
 
-    private async Task SendEmailAsync(string email, string subject, string body)
-    {
-        Debug.WriteLine($"Sending email to {email} with subject {subject} and body {body}");
-        string fromMail = "linhxautrai0307@gmail.com";
-        string fromPassword = "kmindaakspwntkwa";
+	private string GenerateOtp()
+	{
+		Random random = new Random();
+		return random.Next(100000, 999999).ToString();
+	}
 
-        MailMessage message = new MailMessage();
-        message.From = new MailAddress(fromMail);
-        message.Subject = "OTP CONFIRMATION!!!";
-        message.To.Add(new MailAddress(email));
-        message.Body = "<html><body> "+ body +" </body></html>";
-        message.IsBodyHtml = true;
+	private async Task SendEmailAsync(string email, string subject, string body)
+	{
+		Debug.WriteLine($"Sending email to {email} with subject {subject} and body {body}");
+		string fromMail = "linhxautrai0307@gmail.com";
+		string fromPassword = "kmindaakspwntkwa";
 
-        var smtpClient = new SmtpClient("smtp.gmail.com")
-        {
-            Port = 587,
-            Credentials = new NetworkCredential(fromMail, fromPassword),
-            EnableSsl = true,
-        };
+		MailMessage message = new MailMessage();
+		message.From = new MailAddress(fromMail);
+		message.Subject = "OTP CONFIRMATION!!!";
+		message.To.Add(new MailAddress(email));
+		message.Body = "<html><body> " + body + " </body></html>";
+		message.IsBodyHtml = true;
 
-        smtpClient.Send(message);
-        await Task.CompletedTask;
-    }
+		var smtpClient = new SmtpClient("smtp.gmail.com")
+		{
+			Port = 587,
+			Credentials = new NetworkCredential(fromMail, fromPassword),
+			EnableSsl = true,
+		};
 
-    private class OtpRecord
-    {
-        public string Code { get; set; }
-        public DateTime ExpiryTime { get; set; }
-    }
-    public async Task<bool> ChangePassword(int userId, string currentPassword, string newPassword)
-    {
-        var user = await _unitOfWork.Repository<User>().GetByIdAsync(userId);
-        if(user == null)
-        {
-            throw new Exception("User not found");
-        }
+		smtpClient.Send(message);
+		await Task.CompletedTask;
+	}
 
-        if(user.Password != currentPassword)
-        {
-            throw new Exception("Current password is incorrect");
-        }
+	private class OtpRecord
+	{
+		public string Code { get; set; }
+		public DateTime ExpiryTime { get; set; }
+	}
 
-        user.Password = newPassword;
-        
-        _unitOfWork.Repository<User>().Update(user);
-        await _unitOfWork.SaveChangesAsync();
+	public async Task<bool> ChangePassword(int userId, string currentPassword, string newPassword)
+	{
+		var user = await _unitOfWork.Repository<User>().GetByIdAsync(userId);
+		if (user == null)
+		{
+			throw new Exception("User not found");
+		}
 
-        return true;
-    }
-    
-    public async Task<User> LoginAsync(string username, string password)
-    {
-        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == username && u.Password == password, u => u.Roles);
-        return user;
-    }
+		if (user.Password != currentPassword)
+		{
+			throw new Exception("Current password is incorrect");
+		}
 
-    public async Task<UserDTO> RegisterAsync(RegisterRequest request)
-    {
-        var roleList = new List<Role>();
-        roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "JobOwner"));
-        roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "Worker"));
-        
-        //check if the role 
-        var newUser = new User
-        {
-            Id = Guid.NewGuid(),
-            Username = request.Username,
-            Password = request.Password,
-            Email = request.Email,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            PhoneNumber = request.PhoneNumber,
-            DateOfBirth = DateOnly.FromDateTime(request.DateOfBirth.Value),
-            Address = request.Address,
-            Roles = roleList,
-            Status = UserStatus.PendingVerification
-        };
+		user.Password = newPassword;
 
-        await _userRepository.AddAsync(newUser);
-        await _unitOfWork.SaveChangesAsync();
-        return _mapper.Map<UserDTO>(newUser);
-    }
+		_unitOfWork.Repository<User>().Update(user);
+		await _unitOfWork.SaveChangesAsync();
+
+		return true;
+	}
+
+	public async Task<User> LoginAsync(string username, string password)
+	{
+		var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == username && u.Password == password, u => u.Roles);
+		return user;
+	}
+
+	public async Task<UserDTO> RegisterAsync(RegisterRequest request)
+	{
+		var roleList = new List<Role>();
+		roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "JobOwner"));
+		roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "Worker"));
+
+		//check if the role 
+		var newUser = new User
+		{
+			Id = Guid.NewGuid(),
+			Username = request.Username,
+			Password = request.Password,
+			Email = request.Email,
+			FirstName = request.FirstName,
+			LastName = request.LastName,
+			PhoneNumber = request.PhoneNumber,
+			DateOfBirth = DateOnly.FromDateTime(request.DateOfBirth.Value),
+			Address = request.Address,
+			Roles = roleList,
+			Status = UserStatus.PendingVerification
+		};
+
+		await _userRepository.AddAsync(newUser);
+		await _unitOfWork.SaveChangesAsync();
+		return _mapper.Map<UserDTO>(newUser);
+	}
 }

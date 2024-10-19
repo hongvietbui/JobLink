@@ -9,8 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace JobLink_Backend.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
     [AllowAnonymous]
     public class AuthController(JwtService jwtService, IUserService userService) : BaseController
     {
