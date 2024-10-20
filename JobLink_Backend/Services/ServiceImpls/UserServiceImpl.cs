@@ -15,6 +15,10 @@ using JobLink_Backend.Utilities.Jwt;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+using System.Threading.Tasks;
+using JobLink_Backend.DTOs.Request;
+
+
 namespace JobLink_Backend.Services.ServiceImpls;
 
 public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userRepository, IMapper mapper, JwtService jwtService) : IUserService

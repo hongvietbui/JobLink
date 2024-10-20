@@ -35,6 +35,13 @@ public class JobLinkContext : DbContext
 			.HasOne(n => n.User)
 			.WithMany(u => u.Notifications) 
 			.HasForeignKey(n => n.UserId);
+
+            modelBuilder.Entity<Transactions>()
+            .HasOne(t => t.User)
+            .WithMany(u => u.UserTransactions)
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 	}
 
+    
 }
