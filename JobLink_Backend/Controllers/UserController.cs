@@ -31,5 +31,12 @@ namespace JobLink_Backend.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("{userId}/notifications")]
+        public async Task<IActionResult> GetUserNotifications(int userId)
+        {
+            var notifications = await _userService.GetUserNotificationsAsync(userId);
+            return Ok(notifications);
+        }
     }
 }
