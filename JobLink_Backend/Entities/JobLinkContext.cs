@@ -7,11 +7,12 @@ public class JobLinkContext : DbContext
     public JobLinkContext(DbContextOptions<JobLinkContext> options) : base(options)
     {
     }
-    
+
     public DbSet<Job> Jobs { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<User> Users { get; set; }
-    
+    public DbSet<Transactions> Transactions { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Job>()
@@ -19,7 +20,7 @@ public class JobLinkContext : DbContext
             .WithMany(u => u.OwnedJobs)
             .HasForeignKey(j => j.OwnerId)
             .OnDelete(DeleteBehavior.NoAction);
-        
+
         modelBuilder.Entity<Job>()
             .HasOne(j => j.Worker)
             .WithMany(u => u.WorkedJobs)
@@ -30,5 +31,11 @@ public class JobLinkContext : DbContext
             .HasMany(u => u.Roles)
             .WithMany(r => r.Users)
             .UsingEntity(userRole => userRole.ToTable("UserRole"));
+
+        modelBuilder.Entity<Transactions>()
+            .HasOne(t => t.User)
+            .WithMany(u => u.UserTransactions)
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

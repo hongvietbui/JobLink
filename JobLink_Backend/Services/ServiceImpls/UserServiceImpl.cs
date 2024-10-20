@@ -15,6 +15,10 @@ using JobLink_Backend.Utilities.Jwt;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+using System.Threading.Tasks;
+using JobLink_Backend.DTOs.Request;
+
+
 namespace JobLink_Backend.Services.ServiceImpls;
 
 public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userRepository, IMapper mapper, JwtService jwtService) : IUserService
@@ -25,6 +29,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
     private readonly JwtService _jwtService = jwtService;
     private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
         
+
     public async Task SaveRefreshTokenAsync(string username, string refreshToken)
     {
         var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
@@ -47,6 +52,13 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         };
 
         return _jwtService.GenerateAccessToken(clams);
+
+    public async Task<User> LoginAsync(string username, string password)
+    {
+        var user = await _unitOfWork.Repository<User>()
+            .FirstOrDefaultAsync(u => u.Username == username && u.Password == password, u => u.Roles);
+
+        return user;
     }
 
     public async Task<OtpReponse> SendResetPasswordOtpAsync(string email)
@@ -75,10 +87,11 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         {
             if (otpRecord.Code == otp && otpRecord.ExpiryTime > DateTime.UtcNow)
             {
-                return true; 
+                return true;
             }
         }
-        return false; 
+
+        return false;
     }
 
     public async Task ResetPasswordAsync(string email, string newPassword)
@@ -87,6 +100,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         if (user == null) throw new ArgumentException("User not found");
 
         user.Password = newPassword; 
+
         _unitOfWork.Repository<User>().Update(user);
         await _unitOfWork.SaveChangesAsync();
     }
@@ -107,7 +121,9 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         message.From = new MailAddress(fromMail);
         message.Subject = "OTP CONFIRMATION!!!";
         message.To.Add(new MailAddress(email));
+
         message.Body = "<html><body> "+ body +" </body></html>";
+
         message.IsBodyHtml = true;
 
         var smtpClient = new SmtpClient("smtp.gmail.com")
@@ -126,23 +142,23 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         public string Code { get; set; }
         public DateTime ExpiryTime { get; set; }
     }
-    public async Task<bool> ChangePassword(int userId, string currentPassword, string newPassword)
+
+    public async Task<bool> ChangePassword(ChangePassworDTO changePassword)
     {
-        var user = await _unitOfWork.Repository<User>().GetByIdAsync(userId);
-        if(user == null)
+        var user = await _userRepository.GetById(changePassword.UserId);
+        if (user == null)
         {
             throw new Exception("User not found");
         }
 
-        if(user.Password != currentPassword)
+        if (user.Password != changePassword.CurrentPassword)
         {
             throw new Exception("Current password is incorrect");
         }
 
-        user.Password = newPassword;
-        
-        _unitOfWork.Repository<User>().Update(user);
-        await _unitOfWork.SaveChangesAsync();
+        user.Password = changePassword.NewPassword;
+        await _userRepository.Update(user);
+        await _userRepository.SaveChangeAsync();
 
         return true;
     }
