@@ -32,4 +32,5 @@ public class User : BaseEntity<Guid>
     public ICollection<Role> Roles { get; set; }
     public ICollection<Job> OwnedJobs { get; set; }
     public ICollection<Job> WorkedJobs { get; set; }
+    public ICollection<Notification> Notifications { get; set; }
 }
