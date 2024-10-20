@@ -34,15 +34,15 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         _unitOfWork.Repository<User>().Update(user);
     }
 
-    public async Task<string> GetNewAccessTokenAsync(string username, string refreshToken)
+    public async Task<string> GetNewAccessTokenAsync(Guid userId, string refreshToken)
     {
         //get user by username
-        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Id == userId);
         //Todo: check if refreshToken is valid
         //change accessToken
         var clams = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Role, user.Roles.Select(r => r.Name).ToList().ToString())
         };
 

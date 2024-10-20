@@ -8,7 +8,7 @@ namespace JobLink_Backend.Services.IServices
     public interface IUserService
     {
         Task SaveRefreshTokenAsync(string username, string refreshToken);
-        Task<string> GetNewAccessTokenAsync(string username, string refreshToken);
+        Task<string> GetNewAccessTokenAsync(Guid userId, string refreshToken);
         Task<User?> LoginAsync(string username, string password);
         Task LogoutAsync(string username); 
         Task<UserDTO> RegisterAsync(RegisterRequest request);
