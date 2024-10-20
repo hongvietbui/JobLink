@@ -8,16 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace JobLink_Backend.Controllers;
 
-    public class JobController : BaseController
-    {
-        [HttpPost("create-job")]
-        public async Task<IActionResult> CreateUser([FromBody] ApiRequest<CreateJobDto> addUserDto)
-        {
-            var result = await _userService.AddUserAsync(addUserDto.Data);
-            return CreatedAtAction(nameof(GetDetail), new { id = result.Id }, new ApiResponse<GetJobDto>(201, "User created", result));
-        }
-    }
-
 public class JobController(IJobService jobService, IMapper mapper) : BaseController
 {
     private readonly IJobService _jobService = jobService;
@@ -70,4 +60,10 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             Timestamp = DateTime.Now.Ticks
         });
     }
+   /* [HttpPost("create-job")]
+    public async Task<IActionResult> CreateUser([FromBody] ApiRequest<CreateJobDto> addUserDto)
+    {
+        var result = await _userService.AddUserAsync(addUserDto.Data);
+        return CreatedAtAction(nameof(GetDetail), new { id = result.Id }, new ApiResponse<GetJobDto>(201, "User created", result));
+    }*/
 }
