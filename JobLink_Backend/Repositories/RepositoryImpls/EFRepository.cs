@@ -3,6 +3,7 @@ using JobLink_Backend.Entities;
 using JobLink_Backend.Repositories.IRepositories;
 using JobLink_Backend.Utilities.Pagination;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace JobLink_Backend.Repositories.RepositoryImpls;
 
@@ -121,19 +122,26 @@ public class EFRepository<T> : IRepository<T> where T : class
             .FirstOrDefaultAsync(filter))!;
     }
 
-    public Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> filter, params Expression<Func<T, object>>[] includes)
+    public async Task<IEnumerable<T>?> FindByConditionAsync(Expression<Func<T, bool>> filter, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy, Func<IQueryable<T>, IIncludableQueryable<T, object>> include, bool disableTracking = true)
     {
         IQueryable<T> query = _dbSet;
         
-        if (includes != null)
+        if (disableTracking)
         {
-            foreach (var include in includes)
-            {
-                query = query.Include(include);
-            }
+            query = query.AsNoTracking();
+        }
+        
+        if (include != null)
+        {
+            query = include(query);
+        }
+        
+        if (orderBy != null)
+        {
+            query = orderBy(query);
         }
 
-        return query.AsNoTracking().FirstOrDefaultAsync(filter);
+        return await query.Where(filter).ToListAsync();
     }
 
     public async Task<int> CountAsync()
