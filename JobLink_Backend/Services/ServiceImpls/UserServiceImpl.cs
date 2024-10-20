@@ -37,7 +37,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
     public async Task<User> LoginAsync(string username, string password)
     {
         var user = await _unitOfWork.Repository<User>()
-            .FirstOrDefaultAsync(u => u.Username == username && u.Password == password, u => u.Role);
+            .FirstOrDefaultAsync(u => u.Username == username && u.Password == password, u => u.Roles);
 
         return user;
     }
@@ -144,11 +144,6 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         return true;
     }
     
-    public async Task<User> LoginAsync(string username, string password)
-    {
-        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == username && u.Password == password, u => u.Roles);
-        return user;
-    }
 
     public async Task<UserDTO> RegisterAsync(RegisterRequest request)
     {
