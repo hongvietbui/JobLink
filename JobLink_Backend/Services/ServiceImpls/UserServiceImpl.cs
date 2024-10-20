@@ -130,23 +130,22 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 		public string Code { get; set; }
 		public DateTime ExpiryTime { get; set; }
 	}
-	public async Task<bool> ChangePassword(int userId, string currentPassword, string newPassword)
+	public async Task<bool> ChangePassword(ChangePassworDTO changePassword)
 	{
-		var user = await _unitOfWork.Repository<User>().GetByIdAsync(userId);
+		var user = await _userRepository.GetById(changePassword.UserId);
 		if (user == null)
 		{
 			throw new Exception("User not found");
 		}
 
-		if (user.Password != currentPassword)
+		if (user.Password != changePassword.CurrentPassword)
 		{
 			throw new Exception("Current password is incorrect");
 		}
 
-		user.Password = newPassword;
-
-		_unitOfWork.Repository<User>().Update(user);
-		await _unitOfWork.SaveChangesAsync();
+		user.Password = changePassword.NewPassword;
+		await _userRepository.Update(user);
+		await _userRepository.SaveChangeAsync();
 
 		return true;
 	}
@@ -203,7 +202,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 		return _mapper.Map<UserDTO>(newUser);
 	}
 
-	public async Task AddNotificationAsync(int userId, string message)
+	public async Task AddNotificationAsync(Guid userId, string message)
 	{
 		var notification = new Notification
 		{
@@ -216,12 +215,11 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 		await _unitOfWork.SaveChangesAsync();
 	}
 
-	public async Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(int userId)
+	public async Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(Guid userId)
 	{
 		var notification = await _unitOfWork.Repository<Notification>().FindByConditionAsync(n => n.UserId == userId);
 		return notification.Select(n => new NotificationDTO
 		{
-			Id = n.Id,
 			Message = n.Message,
 			Date = n.Date,
 			IsRead = n.IsRead

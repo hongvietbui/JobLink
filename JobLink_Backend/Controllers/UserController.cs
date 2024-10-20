@@ -36,7 +36,7 @@ namespace JobLink_Backend.Controllers
         }
 
         [HttpGet("{userId}/notifications")]
-        public async Task<IActionResult> GetUserNotifications(int userId)
+        public async Task<IActionResult> GetUserNotifications(Guid userId)
         {
             var notifications = await _userService.GetUserNotificationsAsync(userId);
             return Ok(notifications);
