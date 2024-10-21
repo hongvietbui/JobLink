@@ -4,18 +4,18 @@ namespace JobLink_Backend.Entities;
 
 public enum JobStatus
 {
-    [StringValue("pending-approval")]
+    [StringValue("PENDING_APPROVAL")]
     PendingApproval,
-    [StringValue("approved")]
+    [StringValue("APPROVED")]
     Approved,
-    [StringValue("rejected")]
+    [StringValue("REJECTED")]
     Rejected,
-    [StringValue("expired")]
+    [StringValue("EXPIRED")]
     Expired,
-    [StringValue("deleted")]
+    [StringValue("DELETED")]
     Deleted,
-    [StringValue("completed")]
+    [StringValue("COMPLETED")]
     Completed,
-    [StringValue("in-progress")]
+    [StringValue("IN_PROGRESS")]
     InProgress
 }

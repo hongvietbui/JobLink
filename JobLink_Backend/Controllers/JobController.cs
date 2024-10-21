@@ -1,0 +1,73 @@
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using JobLink_Backend.DTOs.All; // Update according to your actual DTO namespace
+using JobLink_Backend.Services.IServices; // Update according to your service interfaces
+using System;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+using JobLink_Backend.Utilities.Pagination;
+using JobLink_Backend.Entities;
+using JobLink_Backend.DTOs.Response;
+using Microsoft.AspNetCore.Authorization; // Ensure you have the correct namespace for ApiResponse
+
+namespace JobLink_Backend.Controllers
+{
+    [AllowAnonymous]
+    public class JobController : BaseController
+    {
+        private readonly IJobServices _jobServices; // Inject your job service
+
+        public JobController(IJobServices jobServices)
+        {
+            _jobServices = jobServices;
+        }
+
+        [HttpGet("get-jobs")]
+        public async Task<IActionResult> GetJobsAsync(int pageIndex = 1, int pageSize = 10, string sortBy = null, bool isDescending = false, string filter = null)
+        {
+            try
+            {
+                Expression<Func<Job, bool>> filterExpression = null;
+
+                if (!string.IsNullOrEmpty(filter))
+                {
+                    filterExpression = job => job.Name.Contains(filter) || job.Description.Contains(filter);
+                }
+
+               
+                var result = await _jobServices.GetJobsAsync(pageIndex, pageSize, sortBy, isDescending, filterExpression);
+
+                if (result == null || result.TotalItems == 0)
+                {
+                    return BadRequest(new ApiResponse<string>
+                    {
+                        Data = null,
+                        Message = "No jobs found",
+                        Status = 404,
+                        Timestamp = DateTime.Now.Ticks
+                    });
+                }
+
+                var viewJobResponse = new ApiResponse<Pagination<JobDTO>>
+                {
+                    Data = result, 
+                    Message = "Jobs retrieved successfully",
+                    Status = 200,
+                    Timestamp = DateTime.Now.Ticks
+                };
+
+                return Ok(viewJobResponse);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>
+                {
+                    Data = null,
+                    Message = ex.Message,
+                    Status = 500,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+        }
+    }
+}
