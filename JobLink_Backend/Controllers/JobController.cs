@@ -1,28 +1,67 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using JobLink_Backend.DTOs.All; // Update according to your actual DTO namespace
-using JobLink_Backend.Services.IServices; // Update according to your service interfaces
-using System;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using JobLink_Backend.Utilities.Pagination;
-using JobLink_Backend.Entities;
+using JobLink_Backend.DTOs.All.Job;
+using JobLink_Backend.DTOs.Request;
+using AutoMapper;
+using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.Response;
-using Microsoft.AspNetCore.Authorization; // Ensure you have the correct namespace for ApiResponse
+using JobLink_Backend.Services.IServices;
+using Microsoft.AspNetCore.Mvc;
 
-namespace JobLink_Backend.Controllers
+namespace JobLink_Backend.Controllers;
+
+public class JobController(IJobService jobService, IMapper mapper) : BaseController
 {
-    [AllowAnonymous]
-    public class JobController : BaseController
+    private readonly IJobService _jobService = jobService;
+    private readonly IMapper _mapper = mapper;
+    
+    [HttpGet("id")]
+    public async Task<IActionResult> GetJobById([FromQuery] Guid jobId)
     {
-        private readonly IJobServices _jobServices; // Inject your job service
-
-        public JobController(IJobServices jobServices)
+        var job = await _jobService.GetJobByIdAsync(jobId);
+        
+        if(job == null)
+            return NotFound(new ApiResponse<JobDTO>
+            {
+                Data = null,
+                Message = "Job not found",
+                Status = 404,
+                Timestamp = DateTime.Now.Ticks
+            });
+        
+        return Ok(new ApiResponse<JobDTO>
         {
-            _jobServices = jobServices;
-        }
+            Data = job,
+            Message = "Get job details successfully!",
+            Status = 200,
+            Timestamp = DateTime.Now.Ticks
+        });
+    }
+    
+    [HttpGet("role")]
+    public async Task<IActionResult> GetRoleByJobId([FromQuery] Guid jobId, [FromHeader] string authorization)
+    {
+        var accessToken = authorization.Split(" ")[1];
+        
+        var role = await _jobService.GetUserRoleInJobAsync(jobId, accessToken);
 
-        [HttpGet("get-jobs")]
+        if (role == null)
+            return NotFound(new ApiResponse<RoleDTO>
+            {
+                Data = null,
+                Message = "User role not found",
+                Status = 404,
+                Timestamp = DateTime.Now.Ticks
+            });
+        
+        return Ok(new ApiResponse<RoleDTO>
+        {
+            Data = _mapper.Map<RoleDTO>(role),
+            Message = "Get user role in job successfully!",
+            Status = 200,
+            Timestamp = DateTime.Now.Ticks
+        });
+    }
+
+    [HttpGet("get-jobs")]
         public async Task<IActionResult> GetJobsAsync(int pageIndex = 1, int pageSize = 10, string sortBy = null, bool isDescending = false, string filter = null)
         {
             try
@@ -69,5 +108,4 @@ namespace JobLink_Backend.Controllers
                 });
             }
         }
-    }
 }

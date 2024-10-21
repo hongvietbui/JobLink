@@ -10,6 +10,8 @@ public static class CustomServiceExtension
     public static IServiceCollection AddCustomServices(this IServiceCollection services)
     {
         services.AddScoped<IUserRepository, UserRepositoryImpl>();
+        services.AddScoped<IRoleRepository, RoleRepositoryImpl>();
+        services.AddScoped<IJobRepository, JobRepositoryImpl>();
         
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         

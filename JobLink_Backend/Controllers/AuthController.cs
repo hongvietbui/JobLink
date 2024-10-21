@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.Request;
 using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.Services.IServices;
@@ -27,21 +28,23 @@ namespace JobLink_Backend.Controllers
             var user = await _userService.LoginAsync(request.Data.Username, request.Data.Password);
             if (user == null)
             {
-                return BadRequest(new ApiResponse<string>
+                return BadRequest(new ApiResponse<LoginResponse>
                 {
-                    Data = "",
+                    Data = null,
                     Message = "Invalid username or password",
                     Status = 400,
                     Timestamp = DateTime.Now.Ticks
                 });
             }
 
+            string roleList = user.Roles.Select(r => r.Name).ToList().ToString();
+        
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role.Name)
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Role, roleList ?? "")
             };
-
+            
             var accessToken = _jwtService.GenerateAccessToken(claims);
             var refreshToken = _jwtService.GenerateRefreshToken();
             await _userService.SaveRefreshTokenAsync(user.Username, refreshToken);
@@ -49,15 +52,54 @@ namespace JobLink_Backend.Controllers
             var loginResponse = new ApiResponse<LoginResponse>
             {
                 Data = new LoginResponse
-                {
-                    AccessToken = accessToken,
-                    RefreshToken = refreshToken
-                },
-                Message = "Login successfully",
-                Status = 200,
-                Timestamp = DateTime.Now.Ticks
+                    {
+                        AccessToken = accessToken,
+                        RefreshToken = refreshToken
+                    },
+                    Message = "Login successfully",
+                    Status = 200,
+                    Timestamp = DateTime.Now.Ticks
             };
             return Ok(loginResponse);
+        }
+        
+        //logout
+        [HttpGet("logout")]
+        public async Task<IActionResult> LogoutAsync([FromQuery] string username)
+        {
+            await _userService.LogoutAsync(username);
+            return Ok(new ApiResponse<string>
+            {
+                Data = "Logout successfully",
+                Message = "Logout successfully",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+        
+        [HttpPost("register")]
+        public async Task<IActionResult> RegisterAsync([FromBody] ApiRequest<RegisterRequest> request)
+        {
+            var user = request.Data;
+            var result = await _userService.RegisterAsync(user);
+            if (result == null)
+            {
+                return BadRequest(new ApiResponse<string>
+                {
+                    Data = "",
+                    Message = "Username or email is already existed",
+                    Status = 400,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+
+            return Ok(new ApiResponse<string>
+            {
+                Data = "Register successfully!",
+                Message = "Register successfully",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
         }
 
         [HttpPost("sent-otp")]

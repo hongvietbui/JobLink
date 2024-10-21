@@ -1,5 +1,6 @@
 using JobLink_Backend.Entities;
 using JobLink_Backend.Extensions;
+using JobLink_Backend.Mappings;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +33,8 @@ builder.Services.AddCustomAuthentication();
 
 // Add custom services
 builder.Services.AddCustomServices();
+//Add auto mappers
+builder.Services.AddAutoMapper(typeof(MapProfile).Assembly);
 
 var app = builder.Build();
 app.UseCors("AllowAll");

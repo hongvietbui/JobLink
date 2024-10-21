@@ -20,17 +20,19 @@ public class User : BaseEntity<Guid>
     [MaxLength(11)]
     [Phone]
     public string PhoneNumber { get; set; }
-    public DateTime? DateOfBirth { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
     public string? Address { get; set; }
     public int? Lat { get; set; }
     public int? Lon { get; set; }
     public string? Avatar { get; set; }
-    public Guid RoleId { get; set; }
     public string? RefreshToken { get; set; }
     public UserStatus Status { get; set; }
     
     //Navigation properties
-    public Role Role { get; set; }
+    public ICollection<Role> Roles { get; set; }
     public ICollection<Job> OwnedJobs { get; set; }
     public ICollection<Job> WorkedJobs { get; set; }
+    public ICollection<Notification> Notifications { get; set; }
+    public ICollection<Transactions> UserTransactions { get; set; }
 }
+    

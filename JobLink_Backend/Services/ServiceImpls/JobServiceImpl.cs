@@ -1,19 +1,54 @@
 ﻿using System.Linq.Expressions;
+﻿using System.Security.Claims;
+using AutoMapper;
 using JobLink_Backend.DTOs.All;
 using JobLink_Backend.Entities;
 using JobLink_Backend.Repositories.IRepositories;
 using JobLink_Backend.Services.IServices;
-using JobLink_Backend.Utilities;
-using JobLink_Backend.Utilities.Pagination;
-using Microsoft.EntityFrameworkCore;
+using JobLink_Backend.Utilities.Jwt;
 
-public class JobServiceImpl : IJobServices
+namespace JobLink_Backend.Services.ServiceImpls;
+
+public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService jwtService) : IJobService
 {
-    private readonly IUnitOfWork _unitOfWork;
-
-    public JobServiceImpl(IUnitOfWork unitOfWork)
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IMapper _mapper = mapper;
+    private readonly JwtService _jwtService = jwtService;
+    
+    public async Task<JobDTO?> GetJobByIdAsync(Guid jobId)
     {
-        _unitOfWork = unitOfWork;
+        var job = await _unitOfWork.Repository<Job>().FirstOrDefaultAsync(j => j.Id == jobId);
+        return _mapper.Map<JobDTO>(job);
+    }
+
+    public async Task<Role?> GetUserRoleInJobAsync(Guid jobId, string accessToken)
+    {
+        var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+        
+        var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        {
+            throw new Exception("User ID not found in token claims.");
+        }
+        
+        var job = await _unitOfWork.Repository<Job>().FirstOrDefaultAsync(j => j.Id == jobId);
+        
+        if (job == null)
+        {
+            throw new Exception("Job not found.");
+        }
+        
+        if (job.OwnerId == userId)
+        {
+            return await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "JobOwner");
+        }
+        
+        if (job.WorkerId == userId)
+        {
+            return await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "Worker");
+        }
+        
+        return null;
     }
 
     public async Task<Pagination<JobDTO>> GetJobsAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, Expression<Func<Job, bool>> filter = null)
@@ -75,4 +110,5 @@ public class JobServiceImpl : IJobServices
 
         return isDescending ? query.OrderByDescending(orderByExpression) : query.OrderBy(orderByExpression);
     }
+
 }
