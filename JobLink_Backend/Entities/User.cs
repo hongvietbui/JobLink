@@ -26,8 +26,8 @@ public class User : BaseEntity<Guid>
     public int? Lon { get; set; }
     public string? Avatar { get; set; }
     public string? RefreshToken { get; set; }
+    public DateTime? RefreshTokenExpiryTime { get; set; }
     public UserStatus Status { get; set; }
-    
     //Navigation properties
     public ICollection<Role> Roles { get; set; }
     public ICollection<Job> OwnedJobs { get; set; }

@@ -12,12 +12,7 @@ using System.Net;
 using System.Security.Claims;
 using JobLink_Backend.Utilities;
 using JobLink_Backend.Utilities.Jwt;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
-using System.Threading.Tasks;
-using JobLink_Backend.DTOs.Request;
-
 
 namespace JobLink_Backend.Services.ServiceImpls;
 
@@ -33,6 +28,9 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 	{
 		var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
 		if (user == null) throw new ArgumentException("User not found");
+		user.RefreshToken = refreshToken;
+		_unitOfWork.Repository<User>().Update(user);
+	}
 
     public async Task<string> GetNewAccessTokenAsync(Guid userId, string refreshToken)
     {
@@ -45,21 +43,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Role, user.Roles.Select(r => r.Name).ToList().ToString())
         };
-	}
-
-	public async Task<string> GetNewAccessTokenAsync(string username, string refreshToken)
-	{
-		//get user by username
-		var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
-		//Todo: check if refreshToken is valid
-		//change accessToken
-		var clams = new List<Claim>
-		{
-			new Claim(ClaimTypes.Name, user.Username),
-			new Claim(ClaimTypes.Role, user.Roles.Select(r => r.Name).ToList().ToString())
-		};
-
-		return _jwtService.GenerateAccessToken(clams);
+        return _jwtService.GenerateAccessToken(clams);
 	}
 
 	public async Task<OtpReponse> SendResetPasswordOtpAsync(string email)
@@ -159,15 +143,12 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 		return true;
 	}
 
-	public async Task<User?> LoginAsync(string username, string password)
+	public async Task<UserDTO> GetUserByAccessToken(string accessToken)
 	{
-		var user = await _unitOfWork.Repository<User>().FindByConditionAsync(filter: u => u.Username == username, include: u => u.Include(u => u.Roles));
-		var foundedUser = user.FirstOrDefault();
-		if (foundedUser == null)
-			return null;
-		if (PasswordHelper.VerifyPassword(password, foundedUser.Password))
-			return foundedUser;
-		return null;
+		var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+		var userId = Guid.Parse(claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
+		var user = await _unitOfWork.Repository<User>().GetByIdAsync(userId);
+		return _mapper.Map<UserDTO>(user);
 	}
 
 	public async Task LogoutAsync(string username)
