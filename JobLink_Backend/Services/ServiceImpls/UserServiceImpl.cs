@@ -29,20 +29,21 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 		var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
 		if (user == null) throw new ArgumentException("User not found");
 		user.RefreshToken = refreshToken;
+		user.RefreshTokenExpiryTime = DateTime.Now.AddDays(30);
 		_unitOfWork.Repository<User>().Update(user);
+		await _unitOfWork.SaveChangesAsync();
 	}
 
     public async Task<string> GetNewAccessTokenAsync(Guid userId, string refreshToken)
     {
         //get user by username
         var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Id == userId);
-        //Todo: check if refreshToken is valid
-        //change accessToken
-        var clams = new List<Claim>
+        if(user.RefreshToken == null || user.RefreshTokenExpiryTime < DateTime.Now)
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Role, user.Roles.Select(r => r.Name).ToList().ToString())
-        };
+	        return "";
+        }
+        //change accessToken
+        var clams = _jwtService.GetClaimsByUser(userId, user.Roles.ToList());
         return _jwtService.GenerateAccessToken(clams);
 	}
 
@@ -149,6 +150,16 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 		var userId = Guid.Parse(claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
 		var user = await _unitOfWork.Repository<User>().GetByIdAsync(userId);
 		return _mapper.Map<UserDTO>(user);
+	}
+
+	public async Task<string?> RefreshTokenAsync(string refreshToken)
+	{
+		var userList = await _unitOfWork.Repository<User>().FindByConditionAsync(u => u.RefreshToken == refreshToken, include: u => u.Include(u => u.Roles));
+		//check if userList is empty or not
+		if (userList == null || userList?.Count() == 0) return null;
+		var user = userList?.First();
+		var claimList = _jwtService.GetClaimsByUser(user.Id, user.Roles.ToList());
+		return _jwtService.GenerateAccessToken(claimList);
 	}
 
 	public async Task LogoutAsync(string username)

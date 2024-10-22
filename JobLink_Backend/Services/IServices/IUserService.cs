@@ -19,5 +19,6 @@ namespace JobLink_Backend.Services.IServices
         Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(Guid userId);
         Task<bool> ChangePassword(ChangePassworDTO changePassword);
         Task<UserDTO> GetUserByAccessToken(string accessToken);
+        Task<string?> RefreshTokenAsync(string refreshToken);
     }
 }

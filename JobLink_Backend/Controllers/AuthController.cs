@@ -6,6 +6,7 @@ using JobLink_Backend.Services.IServices;
 using JobLink_Backend.Utilities.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JobLink_Backend.Controllers
@@ -34,12 +35,8 @@ namespace JobLink_Backend.Controllers
             }
 
             string roleList = user.Roles.Select(r => r.Name).ToList().ToString();
-        
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Role, roleList ?? "")
-            };
+
+            var claims = _jwtService.GetClaimsByUser(user.Id, user.Roles.ToList());
             
             var accessToken = _jwtService.GenerateAccessToken(claims);
             var refreshToken = _jwtService.GenerateRefreshToken();
@@ -93,6 +90,33 @@ namespace JobLink_Backend.Controllers
             {
                 Data = "Register successfully!",
                 Message = "Register successfully",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+        
+        [HttpPost("refresh-access-token")]
+        public async Task<IActionResult> RefreshAccessTokenAsync([FromBody] ApiRequest<RefreshTokenRequest> request)
+        {
+            var result = await _userService.RefreshTokenAsync(request.Data.RefreshToken);
+            if (string.IsNullOrEmpty(result))
+            {
+                return BadRequest(new ApiResponse<string>
+                {
+                    Data = "",
+                    Message = "Invalid refresh token",
+                    Status = 400,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+
+            return Ok(new ApiResponse<AccessTokenResponse>
+            {
+                Data = new AccessTokenResponse
+                {
+                    AccessToken = result
+                },
+                Message = "renew access token successfully",
                 Status = 200,
                 Timestamp = DateTime.Now.Ticks
             });
