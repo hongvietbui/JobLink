@@ -28,7 +28,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
     private readonly IMapper _mapper = mapper;
     private readonly JwtService _jwtService = jwtService;
     private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
-        
+
 
     public async Task SaveRefreshTokenAsync(string username, string refreshToken)
     {
@@ -52,14 +52,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         };
 
         return _jwtService.GenerateAccessToken(clams);
-
-    public async Task<User> LoginAsync(string username, string password)
-    {
-        var user = await _unitOfWork.Repository<User>()
-            .FirstOrDefaultAsync(u => u.Username == username && u.Password == password, u => u.Roles);
-
-        return user;
-    }
+    } 
 
     public async Task<OtpReponse> SendResetPasswordOtpAsync(string email)
     {
@@ -125,7 +118,6 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         message.Body = "<html><body> "+ body +" </body></html>";
 
         message.IsBodyHtml = true;
-
         var smtpClient = new SmtpClient("smtp.gmail.com")
         {
             Port = 587,
