@@ -7,6 +7,7 @@ public class JobDTO
     public Guid Id { get; set; }
     public string? Name { get; set; }
     public string? Description { get; set; }
+    public decimal Price { get; set; }
     public Guid? OwnerId { get; set; }
     public Guid? WorkerId { get; set; }
     public string? Address { get; set; }

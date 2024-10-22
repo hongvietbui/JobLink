@@ -10,6 +10,8 @@ public class Job : BaseEntity<Guid>
     public string Name { get; set; }
     [Required]
     public string Description { get; set; }
+
+    public decimal Price { get; set; }
     [Required]
     public Guid OwnerId { get; set; }
     [AllowNull]

@@ -2,6 +2,7 @@ using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.Request;
 using JobLink_Backend.Entities;
 using JobLink_Backend.DTOs.Response;
+using JobLink_Backend.DTOs.Response.Users;
 
 namespace JobLink_Backend.Services.IServices
 {
@@ -18,5 +19,6 @@ namespace JobLink_Backend.Services.IServices
         Task AddNotificationAsync(Guid userId, string message);
         Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(Guid userId);
         Task<bool> ChangePassword(ChangePassworDTO changePasswor);
+        Task<UserHompageDTO> GetUserHompageAsync(Guid userId);
     }
 }

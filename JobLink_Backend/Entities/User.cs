@@ -25,6 +25,7 @@ public class User : BaseEntity<Guid>
     public int? Lat { get; set; }
     public int? Lon { get; set; }
     public string? Avatar { get; set; }
+    public decimal Amount { get; set; }
     public string? RefreshToken { get; set; }
     public UserStatus Status { get; set; }
     

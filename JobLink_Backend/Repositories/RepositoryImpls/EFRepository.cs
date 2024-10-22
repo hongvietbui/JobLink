@@ -144,6 +144,22 @@ public class EFRepository<T> : IRepository<T> where T : class
         return await query.Where(filter).ToListAsync();
     }
 
+    public async Task<IEnumerable<T>?> FirstOrDefaultCondition(Expression<Func<T, bool>> filter, Func<IQueryable<T>, IIncludableQueryable<T, object>> include, bool disableTracking = true)
+    {
+        IQueryable<T> query = _dbSet;
+        
+        if (disableTracking)
+        {
+            query = query.AsNoTracking();
+        }
+        
+        if (include != null)
+        {
+            query = include(query);
+        }
+
+        return await query.Where(filter).ToListAsync();
+    }
     public async Task<int> CountAsync()
     {
         return await _dbSet.CountAsync();

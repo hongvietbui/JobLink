@@ -41,5 +41,20 @@ namespace JobLink_Backend.Controllers
             var notifications = await _userService.GetUserNotificationsAsync(userId);
             return Ok(notifications);
         }
+        
+        
+        // Lấy thông tin tài khoản người dùng để hiển thị trên homepage
+        // [HttpGet("{id}")]
+        // public async Task<IActionResult> GetUserData(Guid id)
+        // {
+        //     try
+        //     {
+        //         var = await _userService.GetUserHompageAsync(id);
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return BadRequest(new { message = ex.Message });
+        //     }
+        // }
     }
 }

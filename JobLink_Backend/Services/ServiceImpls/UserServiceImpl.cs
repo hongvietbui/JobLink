@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 
 using System.Threading.Tasks;
 using JobLink_Backend.DTOs.Request;
+using JobLink_Backend.DTOs.Response.Users;
 
 
 namespace JobLink_Backend.Services.ServiceImpls;
@@ -150,6 +151,13 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 		return true;
 	}
 
+	public async Task<UserHompageDTO> GetUserHompageAsync(Guid userId)
+	{
+		var userData = await _unitOfWork.Repository<User>().FindByConditionAsync(x => x.Id == userId);
+		
+		return _mapper.Map<UserHompageDTO>(userData);
+	}
+
 	public async Task<User?> LoginAsync(string username, string password)
 	{
 		var user = await _unitOfWork.Repository<User>().FindByConditionAsync(filter: u => u.Username == username, include: u => u.Include(u => u.Roles));
@@ -215,16 +223,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 		await _unitOfWork.SaveChangesAsync();
     }
     
-    public async Task<User?> LoginAsync(string username, string password)
-    {
-        var user = await _unitOfWork.Repository<User>().FindByConditionAsync(filter: u => u.Username == username, include: u => u.Include(u => u.Roles));
-        var foundedUser = user.FirstOrDefault();
-        if(foundedUser == null) 
-            return null;
-        if(PasswordHelper.VerifyPassword(password, foundedUser.Password))
-            return foundedUser;
-        return null;
-    }
+   
 
 	public async Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(Guid userId)
 	{
