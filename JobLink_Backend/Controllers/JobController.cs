@@ -5,6 +5,10 @@ using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
+using JobLink_Backend.Utilities.Pagination;
+using JobLink_Backend.Entities;
+using System.Linq.Expressions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace JobLink_Backend.Controllers;
 
@@ -60,7 +64,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             Timestamp = DateTime.Now.Ticks
         });
     }
-
+    [AllowAnonymous]
     [HttpGet("get-jobs")]
         public async Task<IActionResult> GetJobsAsync(int pageIndex = 1, int pageSize = 10, string sortBy = null, bool isDescending = false, string filter = null)
         {
@@ -74,7 +78,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
                 }
 
                
-                var result = await _jobServices.GetJobsAsync(pageIndex, pageSize, sortBy, isDescending, filterExpression);
+                var result = await _jobService.GetJobsAsync(pageIndex, pageSize, sortBy, isDescending, filterExpression);
 
                 if (result == null || result.TotalItems == 0)
                 {

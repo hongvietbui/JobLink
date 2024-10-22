@@ -16,7 +16,7 @@ public static class CustomServiceExtension
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         services.AddScoped<IUserService, UserServiceImpl>();
-        services.AddScoped<IJobServices, JobServiceImpl>();
+        services.AddScoped<IJobService, JobServiceImpl>();
         return services;
     }
 }

@@ -5,7 +5,10 @@ using JobLink_Backend.DTOs.All;
 using JobLink_Backend.Entities;
 using JobLink_Backend.Repositories.IRepositories;
 using JobLink_Backend.Services.IServices;
+using JobLink_Backend.Utilities;
 using JobLink_Backend.Utilities.Jwt;
+using JobLink_Backend.Utilities.Pagination;
+using Microsoft.EntityFrameworkCore;
 
 namespace JobLink_Backend.Services.ServiceImpls;
 
