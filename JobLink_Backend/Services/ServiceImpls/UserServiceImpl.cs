@@ -225,6 +225,14 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 			Message = n.Message,
 			Date = n.Date,
 			IsRead = n.IsRead
-		}).ToList();
+		}).ToList();    //delete refresh token
+        var user = userList?.FirstOrDefault();
+        if (user != null)
+        {
+            user.RefreshToken = null;
+            _unitOfWork.Repository<User>().Update(user);
+        }
+    }
+
 	}
 }

@@ -10,8 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace JobLink_Backend.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
     [AllowAnonymous]
     [EnableCors]
 
