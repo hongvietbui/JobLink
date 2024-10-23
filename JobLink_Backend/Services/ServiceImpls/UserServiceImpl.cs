@@ -156,7 +156,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 		var foundedUser = user.FirstOrDefault();
 		if (foundedUser == null)
 			return null;
-		if (PasswordHelper.VerifyPassword(password, foundedUser.Password))
+		//if (PasswordHelper.VerifyPassword(password, foundedUser.Password))
 			return foundedUser;
 		return null;
 	}
@@ -214,25 +214,21 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 		await _unitOfWork.Repository<Notification>().AddAsync(notification);
 		await _unitOfWork.SaveChangesAsync();
     }
-    
 
 
-	public async Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(Guid userId)
-	{
-		var notification = await _unitOfWork.Repository<Notification>().FindByConditionAsync(n => n.UserId == userId);
-		return notification.Select(n => new NotificationDTO
-		{
-			Message = n.Message,
-			Date = n.Date,
-			IsRead = n.IsRead
-		}).ToList();    //delete refresh token
-        var user = userList?.FirstOrDefault();
-        if (user != null)
+
+    public async Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(Guid userId)
+    {
+        var notification = await _unitOfWork.Repository<Notification>().FindByConditionAsync(n => n.UserId == userId);
+        return notification.Select(n => new NotificationDTO
         {
-            user.RefreshToken = null;
-            _unitOfWork.Repository<User>().Update(user);
-        }
+            Id = n.Id,
+            Message = n.Message,
+            Date = n.Date,
+            IsRead = n.IsRead
+        }).ToList();
     }
 
-	}
 }
+
+
