@@ -156,7 +156,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 		var foundedUser = user.FirstOrDefault();
 		if (foundedUser == null)
 			return null;
-		//if (PasswordHelper.VerifyPassword(password, foundedUser.Password))
+		if (PasswordHelper.VerifyPassword(password, foundedUser.Password))
 			return foundedUser;
 		return null;
 	}
