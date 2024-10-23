@@ -123,6 +123,8 @@ const CsrfToken = {
 const Account = {
   login: (values) =>
     requests.post(META.BACKEND + '/api/Auth/signin-google', values),
+  loginEmail: (username, password) =>
+    requests.post('http://localhost:8080/api/Auth/login', username, password),
   logout: (values) =>
     requests.postFront(META.BACKEND + '/api/Auth/logout', values),
   refreshToken: (values) =>

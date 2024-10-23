@@ -1,38 +1,50 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import agent from '../../lib/axios'
 import { useToast } from "../../hooks/use-toast"  // Import the custom toast hook
 import { useNavigate } from "react-router-dom"
+import axios from "axios"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
-  const {toast} = useToast()
+  const { toast } = useToast()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      // Simulate API call for login
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      //Call backend
+      const response = await agent.Account.loginEmail({email,password})
 
-      // Here you would typically validate the credentials with your backend
-      if (email === "user@example.com" && password === "password") {
-        // Redirect to dashboard or home page
-        navigate('/changePasswordPage');
+      //check if backend response
+      if (response.data.status === 200) {
+        const { accessToken } = response.data.data;
+        localStorage.setItem('accessToken', accessToken)
 
+        //navigate to homepage
+        navigate('');
+        toast({
+          title: "Logged in successfully!",
+          description: "You have been logged in.",
+          status: "success",
+        });
       } else {
-        throw new Error("Invalid credentials")
+        throw new Error(response.data.message)
       }
     } catch (error) {
-      
+      toast({
+        title: "Login failed",
+        description: error.message || "Invalid email or password",
+        status: "error",
+      });
+
     } finally {
       setIsLoading(false)
     }
@@ -68,7 +80,7 @@ export default function LoginPage() {
                 required
               />
             </div>
-            
+
           </CardContent>
           <CardFooter className="flex flex-col space-y-2">
             <Button type="submit" className="w-full" disabled={isLoading}>
