@@ -162,47 +162,6 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 		return _jwtService.GenerateAccessToken(claimList);
 	}
 
-	public async Task LogoutAsync(string username)
-	{
-		//find user
-		var userList = await _unitOfWork.Repository<User>().FindByConditionAsync(filter: u => u.Username == username, include: u => u.Include(user => user.Roles));
-
-		//delete refresh token
-		var user = userList?.FirstOrDefault();
-		if (user != null)
-		{
-			user.RefreshToken = null;
-			_unitOfWork.Repository<User>().Update(user);
-		}
-	}
-
-	public async Task<UserDTO> RegisterAsync(RegisterRequest request)
-	{
-		var roleList = new List<Role>();
-		roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "JobOwner"));
-		roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "Worker"));
-
-		//check if the role 
-		var newUser = new User
-		{
-			Id = Guid.NewGuid(),
-			Username = request.Username,
-			Password = PasswordHelper.HashPassword(request.Password),
-			Email = request.Email,
-			FirstName = request.FirstName,
-			LastName = request.LastName,
-			PhoneNumber = request.PhoneNumber,
-			DateOfBirth = DateOnly.FromDateTime(request.DateOfBirth.Value),
-			Address = request.Address,
-			Roles = roleList,
-			Status = UserStatus.PendingVerification
-		};
-
-		await _userRepository.AddAsync(newUser);
-		await _unitOfWork.SaveChangesAsync();
-		return _mapper.Map<UserDTO>(newUser);
-	}
-
 	public async Task AddNotificationAsync(Guid userId, string message)
 	{
 		var notification = new Notification
@@ -231,7 +190,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
     {
         //find user
         var userList = await _unitOfWork.Repository<User>().FindByConditionAsync(filter: u => u.Username == username, include: u => u.Include(user => user.Roles));
-
+    
         //delete refresh token
         var user = userList?.FirstOrDefault();
         if (user != null)
@@ -240,12 +199,12 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
             _unitOfWork.Repository<User>().Update(user);
         }
     }
-
+    
     public async Task<UserDTO?> RegisterAsync(RegisterRequest request)
     {
         //check if the username or email is already existed
         var isExisted = await _unitOfWork.Repository<User>().AnyAsync(u => u.Username == request.Username || u.Email == request.Email);
-
+    
         if (isExisted)
             return null;
         
@@ -268,7 +227,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
             Roles = roleList,
             Status = UserStatus.PendingVerification
         };
-
+    
         await _userRepository.AddAsync(newUser);
         await _unitOfWork.SaveChangesAsync();
         return _mapper.Map<UserDTO>(newUser);

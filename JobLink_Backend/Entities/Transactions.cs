@@ -17,8 +17,8 @@ public class Transactions : BaseEntity<Guid>
     public string? BankName { get; set; }
     [Column(TypeName = "nvarchar(51)")]
     public string? BankNumber { get; set; }
-
     public DateTime TransactionDate { get; set; }
+    public string? UserReceive { get; set; }
     
     public User User { get; set; }
 }
