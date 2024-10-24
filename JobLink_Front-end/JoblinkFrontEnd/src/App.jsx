@@ -4,6 +4,7 @@ import VerifyEmailPage from './components/forgot-pass/VerifyGmail'
 import ChangePasswordPage from './components/forgot-pass/ChangePassForgot'
 import ChangePass from './components/change-pass/ChangePass';
 import LoginPage from './components/login/Login';
+import JobList from './components/list-job/ListJob';
 function App() {
   return (
     <Router>
@@ -13,6 +14,7 @@ function App() {
         <Route path="/verifyEmail" element={<VerifyEmailPage />} />
         <Route path="/changePasswordPage" element={<ChangePasswordPage />} />
         <Route path="/Login" element={<LoginPage />} />
+        <Route path="/listJob" element={<JobList />} />
       </Routes>
     </Router>
   );

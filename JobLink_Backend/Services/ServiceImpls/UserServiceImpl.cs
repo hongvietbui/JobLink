@@ -21,15 +21,16 @@ using JobLink_Backend.DTOs.Request;
 
 namespace JobLink_Backend.Services.ServiceImpls;
 
-public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userRepository, IMapper mapper, JwtService jwtService) : IUserService
+public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userRepository, IMapper mapper, JwtService jwtService, IConfiguration configuration) : IUserService
 {
 	private readonly IUnitOfWork _unitOfWork = unitOfWork;
 	private readonly IUserRepository _userRepository = userRepository;
 	private readonly IMapper _mapper = mapper;
 	private readonly JwtService _jwtService = jwtService;
 	private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
+    private readonly IConfiguration _configuration = configuration; 
 
-	public async Task SaveRefreshTokenAsync(string username, string refreshToken)
+    public async Task SaveRefreshTokenAsync(string username, string refreshToken)
 	{
 		var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
 		if (user == null) throw new ArgumentException("User not found");
@@ -104,10 +105,10 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 	private async Task SendEmailAsync(string email, string subject, string body)
 	{
 		Debug.WriteLine($"Sending email to {email} with subject {subject} and body {body}");
-		string fromMail = "linhxautrai0307@gmail.com";
-		string fromPassword = "kmindaakspwntkwa";
+        var fromMail = _configuration["EmailSettings:FromMail"];
+        var fromPassword = _configuration["EmailSettings:FromPassword"];
 
-		MailMessage message = new MailMessage();
+        MailMessage message = new MailMessage();
 		message.From = new MailAddress(fromMail);
 		message.Subject = "OTP CONFIRMATION!!!";
 		message.To.Add(new MailAddress(email));

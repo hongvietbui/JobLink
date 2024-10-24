@@ -139,18 +139,32 @@ const EmailTemplate = {
   list: () => requests.get(META.BACKEND + '/api/email-template'),
 }
 const EmailInput = {
-  OtpSend: (Email) => requests.post('https://localhost:8081/api/Auth/sent-otp', Email),
+  OtpSend: (Email) => requests.post('http://localhost:8080/api/Auth/sent-otp', Email),
 }
 const VerifyOtp = {
-  verifyCode: (email, code) => requests.post('https://localhost:8081/api/Auth/verify-otp', email, code),
+  verifyCode: (email, code) => requests.post('http://localhost:8080/api/Auth/verify-otp', email, code),
 }
 const ForgetPassChange = {
-  changePass: (email, password) => requests.post('https://localhost:8081/api/Auth/reset-password', email, password),
+  changePass: (email, password) => requests.post('http://localhost:8080/api/Auth/reset-password', email, password),
 }
 
 const User = {
   changePass: (body) => requests.post('https://localhost:8081/api/user/change-password', body),
 }
+const Job = {
+  Listjob: (pageIndex, pageSize, sortBy, isDescending, filter) => {
+    const params = {
+      pageIndex,
+      pageSize,
+      sortBy,
+      isDescending,
+      filter,
+    };
+
+    return requests.get('http://localhost:8080/api/Job/get-jobs', { params });
+  }
+};
+
 
 const agent = {
   CsrfToken,
@@ -158,7 +172,8 @@ const agent = {
   User,
   EmailTemplate,
   EmailInput,
-  VerifyOtp, ForgetPassChange
+  VerifyOtp, ForgetPassChange,
+  Job
 }
 
 export default agent
