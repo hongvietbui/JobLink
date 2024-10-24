@@ -172,8 +172,14 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         }
     }
 
-    public async Task<UserDTO> RegisterAsync(RegisterRequest request)
+    public async Task<UserDTO?> RegisterAsync(RegisterRequest request)
     {
+        //check if the username or email is already existed
+        var isExisted = await _unitOfWork.Repository<User>().AnyAsync(u => u.Username == request.Username || u.Email == request.Email);
+
+        if (isExisted)
+            return null;
+        
         var roleList = new List<Role>();
         roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "JobOwner"));
         roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "Worker"));

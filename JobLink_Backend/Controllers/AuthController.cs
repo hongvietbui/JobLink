@@ -12,7 +12,6 @@ namespace JobLink_Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [AllowAnonymous]
     [EnableCors]
 
     public class AuthController(JwtService jwtService, IUserService userService) : BaseController
@@ -22,6 +21,7 @@ namespace JobLink_Backend.Controllers
         private readonly IUserService _userService = userService;
 
         // Existing login endpoint
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> LoginAsync([FromBody] ApiRequest<LoginRequest> request)
         {
