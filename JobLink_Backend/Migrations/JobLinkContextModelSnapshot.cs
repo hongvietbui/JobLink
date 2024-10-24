@@ -82,7 +82,7 @@ namespace JobLink_Backend.Migrations
 
                     b.HasIndex("WorkerId");
 
-                    b.ToTable("Jobs");
+                    b.ToTable("Jobs", (string)null);
                 });
 
             modelBuilder.Entity("JobLink_Backend.Entities.Notification", b =>
@@ -129,7 +129,7 @@ namespace JobLink_Backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notification");
+                    b.ToTable("Notification", (string)null);
                 });
 
             modelBuilder.Entity("JobLink_Backend.Entities.Role", b =>
@@ -165,7 +165,7 @@ namespace JobLink_Backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("JobLink_Backend.Entities.Transactions", b =>
@@ -220,7 +220,7 @@ namespace JobLink_Backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("JobLink_Backend.Entities.User", b =>
@@ -285,9 +285,6 @@ namespace JobLink_Backend.Migrations
                     b.Property<string>("RefreshToken")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("RefreshTokenExpiryTime")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -303,7 +300,7 @@ namespace JobLink_Backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("RoleUser", b =>
