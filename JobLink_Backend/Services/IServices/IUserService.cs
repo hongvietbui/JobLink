@@ -16,7 +16,7 @@ namespace JobLink_Backend.Services.IServices
         Task<bool> VerifyOtpAsync(string email, string otp); 
         Task ResetPasswordAsync(string email, string newPassword);
         Task AddNotificationAsync(Guid userId, string message);
-        Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(Guid userId);
+        Task<IEnumerable<NotificationResponse>> GetUserNotificationsAsync(Guid userId);
         Task<bool> ChangePassword(ChangePassworDTO changePasswor);
     }
 }

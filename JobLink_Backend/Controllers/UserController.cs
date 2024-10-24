@@ -23,9 +23,12 @@ namespace JobLink_Backend.Controllers
         {
             try
             {
-               var result =await _userService.ChangePassword(changePassword.Data);
+                var result = await _userService.ChangePassword(changePassword.Data);
                 if (true)
+                {
+                    await _userService.AddNotificationAsync(changePassword.Data.UserId, "Your password has been changed!!");
                     return Ok(new { message = "Change password successfully" });
+                }
                 else
                     return BadRequest(new { message = "Change password failed" });
             }
@@ -39,6 +42,10 @@ namespace JobLink_Backend.Controllers
         public async Task<IActionResult> GetUserNotifications(Guid userId)
         {
             var notifications = await _userService.GetUserNotificationsAsync(userId);
+            if (notifications == null || !notifications.Any())
+            {
+                return NotFound(new { message = "No notifications found for this user." });
+            }
             return Ok(notifications);
         }
     }

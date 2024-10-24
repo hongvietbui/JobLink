@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 using System.Threading.Tasks;
-using JobLink_Backend.DTOs.Request;
 
 
 namespace JobLink_Backend.Services.ServiceImpls;
@@ -195,6 +194,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 
 	public async Task AddNotificationAsync(Guid userId, string message)
 	{
+
 		var notification = new Notification
 		{
 			UserId = userId,
@@ -217,16 +217,18 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         return null;
     }
  
-    public async Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(Guid userId)
+    public async Task<IEnumerable<NotificationResponse>> GetUserNotificationsAsync(Guid userId)
 	{
-		var notification = await _unitOfWork.Repository<Notification>().FindByConditionAsync(n => n.UserId == userId);
-		return notification.Select(n => new NotificationDTO
-		{
-			Id = n.Id,
-			Message = n.Message,
-			Date = n.Date,
-			IsRead = n.IsRead
-		}).ToList();
-	}
+        var notifications = await _unitOfWork.Repository<Notification>()
+                                         .FindByConditionAsync(n => n.UserId == userId);
+
+        return notifications.Select(n => new NotificationResponse
+        {
+            Id = n.Id,
+            Message = n.Message,
+            Date = n.Date,
+            IsRead = n.IsRead
+        }).ToList();
+    }
 
 }

@@ -16,13 +16,13 @@ public class UserRepositoryImpl : EFRepository<User>, IUserRepository
     public override async Task AddAsync(User entity)
     {
         var roleNames = entity.Roles.Select(r => r.Name).ToList();
-        
+
         var roles = await _context.Roles
             .Where(r => roleNames.Contains(r.Name))
             .ToListAsync();
-        
+
         entity.Roles = roles;
-        
+
         await _context.AddAsync(entity);
     }
     public async Task<User> GetById(Guid userId)
@@ -32,8 +32,8 @@ public class UserRepositoryImpl : EFRepository<User>, IUserRepository
 
     public async Task Update(User user)
     {
-        _context.Set<User>().Update(user); 
-          }
+        _context.Set<User>().Update(user);
+    }
 
     public async Task SaveChangeAsync() => await _context.SaveChangesAsync();
 }
