@@ -218,7 +218,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
     
     public async Task<User?> LoginAsync(string username, string password)
     {
-        var user = await _unitOfWork.Repository<User>().FindByConditionAsync(filter: u => u.Username == username, include: u => u.Include(u => u.Roles));
+        var user = await _unitOfWork.Repository<User>().FindByConditionAsync(filter: u => u.Username.ToLower() == username.ToLower(), include: u => u.Include(u => u.Roles));
         var foundedUser = user.FirstOrDefault();
         if(foundedUser == null) 
             return null;
