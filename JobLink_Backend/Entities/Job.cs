@@ -18,7 +18,9 @@ public class Job : BaseEntity<Guid>
     public int? Lat { get; set; }
     public int? Lon { get; set; }
     public JobStatus Status { get; set; }
-
+    public double? Duration { get; set; } 
+    public decimal? Price { get; set; }
     public User Owner { get; set; }
     public User Worker { get; set; }
+    public ICollection<Review> JobReview { get; set; }
 }
