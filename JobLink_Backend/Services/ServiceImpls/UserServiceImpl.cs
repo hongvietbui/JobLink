@@ -226,8 +226,8 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
             return foundedUser;
         return null;
     }
-
-	public async Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(Guid userId)
+ 
+    public async Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(Guid userId)
 	{
 		var notification = await _unitOfWork.Repository<Notification>().FindByConditionAsync(n => n.UserId == userId);
 		return notification.Select(n => new NotificationDTO

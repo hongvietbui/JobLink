@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using JobLink_Backend.Utilities.BaseEntities;
 
@@ -28,11 +29,19 @@ public class User : BaseEntity<Guid>
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiryTime { get; set; }
     public UserStatus Status { get; set; }
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? AccountBalance { get; set; }
+    public string? NationalIdFront { get; set; }
+    public string? NationalIdBack { get; set; }
+    public string? BankAccount { get; set; }
+    public string? QR { get; set; }
     //Navigation properties
     public ICollection<Role> Roles { get; set; }
     public ICollection<Job> OwnedJobs { get; set; }
     public ICollection<Job> WorkedJobs { get; set; }
     public ICollection<Notification> Notifications { get; set; }
     public ICollection<Transactions> UserTransactions { get; set; }
+    public ICollection<Review> OwnerReviews { get; set; } 
+    public ICollection<Review> WorkerReviews { get; set; }
 }
     
