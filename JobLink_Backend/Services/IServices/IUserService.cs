@@ -18,5 +18,6 @@ namespace JobLink_Backend.Services.IServices
         Task AddNotificationAsync(Guid userId, string message);
         Task<IEnumerable<NotificationResponse>> GetUserNotificationsAsync(Guid userId);
         Task<bool> ChangePassword(ChangePassworDTO changePasswor);
+        Task<List<TransactionResponse>> GetTransactionsAsync(TransactionsRequest request);
     }
 }

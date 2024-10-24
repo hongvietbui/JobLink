@@ -48,5 +48,27 @@ namespace JobLink_Backend.Controllers
             }
             return Ok(notifications);
         }
+
+        [HttpGet("{userId}/topupHistory")]
+        public async Task<IActionResult> GetTopUpHistory([FromQuery] TransactionsRequest request)
+        {
+            try
+            {
+                // Gọi service để lấy danh sách giao dịch nạp tiền
+                var transactions = await _userService.GetTransactionsAsync(request);
+
+                // Kiểm tra nếu không có giao dịch nào
+                if (transactions == null || !transactions.Any())
+                {
+                    return NotFound(new { message = "No transactions found for this user." });
+                }
+
+                return Ok(transactions);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

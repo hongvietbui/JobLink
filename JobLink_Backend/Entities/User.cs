@@ -41,7 +41,7 @@ public class User : BaseEntity<Guid>
     public ICollection<Job> WorkedJobs { get; set; }
     public ICollection<Notification> Notifications { get; set; }
     public ICollection<Transactions> UserTransactions { get; set; }
-    public ICollection<Review> OwnerReviews { get; set; } 
+    public ICollection<Review> OwnerReviews { get; set; }
     public ICollection<Review> WorkerReviews { get; set; }
 }
-    
+

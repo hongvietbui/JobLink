@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.Request;
 using JobLink_Backend.DTOs.Response;
@@ -231,4 +231,33 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         }).ToList();
     }
 
+    public async Task<List<TransactionResponse>> GetTransactionsAsync(TransactionsRequest request)
+    {
+		var toDate = DateTime.UtcNow;
+		DateTime fromDate;
+
+        if (request.FromDate != null && request.FromDate != DateTime.MinValue)
+        {
+			fromDate = request.FromDate;
+        }
+        else
+        {
+            fromDate = toDate.Date; 
+        }
+
+        var transactions = await _unitOfWork.Repository<Transactions>()
+        .FindByConditionAsync(t =>
+            t.UserId == request.UserId &&
+            t.TransactionDate >= fromDate &&
+            t.TransactionDate <= toDate
+        );
+
+        return transactions.Select(t => new TransactionResponse
+        {
+            Amount = t.Amount,
+            PaymentType = t.PaymentType,
+            Status = t.Status,
+            TransactionDate = t.TransactionDate
+        }).ToList();
+    }
 }
