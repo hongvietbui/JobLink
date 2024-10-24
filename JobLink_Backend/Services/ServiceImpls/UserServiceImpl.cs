@@ -150,16 +150,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 		return true;
 	}
 
-	public async Task<User?> LoginAsync(string username, string password)
-	{
-		var user = await _unitOfWork.Repository<User>().FindByConditionAsync(filter: u => u.Username == username, include: u => u.Include(u => u.Roles));
-		var foundedUser = user.FirstOrDefault();
-		if (foundedUser == null)
-			return null;
-		if (PasswordHelper.VerifyPassword(password, foundedUser.Password))
-			return foundedUser;
-		return null;
-	}
+	
 
 	public async Task LogoutAsync(string username)
 	{
@@ -213,9 +204,20 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 		};
 		await _unitOfWork.Repository<Notification>().AddAsync(notification);
 		await _unitOfWork.SaveChangesAsync();
-	}
-
-	public async Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(Guid userId)
+    }
+    
+    public async Task<User?> LoginAsync(string username, string password)
+    {
+        var user = await _unitOfWork.Repository<User>().FindByConditionAsync(filter: u => u.Username == username, include: u => u.Include(u => u.Roles));
+        var foundedUser = user.FirstOrDefault();
+        if(foundedUser == null) 
+            return null;
+        if(PasswordHelper.VerifyPassword(password, foundedUser.Password))
+            return foundedUser;
+        return null;
+    }
+ 
+    public async Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(Guid userId)
 	{
 		var notification = await _unitOfWork.Repository<Notification>().FindByConditionAsync(n => n.UserId == userId);
 		return notification.Select(n => new NotificationDTO
