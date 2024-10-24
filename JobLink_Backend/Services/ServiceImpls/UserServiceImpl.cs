@@ -224,11 +224,14 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
             PhoneNumber = request.PhoneNumber,
             DateOfBirth = DateOnly.FromDateTime(request.DateOfBirth.Value),
             Address = request.Address,
-            Roles = roleList,
             Status = UserStatus.PendingVerification
         };
     
         await _userRepository.AddAsync(newUser);
+		await _unitOfWork.SaveChangesAsync();
+        newUser.Roles = roleList;
+        
+        await _userRepository.Update(newUser);
         await _unitOfWork.SaveChangesAsync();
         return _mapper.Map<UserDTO>(newUser);
     }
