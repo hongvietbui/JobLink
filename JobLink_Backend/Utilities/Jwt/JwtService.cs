@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using JobLink_Backend.Entities;
 using Microsoft.IdentityModel.Tokens;
 
 namespace JobLink_Backend.Utilities.Jwt;
@@ -58,5 +59,17 @@ public class JwtService(IConfiguration config)
             IssuerSigningKey = key,
             ValidateLifetime = true
         };
+    }
+
+    public List<Claim> GetClaimsByUser(Guid userId, List<Role> roles)
+    {   
+        //Convert List<Roles> into List<string>
+        var roleListStr = roles.Select(r => r.Name).ToList().ToString();
+        
+        return new List<Claim>
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                        new Claim(ClaimTypes.Role, roleListStr ?? "")
+                    };
     }
 }

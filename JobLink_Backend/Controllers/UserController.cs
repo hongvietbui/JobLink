@@ -1,23 +1,24 @@
-﻿using JobLink_Backend.DTOs.Request;
+﻿using JobLink_Backend.DTOs.All;
+using JobLink_Backend.DTOs.Request;
+using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.Services.IServices;
+using JobLink_Backend.Utilities.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JobLink_Backend.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    [AllowAnonymous]
     public class UserController : BaseController
     {
         private readonly IUserService _userService;
+        private readonly JwtService _jwtService;
 
         public UserController(IUserService userService)
         {
             _userService = userService;
         }
-
+        
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ApiRequest<ChangePassworDTO> changePassword)
         {
@@ -42,19 +43,17 @@ namespace JobLink_Backend.Controllers
             return Ok(notifications);
         }
         
-        
-        // Lấy thông tin tài khoản người dùng để hiển thị trên homepage
-        // [HttpGet("{id}")]
-        // public async Task<IActionResult> GetUserData(Guid id)
-        // {
-        //     try
-        //     {
-        //         var = await _userService.GetUserHompageAsync(id);
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         return BadRequest(new { message = ex.Message });
-        //     }
-        // }
+        [HttpGet("me")]
+        public async Task<IActionResult> GetCurrentUser([FromHeader] String authorization)
+        {
+            var accessToken = authorization.Split(" ")[1];
+            return Ok(new ApiResponse<UserDTO>
+            {
+                Data = await _userService.GetUserByAccessToken(accessToken),
+                Message = "Get user details successfully!",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
     }
 }

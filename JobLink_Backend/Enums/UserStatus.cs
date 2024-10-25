@@ -4,12 +4,12 @@ namespace JobLink_Backend.Entities;
 
 public enum UserStatus
 {
-    [StringValue("active")]
+    [StringValue("ACTIVE")]
     Active,
-    [StringValue("pending-verification")]
+    [StringValue("PENDING_VERIFICATION")]
     PendingVerification,
-    [StringValue("suspended")]
+    [StringValue("SUSPENDED")]
     Suspended,
-    [StringValue("locked")]
+    [StringValue("LOCKED")]
     Locked
 }

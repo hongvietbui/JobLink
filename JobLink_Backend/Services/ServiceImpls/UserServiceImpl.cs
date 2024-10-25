@@ -12,13 +12,10 @@ using System.Net;
 using System.Security.Claims;
 using JobLink_Backend.Utilities;
 using JobLink_Backend.Utilities.Jwt;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
 using System.Threading.Tasks;
 using JobLink_Backend.DTOs.Request;
 using JobLink_Backend.DTOs.Response.Users;
-
 
 namespace JobLink_Backend.Services.ServiceImpls;
 
@@ -34,24 +31,23 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 	{
 		var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
 		if (user == null) throw new ArgumentException("User not found");
-
 		user.RefreshToken = refreshToken;
+		user.RefreshTokenExpiryTime = DateTime.Now.AddDays(30);
 		_unitOfWork.Repository<User>().Update(user);
+		await _unitOfWork.SaveChangesAsync();
 	}
 
-	public async Task<string> GetNewAccessTokenAsync(string username, string refreshToken)
-	{
-		//get user by username
-		var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
-		//Todo: check if refreshToken is valid
-		//change accessToken
-		var clams = new List<Claim>
-		{
-			new Claim(ClaimTypes.Name, user.Username),
-			new Claim(ClaimTypes.Role, user.Roles.Select(r => r.Name).ToList().ToString())
-		};
-
-		return _jwtService.GenerateAccessToken(clams);
+    public async Task<string> GetNewAccessTokenAsync(Guid userId, string refreshToken)
+    {
+        //get user by username
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Id == userId);
+        if(user.RefreshToken == null || user.RefreshTokenExpiryTime < DateTime.Now)
+        {
+	        return "";
+        }
+        //change accessToken
+        var clams = _jwtService.GetClaimsByUser(userId, user.Roles.ToList());
+        return _jwtService.GenerateAccessToken(clams);
 	}
 
 	public async Task<OtpReponse> SendResetPasswordOtpAsync(string email)
@@ -159,46 +155,22 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
 	}
 
 	
-
-	public async Task LogoutAsync(string username)
+	public async Task<UserDTO> GetUserByAccessToken(string accessToken)
 	{
-		//find user
-		var userList = await _unitOfWork.Repository<User>().FindByConditionAsync(filter: u => u.Username == username, include: u => u.Include(user => user.Roles));
-
-		//delete refresh token
-		var user = userList?.FirstOrDefault();
-		if (user != null)
-		{
-			user.RefreshToken = null;
-			_unitOfWork.Repository<User>().Update(user);
-		}
+		var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+		var userId = Guid.Parse(claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
+		var user = await _unitOfWork.Repository<User>().GetByIdAsync(userId);
+		return _mapper.Map<UserDTO>(user);
 	}
 
-	public async Task<UserDTO> RegisterAsync(RegisterRequest request)
+	public async Task<string?> RefreshTokenAsync(string refreshToken)
 	{
-		var roleList = new List<Role>();
-		roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "JobOwner"));
-		roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "Worker"));
-
-		//check if the role 
-		var newUser = new User
-		{
-			Id = Guid.NewGuid(),
-			Username = request.Username,
-			Password = PasswordHelper.HashPassword(request.Password),
-			Email = request.Email,
-			FirstName = request.FirstName,
-			LastName = request.LastName,
-			PhoneNumber = request.PhoneNumber,
-			DateOfBirth = DateOnly.FromDateTime(request.DateOfBirth.Value),
-			Address = request.Address,
-			Roles = roleList,
-			Status = UserStatus.PendingVerification
-		};
-
-		await _userRepository.AddAsync(newUser);
-		await _unitOfWork.SaveChangesAsync();
-		return _mapper.Map<UserDTO>(newUser);
+		var userList = await _unitOfWork.Repository<User>().FindByConditionAsync(u => u.RefreshToken == refreshToken, include: u => u.Include(u => u.Roles));
+		//check if userList is empty or not
+		if (userList == null || userList?.Count() == 0) return null;
+		var user = userList?.First();
+		var claimList = _jwtService.GetClaimsByUser(user.Id, user.Roles.ToList());
+		return _jwtService.GenerateAccessToken(claimList);
 	}
 
 	public async Task AddNotificationAsync(Guid userId, string message)
@@ -216,7 +188,7 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
     
     public async Task<User?> LoginAsync(string username, string password)
     {
-        var user = await _unitOfWork.Repository<User>().FindByConditionAsync(filter: u => u.Username == username, include: u => u.Include(u => u.Roles));
+        var user = await _unitOfWork.Repository<User>().FindByConditionAsync(filter: u => u.Username.ToLower() == username.ToLower(), include: u => u.Include(u => u.Roles));
         var foundedUser = user.FirstOrDefault();
         if(foundedUser == null) 
             return null;
@@ -225,7 +197,57 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         return null;
     }
 
-	public async Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(Guid userId)
+    public async Task LogoutAsync(string username)
+    {
+        //find user
+        var userList = await _unitOfWork.Repository<User>().FindByConditionAsync(filter: u => u.Username == username, include: u => u.Include(user => user.Roles));
+    
+        //delete refresh token
+        var user = userList?.FirstOrDefault();
+        if (user != null)
+        {
+            user.RefreshToken = null;
+            _unitOfWork.Repository<User>().Update(user);
+        }
+    }
+    
+    public async Task<UserDTO?> RegisterAsync(RegisterRequest request)
+    {
+        //check if the username or email is already existed
+        var isExisted = await _unitOfWork.Repository<User>().AnyAsync(u => u.Username == request.Username || u.Email == request.Email);
+    
+        if (isExisted)
+            return null;
+        
+        var roleList = new List<Role>();
+        roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "JobOwner"));
+        roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "Worker"));
+        
+        //check if the role 
+        var newUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Username = request.Username,
+            Password = PasswordHelper.HashPassword(request.Password),
+            Email = request.Email,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            PhoneNumber = request.PhoneNumber,
+            DateOfBirth = DateOnly.FromDateTime(request.DateOfBirth.Value),
+            Address = request.Address,
+            Status = UserStatus.PendingVerification
+        };
+    
+        await _userRepository.AddAsync(newUser);
+		await _unitOfWork.SaveChangesAsync();
+        newUser.Roles = roleList;
+        
+        await _userRepository.Update(newUser);
+        await _unitOfWork.SaveChangesAsync();
+        return _mapper.Map<UserDTO>(newUser);
+    }
+ 
+    public async Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(Guid userId)
 	{
 		var notification = await _unitOfWork.Repository<Notification>().FindByConditionAsync(n => n.UserId == userId);
 		return notification.Select(n => new NotificationDTO

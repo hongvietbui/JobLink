@@ -13,5 +13,5 @@ public class JobDTO
     public string? Address { get; set; }
     public int? Lat { get; set; }
     public int? Lon { get; set; }
-    public JobStatus? Status { get; set; }
+    public string? Status { get; set; }
 }
