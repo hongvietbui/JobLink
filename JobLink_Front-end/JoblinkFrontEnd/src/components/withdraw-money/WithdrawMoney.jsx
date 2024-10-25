@@ -1,5 +1,7 @@
-import { Clock, ShieldCheck, Wallet } from "lucide-react";
+import { Clock, Wallet } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
+import { Loader2 } from "lucide-react"; // Import the loader icon from lucide-react
+
 import {
   Select,
   SelectContent,
@@ -9,19 +11,133 @@ import {
 } from "../ui/select";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { useState } from "react";
+import agent from "@//lib/axios";
+import { toast } from "react-toastify";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../ui/alert-dialog";
+import useAuthStore from "@/stores/useAuthStore";
+import LoadingCustom from "../ui/loading/LoadingCustom";
 
 const MoneyWithdrawal = () => {
+  const [amount, setAmount] = useState("");
+  const [bankNumber, setbankNumber] = useState("");
+  const [bankName, setbankName] = useState("");
+  const [userReceive, setUserReceive] = useState("");
+  const { accountBalance, refreshUserData, email } = useAuthStore();
+  const [isOpen, setIsOpen] = useState();
+  const [loading, setLoading] = useState(false); // Loading state
+  const [otp, setOtp] = useState("");
+  const [isOtpSent, setIsOtpSent] = useState(false); // Track if OTP has been sent
+  const [isValidOtp, setIsValidOtp] = useState(false); // Track if OTP is valid
+
+  const handleSendOtp = async () => {
+    try {
+      if (isOtpSent) {
+        return;
+      }
+      await agent.EmailInput.OtpSend({ email }); // Call your API to send the OTP
+      setIsOtpSent(true); // Mark OTP as sent
+      toast.success("Mã OTP đã được gửi đến email của bạn!");
+    } catch (error) {
+      toast.error("Có lỗi xảy ra khi gửi mã OTP. Vui lòng thử lại.");
+    }
+  };
+
+  // Function to verify OTP
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await agent.VerifyOtp.verifyCode({ email, code: otp });
+      setIsValidOtp(true);
+      handleSubmit(); // Call handleSubmit after validating OTP
+    } catch (error) {
+      toast.error("Mã OTP không hợp lệ. Vui lòng thử lại.");
+    }
+  };
+
+  const handleSubmit = async () => {
+    // Validation
+    if (
+      !amount ||
+      isNaN(amount) ||
+      Number(amount) < 10000 ||
+      amount > accountBalance
+    ) {
+      toast.error("Vui lòng nhập số tiền hợp lệ.");
+      setIsOpen(false);
+      return;
+    }
+
+    if (!bankName) {
+      toast.error("Vui lòng chọn ngân hàng.");
+      setIsOpen(false);
+      return;
+    }
+
+    if (!bankNumber) {
+      toast.error("Vui lòng nhập số tài khoản.");
+      setIsOpen(false);
+      return;
+    }
+
+    if (!userReceive) {
+      toast.error("Vui lòng nhập tên người nhận.");
+      setIsOpen(false);
+      return;
+    }
+    const formData = {
+      amount,
+      bankNumber,
+      bankName,
+      userReceive,
+      transactionDate: new Date(),
+      paymentType: 0,
+      userId: "FF41A35A-868D-47E9-902B-F1687FA16A4A",
+    };
+
+    try {
+      setLoading(true);
+      await agent.Transaction.createWithdraw(formData);
+      toast.success("Rút tiền thành công!");
+      setIsOpen(false);
+
+      // Await refreshUserData to ensure it's completed
+      await refreshUserData();
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+      setIsOpen(false);
+    } finally {
+      setLoading(false); // Set loading to false after the request completes
+    }
+
+    // Gửi dữ liệu đến API hoặc thực hiện hành động cần thiết ở đây
+  };
   return (
     <div className="mx-auto bg-gray-100 p-4 ">
+      {loading && <LoadingCustom />}
       <div className="grid grid-cols-2 gap-4 my-4">
         <Card className="bg-[#584287] text-white">
           <CardContent className="p-4 flex flex-col items-center justify-center">
             <Wallet className="mb-2" />
             <p className="text-sm">Số dư tài khoản</p>
-            <p className="font-bold">10.000.000 đ</p>
+            <p className="font-bold">
+              {" "}
+              {Number(accountBalance).toLocaleString("vi-VN")} đ
+            </p>
           </CardContent>
         </Card>
-        <Card className="bg-[#F5C842] text-white">
+        <Card className="bg-[rgb(245,200,66)] text-white">
           <CardContent className="p-4 flex flex-col items-center justify-center">
             <Clock className="mb-2" />
             <p className="text-sm">Lịch sử</p>
@@ -33,166 +149,190 @@ const MoneyWithdrawal = () => {
       <Card className="bg-red-100 text-red-800 mb-4">
         <CardContent className="p-4 text-sm">
           <p className="font-bold mb-2">Lưu ý:</p>
-          <p>- Giờ làm việc từ 9h sáng đến 18h chiều.</p>
-          <p>- Joblink không hỗ trợ duyệt Rút Tiền vào Thứ 7 và Chủ Nhật.</p>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-blue-100 text-blue-800 mb-4">
-        <CardContent className="p-4 text-sm flex items-center">
-          <ShieldCheck className="mr-2" />
+          <p>- Số tiền rút tối thiểu là 10.000 VND</p>
+          <p>- Joblink sẽ chuyển tiền tới bạn trong 2-7 ngày làm việc</p>
           <p>
-            Để tránh bị mất tiền, bạn hãy Click để cài đặt bật bảo mật tài khoản
-            ngay.
+            - Rút Tiền sẽ bị trừ 10% số tiền rút ví dụ rút 100.000 thì nhận được
+            90.000
           </p>
         </CardContent>
       </Card>
 
-      <form className="space-y-4">
-        <div>
-          <p className="font-semibold mb-2">Phương thức</p>
-          <Select>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Chọn phương thức rút tiền" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="phone">Thẻ điện thoại</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <p className="font-semibold mb-2">Hình thức</p>
-          <Select>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Rút tiền thường(2-7 ngày)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="normal">Rút tiền thường(2-7 ngày)</SelectItem>
-              <SelectItem value="fast">Rút tiền nhanh(24h)</SelectItem>
-            </SelectContent>
-          </Select>
-          <p className="text-red-500 text-xs mt-1">
-            (Rút Tiền Nhanh 24h sẽ bị trừ 10% số tiền rút ví dụ rút 100.000 thì
-            nhận được 90.000)
-          </p>
-        </div>
-
+      <div className="space-y-4">
         <div>
           <p className="font-semibold mb-2">Thông tin thanh toán</p>
-          <Select className="mb-2">
+          <Select className="mb-2" onValueChange={setbankName} value={bankName}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Chọn ngân hàng" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="MB">MB - NH TMCP QUAN DOI</SelectItem>
-              <SelectItem value="VIETCOMBANK">
+              <SelectItem value="Mb">MB - NH TMCP QUAN DOI</SelectItem>
+              <SelectItem value="Vietcombank">
                 VIETCOMBANK - NH TMCP NGOAI THUONG VIET NAM (VCB)
               </SelectItem>
-              <SelectItem value="VIETINBANK">
+              <SelectItem value="Vietinbank">
                 VIETINBANK - NH TMCP CONG THUONG VIET NAM
               </SelectItem>
-              <SelectItem value="ABBANK">
+              <SelectItem value="Abbank">
                 ABBANK - NH TMCP AN BINH (ABB)
               </SelectItem>
-              <SelectItem value="ACB">ACB - NH TMCP A CHAU</SelectItem>
-              <SelectItem value="AGRIBANK">
+              <SelectItem value="Acb">ACB - NH TMCP A CHAU</SelectItem>
+              <SelectItem value="Agribank">
                 AGRIBANK - NH NN - PTNT VIET NAM
               </SelectItem>
-              <SelectItem value="BANVIET">
+              <SelectItem value="Banviet">
                 BANVIET - NH TMCP BAN VIET
               </SelectItem>
-              <SelectItem value="BAOVIETBANK">
+              <SelectItem value="Baovietbank">
                 BAOVIETBANK - NH TMCP BAO VIET (BVB)
               </SelectItem>
-              <SelectItem value="BIDV">
+              <SelectItem value="Bidv">
                 BIDV - NH DAU TU VA PHAT TRIEN VIET NAM
               </SelectItem>
-              <SelectItem value="CBBANK">
+              <SelectItem value="Cbbank">
                 CBBANK - NH TM TNHH MTV XAY DUNG VIET NAM
               </SelectItem>
-              <SelectItem value="CITIBANK VIETNAM">
+              <SelectItem value="CitibankVietnam">
                 CITIBANK VIETNAM - NH TNHH MTV CITIBANK VIET NAM
               </SelectItem>
-              <SelectItem value="DONGABANK">
+              <SelectItem value="Dongabank">
                 DONGABANK - NH TMCP DONG A
               </SelectItem>
-              <SelectItem value="EXIMBANK">
+              <SelectItem value="Eximbank">
                 EXIMBANK - NH TMCP XUAT NHAP KHAU VIET NAM (EIB)
               </SelectItem>
-              <SelectItem value="GPBANK">
+              <SelectItem value="Gpbank">
                 GPBANK - NH TMCP GUANGZHOU (VIET NAM)
               </SelectItem>
-              <SelectItem value="HDBANK">
+              <SelectItem value="Hdbank">
                 HDBANK - NH TMCP PHAT TRIEN TP HO CHI MINH (HDB)
               </SelectItem>
-              <SelectItem value="HSBC VIETNAM">
+              <SelectItem value="HsbcVietnam">
                 HSBC VIETNAM - NH TNHH MTV HANG HAI (VIET NAM)
               </SelectItem>
-              <SelectItem value="INDOVINABANK">
+              <SelectItem value="Indovinabank">
                 INDOVINABANK - NH TMCP INDONESIA VIET NAM (IVB)
               </SelectItem>
-              <SelectItem value="KIENLONGBANK">
+              <SelectItem value="Kienlongbank">
                 KIENLONGBANK - NH TMCP KIEN LONG
               </SelectItem>
-              <SelectItem value="LIENVIETPOSTBANK">
+              <SelectItem value="Lienvietpostbank">
                 LIENVIETPOSTBANK - NH TMCP BUU DIEN LIEN VIET
               </SelectItem>
-              <SelectItem value="MARIANNA BANK">
+              <SelectItem value="MariannaBank">
                 MARIANNA BANK - NH TMCP ĐẦU TƯ VÀ PHÁT TRIEN NAM VIỆT
               </SelectItem>
-              <SelectItem value="MSB">MSB - NH TMCP HANG HAI (MSB)</SelectItem>
-              <SelectItem value="NAMABANK">NAMABANK - NH TMCP NAM A</SelectItem>
-              <SelectItem value="NCB">NCB - NH TMCP QUOC DAN</SelectItem>
-              <SelectItem value="OCB">
+              <SelectItem value="Msb">MSB - NH TMCP HANG HAI (MSB)</SelectItem>
+              <SelectItem value="Namabank">NAMABANK - NH TMCP NAM A</SelectItem>
+              <SelectItem value="Ncb">NCB - NH TMCP QUOC DAN</SelectItem>
+              <SelectItem value="Ocb">
                 OCB - NH TMCP PHUONG DONG (OCB)
               </SelectItem>
-              <SelectItem value="PGBANK">
+              <SelectItem value="Pgbank">
                 PGBANK - NH TMCP XUONG TRANG VA XAY DUNG VIET NAM
               </SelectItem>
-              <SelectItem value="PVCOMBANK">
+              <SelectItem value="Pvcombank">
                 PVCOMBANK - NH TMCP DAU TU VA PHAT TRIEN VIET NAM (PVCOMBANK)
               </SelectItem>
-              <SelectItem value="SAIGONBANK">
+              <SelectItem value="Saigonbank">
                 SAIGONBANK - NH TMCP SAI GON (SCB)
               </SelectItem>
-              <SelectItem value="SACOMBANK">
+              <SelectItem value="Sacombank">
                 SACOMBANK - NH TMCP SAI GON THUONG TIN
               </SelectItem>
-              <SelectItem value="SEABANK">
+              <SelectItem value="Seabank">
                 SEABANK - NH TMCP DONG NAM A (SEABANK)
               </SelectItem>
-              <SelectItem value="SHB">SHB - NH TMCP SAIGON HA NOI</SelectItem>
-              <SelectItem value="SHINHANBANK">
+              <SelectItem value="Shb">SHB - NH TMCP SAIGON HA NOI</SelectItem>
+              <SelectItem value="Shinhanbank">
                 SHINHANBANK - NH TNHH MTV SHINHAN VIET NAM
               </SelectItem>
-              <SelectItem value="TECHCOMBANK">
+              <SelectItem value="Techcombank">
                 TECHCOMBANK - NH TMCP KY THUAT VIET NAM (TCB)
               </SelectItem>
-              <SelectItem value="TPBANK">
+              <SelectItem value="Tpbank">
                 TPBANK - NH TMCP TIEN PHONG
               </SelectItem>
-              <SelectItem value="TRUSTBANK">
+              <SelectItem value="Trustbank">
                 TRUSTBANK - NH TMCP TIN NGHIA
               </SelectItem>
-              <SelectItem value="VIB">VIB - NH TMCP QUOC TE VIET</SelectItem>
-              <SelectItem value="VRB">
+              <SelectItem value="Vib">VIB - NH TMCP QUOC TE VIET</SelectItem>
+              <SelectItem value="Vrb">
                 VRB - NH TMCP KHOANG SAN VIET NAM
               </SelectItem>
-              <SelectItem value="WOORIBANK">
+              <SelectItem value="Wooribank">
                 WOORIBANK - NH TMCP WOORI HAN VIE
               </SelectItem>
             </SelectContent>
           </Select>
 
-          <Input className="my-4" type="number" placeholder="Số tiền muốn rút" />
+          <Input
+            className="my-4"
+            type="number"
+            placeholder="Số tiền muốn rút"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
 
-          <Input className="my-4" type="number" placeholder="Số tài khoản" />
-          <Input className="my-4" type="text" placeholder="Tên chủ tài khoản" />
+          <Input
+            className="my-4"
+            type="number"
+            placeholder="Số tài khoản"
+            value={bankNumber}
+            onChange={(e) => setbankNumber(e.target.value)}
+          />
+          <Input
+            className="my-4"
+            type="text"
+            placeholder="Tên chủ tài khoản"
+            value={userReceive}
+            onChange={(e) => setUserReceive(e.target.value)}
+          />
         </div>
 
-        <Button className="w-[300px]">Rút tiền</Button>
-      </form>
+        <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+          <AlertDialogTrigger>
+            <Button onClick={() => handleSendOtp()}>Rút tiền</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {isOtpSent ? "Xác thực mã OTP" : "Xác thực mã OTP"}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {isOtpSent
+                  ? "Nhập mã OTP đã được gửi đến email của bạn."
+                  : "Đang thực hiện gửi mã OTP xác thực tới email của bạn"}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <CardContent>
+              {isOtpSent && (
+                <Input
+                  type="text"
+                  placeholder="Nhập mã OTP"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="my-4"
+                />
+              )}
+            </CardContent>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setIsOpen(false)}>
+                Hủy
+              </AlertDialogCancel>
+              {isOtpSent ? (
+                <AlertDialogAction onClick={(e) => handleVerifyOtp(e)}>
+                  Xác nhận
+                </AlertDialogAction>
+              ) : (
+                <AlertDialogAction disabled={!isOtpSent}>
+                  Đang gửi OTP
+                </AlertDialogAction>
+              )}
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   );
 };

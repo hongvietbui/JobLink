@@ -19,6 +19,7 @@ public static class CustomServiceExtension
         services.AddScoped<IUserService, UserServiceImpl>();
         services.AddScoped<IJobService, JobServiceImpl>();
         services.AddScoped<ITransactionsService, TransactionServiceImpl>();
+        services.AddScoped<IEmailService, EmailServiceImpl>();
         return services;
     }
 }

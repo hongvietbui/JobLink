@@ -1,3 +1,4 @@
+using JobLink_Backend.DTOs.Request;
 using JobLink_Backend.DTOs.Request.Transactions;
 using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.DTOs.Response.Transactions;
@@ -49,13 +50,13 @@ public class TransactionsController(ITransactionsService transactionsService) : 
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateNewTransaction([FromBody] TransactionDTO transaction)
-    {
-        var transactionDetail = await _transactionsService.AddTransactionAsync(transaction);
+    public async Task<IActionResult> CreateNewTransaction([FromBody]  ApiRequest<TransactionCreateDto> transaction,  [FromHeader] string authorization)
+    {  var accessToken = authorization.Split(" ")[1];
+        await _transactionsService.AddTransactionAsync(transaction.Data, accessToken);
 
-        var listTransactionResponse = new ApiResponse<TransactionDTO>
+        var listTransactionResponse = new ApiResponse<TransactionCreateDto>
         {
-            Data = transactionDetail,
+            Data = transaction.Data,
             Message = "Create all transactions successful",
             Status = 200,
             Timestamp = DateTime.Now.Ticks
@@ -65,13 +66,13 @@ public class TransactionsController(ITransactionsService transactionsService) : 
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateTransaction([FromBody] TransactionDTO transaction)
+    public async Task<IActionResult> UpdateTransaction([FromBody]  ApiRequest<TransactionDTO> transaction)
     {
-        await _transactionsService.UpdateTransactionAsync(transaction);
+        await _transactionsService.UpdateTransactionAsync(transaction.Data);
 
         var listTransactionResponse = new ApiResponse<TransactionDTO>
         {
-            Data = new TransactionDTO(),
+            Data = transaction.Data,
             Message = "Create all transactions successful",
             Status = 200,
             Timestamp = DateTime.Now.Ticks

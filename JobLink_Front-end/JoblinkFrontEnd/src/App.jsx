@@ -1,17 +1,20 @@
 /* eslint-disable react/no-unescaped-entities */
-import Home from "./components/test/test";
-import Chat from "./components/chat/chat";
+
 import { Input } from "./components/ui/input";
 import { Button } from "./components/ui/button";
 import { Separator } from "./components/ui/separator";
 import ChangePass from "./components/change-pass/ChangePass";
 import LandingPage from "./components/landing-page/LandingPage";
 import VerifyEmailPage from "./components/forgot-pass/VerifyGmail";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ChangePasswordPage from "./components/forgot-pass/ChangePassForgot";
-import { ToggleGroup, ToggleGroupItem } from "./components/ui/toggle-group";
 import MoneyWithdrawal from "./components/withdraw-money/WithdrawMoney";
 import Dashboard from "./components/dashboard/Dashboard";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import useAuthStore from "./stores/useAuthStore";
+import { useEffect } from "react";
+import agent from "./lib/axios";
+import RoutesConfig from "./routes/Route";
 function App() {
   const footerLinks = [
     {
@@ -69,8 +72,46 @@ function App() {
       ],
     },
   ];
+
+  const { setAuthData } = useAuthStore();
+
+  useEffect(() => {
+    agent.User.me()
+      .then((response) => {
+        setAuthData(
+          response.id,
+          response.username,
+          response.email,
+          response.firstName,
+          response.lastName,
+          response.phoneNumber,
+          response.avatar,
+          response.refreshToken,
+          response.accountBalance
+        );
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+      });
+  }, []);
+
+  // const handleSetAuthData = () => {
+  //   setAuthData(
+  //     "ff41a35a-868d-47e9-902b-f1687fa16a4a", // id
+  //     "user1", // username
+  //     "user1@example.com", // email
+  //     "John", // firstName
+  //     "Doe", // lastName
+  //     "1234567890", // phoneNumber
+  //     "https://example.com/avatar.jpg", // avatar
+  //     "cff3d26b-573c-4566-b72f-375f3e0ebf38", // refreshToken,
+  //     "900000.00"
+  //   );
+  // };
   return (
     <div className="flex flex-col min-h-screen">
+      <ToastContainer autoClose={3000} position="top-right" theme="light" />
       <header className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center space-x-4">
           {/* <h1 className="text-2xl font-bold">JobLink</h1> */}
@@ -101,23 +142,25 @@ function App() {
           />
           <Button variant="ghost">Log in</Button>
           <Button>Sign up</Button>
+          <Button
+            onClick={() => {
+              const value = prompt("Nhập giá trị text:");
+              if (value) {
+                localStorage.setItem("token", value);
+                alert(
+                  "Giá trị đã được lưu vào localStorage với key là 'token'"
+                );
+              } else {
+                alert("Không có giá trị nào được nhập");
+              }
+            }}
+          >
+            Test
+          </Button>
         </div>
       </header>
       <main className="flex-1 min-h-[80vh] mx-[40px] my-[30px]">
-        <Router>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/change-pass" element={<ChangePass />} />
-            <Route path="/verifyEmail" element={<VerifyEmailPage />} />
-            <Route
-              path="/changePasswordPage"
-              element={<ChangePasswordPage />}
-            />
-            <Route path="/withdraw-money" element={<MoneyWithdrawal />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/chat" element={<Chat />} />
-          </Routes>
-        </Router>
+        <RoutesConfig />
       </main>
       <footer className="bg-black text-white p-8 mx-[24px] rounded-lg mt-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

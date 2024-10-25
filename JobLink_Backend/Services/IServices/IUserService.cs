@@ -21,6 +21,6 @@ namespace JobLink_Backend.Services.IServices
         Task<bool> ChangePassword(ChangePassworDTO changePassword);
         Task<UserDTO> GetUserByAccessToken(string accessToken);
         Task<string?> RefreshTokenAsync(string refreshToken);
-         Task<UserHompageDTO> GetUserHompageAsync(Guid userId);
+        Task<UserHompageDTO> GetUserHompageAsync(string accessToken);
     }
 }

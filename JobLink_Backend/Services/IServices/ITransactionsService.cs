@@ -9,6 +9,6 @@ public interface ITransactionsService
 {
     Task<TransactionDTO?> GetTransactionByIdAsync(Guid transactionId);
     Task<Pagination<TransactionDTO>> GetAllTransactionsAsync(TransactionFilterDTO filter);
-    Task<TransactionDTO> AddTransactionAsync(TransactionDTO transaction);
+    Task AddTransactionAsync(TransactionCreateDto transaction, string accessToken);
     Task UpdateTransactionAsync(TransactionDTO transaction);
 }
