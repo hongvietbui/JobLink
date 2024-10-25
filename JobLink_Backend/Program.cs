@@ -1,3 +1,4 @@
+using JobLink_Backend.ChatHub;
 using JobLink_Backend.Entities;
 using JobLink_Backend.Extensions;
 using JobLink_Backend.Mappings;
@@ -48,11 +49,11 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // **Important**: Apply the CORS policy here
- // Ensure you include this line
+// Ensure you include this line
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.MapHub<ChatHub>("/chatHub");
 app.Run();
