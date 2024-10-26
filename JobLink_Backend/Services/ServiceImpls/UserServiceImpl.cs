@@ -251,4 +251,17 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
             TransactionDate = t.TransactionDate
         }).ToList();
     }
+
+    public async Task<bool> UploadNationalIdAsync(IdRequest idRequest)
+    {
+        var user = await _userRepository.GetById(idRequest.userId);
+        if (user == null)
+        {
+            throw new ArgumentException("User not found");
+        }
+
+        
+
+        return true;
+    }
 }
