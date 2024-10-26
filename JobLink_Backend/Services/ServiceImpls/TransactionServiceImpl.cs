@@ -67,7 +67,7 @@ public class TransactionServiceImpl(
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Thông báo giao dịch rút tiền</title>
+    <title>Thông báo giao dịch ${(transactionDto.PaymentType == PaymentType.Deposit ? "nạp" : "rút")} tiền</title>
     <style>
         body {{
             font-family: Arial, sans-serif;
@@ -102,11 +102,11 @@ public class TransactionServiceImpl(
 <body>
     <div class='container'>
         <h1 style=>Kính gửi {user.FirstName} {user.LastName},</h1>
-        <p>Chúng tôi xin thông báo rằng giao dịch rút tiền của quý khách đã được thực hiện thành công. Chi tiết giao dịch như sau:</p>
+        <p>Chúng tôi xin thông báo rằng giao dịch ${(transactionDto.PaymentType == PaymentType.Deposit ? "nạp" : "rút")} tiền của quý khách đã được thực hiện thành công. Chi tiết giao dịch như sau:</p>
         <ul>
-            <li>Số tiền rút: <span class='highlight'>{transaction.Amount:N0} VND</span></li>
+            <li>Số tiền ${(transactionDto.PaymentType == PaymentType.Deposit ? "nạp" : "rút")}: <span class='highlight'>${(transactionDto.PaymentType == PaymentType.Deposit ? "" : "-")}{transaction.Amount:N0} VND</span></li>
             <li>Thời gian giao dịch: <span class='highlight'>{DateTime.Now:dd/MM/yyyy HH:mm}</span></li>
-            <li>Rút tiền về ngân hàng: <span class='highlight'>{transaction.BankName}</span></li>
+            <li>${(transactionDto.PaymentType == PaymentType.Deposit ? "Nạp" : "Rút")} tiền về ngân hàng: <span class='highlight'>{transaction.BankName}</span></li>
             <li>Số dư còn lại: <span class='highlight'>{user.AccountBalance - transaction.Amount:N0} VND</span></li>
         </ul>
         <p>Nếu quý khách không thực hiện giao dịch này hoặc có bất kỳ thắc mắc nào, vui lòng liên hệ với bộ phận chăm sóc khách hàng của chúng tôi qua số điện thoại hoặc email hỗ trợ.</p>
