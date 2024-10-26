@@ -31,8 +31,9 @@ public class User : BaseEntity<Guid>
     public UserStatus Status { get; set; }
     [Column(TypeName = "decimal(18,2)")]
     public decimal? AccountBalance { get; set; }
-    public string? NationalIdFront { get; set; }
-    public string? NationalIdBack { get; set; }
+    public string? NationalIdFrontUrl { get; set; }
+    public string? NationalIdBackUrl { get; set; }
+    public NationalIdStatus? NationalIdStatus { get; set; }
     public string? BankAccount { get; set; }
     public string? QR { get; set; }
     //Navigation properties
