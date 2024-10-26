@@ -1,3 +1,4 @@
+using Amazon.S3;
 using JobLink_Backend.Entities;
 using JobLink_Backend.Extensions;
 using JobLink_Backend.Mappings;
@@ -33,6 +34,10 @@ builder.Services.AddCustomAuthentication();
 
 // Add custom services
 builder.Services.AddCustomServices();
+//
+builder.Services.AddCustomHttpClients();
+
+builder.Services.AddAWSService<IAmazonS3>();
 //Add auto mappers
 builder.Services.AddAutoMapper(typeof(MapProfile).Assembly);
 
@@ -49,7 +54,6 @@ app.UseHttpsRedirection();
 
 // **Important**: Apply the CORS policy here
  // Ensure you include this line
-
 app.UseAuthentication();
 app.UseAuthorization();
 
