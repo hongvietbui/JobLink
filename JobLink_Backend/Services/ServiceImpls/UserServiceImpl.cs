@@ -294,33 +294,6 @@ public class UserServiceImpl(
         }
     }
 
-    public async Task<UserDTO> RegisterAsync(RegisterRequest request)
-    {
-        var roleList = new List<Role>();
-        roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "JobOwner"));
-        roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "Worker"));
-
-        //check if the role 
-        var newUser = new User
-        {
-            Id = Guid.NewGuid(),
-            Username = request.Username,
-            Password = PasswordHelper.HashPassword(request.Password),
-            Email = request.Email,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            PhoneNumber = request.PhoneNumber,
-            DateOfBirth = DateOnly.FromDateTime(request.DateOfBirth.Value),
-            Address = request.Address,
-            Roles = roleList,
-            Status = UserStatus.PendingVerification
-        };
-
-        await _userRepository.AddAsync(newUser);
-        await _unitOfWork.SaveChangesAsync();
-        return _mapper.Map<UserDTO>(newUser);
-    }
-
     public async Task<User?> LoginAsync(string username, string password)
     {
         var user = await _unitOfWork.Repository<User>()
@@ -416,6 +389,61 @@ public class UserServiceImpl(
 
         
 
+        return true;
+    }
+
+    public async Task<List<UserNationalIdDTO>> GetPendingNationalIdsAsync()
+    {
+        var pendingUsers = await _unitOfWork.Repository<User>()
+                                         .FindByConditionAsync(u => u.NationalIdStatus == NationalIdStatus.Pending);
+
+        return pendingUsers.Select(user => new UserNationalIdDTO
+        {
+            UserId = user.Id,
+            NationalIdFrontUrl = user.NationalIdFrontUrl,
+            NationalIdBackUrl = user.NationalIdBackUrl,
+            NationalIdStatus = user.NationalIdStatus
+        }).ToList();
+    }
+
+    public async Task<UserNationalIdDTO> GetNationalIdDetailAsync(Guid userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null || string.IsNullOrEmpty(user.NationalIdFrontUrl) || string.IsNullOrEmpty(user.NationalIdBackUrl))
+        {
+            throw new ArgumentException("User or National ID details not found");
+        }
+
+        return new UserNationalIdDTO
+        {
+            UserId = user.Id,
+            NationalIdFrontUrl = user.NationalIdFrontUrl,
+            NationalIdBackUrl = user.NationalIdBackUrl,
+            NationalIdStatus = user.NationalIdStatus
+        };
+    }
+
+    public async Task<bool> ApproveNationalIdAsync(Guid userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) throw new ArgumentException("User not found");
+
+        user.NationalIdStatus = NationalIdStatus.Approved;
+        _userRepository.Update(user);
+        await _unitOfWork.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> RejectNationalIdAsync(Guid userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) throw new ArgumentException("User not found");
+
+        user.NationalIdFrontUrl = null;
+        user.NationalIdBackUrl = null;
+        user.NationalIdStatus = NationalIdStatus.Rejected;
+        _userRepository.Update(user);
+        await _unitOfWork.SaveChangesAsync();
         return true;
     }
 }

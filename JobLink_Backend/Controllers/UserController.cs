@@ -105,5 +105,85 @@ namespace JobLink_Backend.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("pending-national-ids")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetPendingNationalIds()
+        {
+            var pendingNationalIds = await _userService.GetPendingNationalIdsAsync();
+            if (pendingNationalIds == null || !pendingNationalIds.Any())
+            {
+                return NotFound(new { message = "No pending national IDs found." });
+            }
+            return Ok(new ApiResponse<List<UserNationalIdDTO>>
+            {
+                Data = pendingNationalIds,
+                Message = "Fetched pending national IDs successfully.",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+
+        [HttpGet("national-id/{userId}")]
+        [AllowAnonymous]
+
+        public async Task<IActionResult> GetNationalIdDetail(Guid userId)
+        {
+            try
+            {
+                var nationalIdDetail = await _userService.GetNationalIdDetailAsync(userId);
+                return Ok(new ApiResponse<UserNationalIdDTO>
+                {
+                    Data = nationalIdDetail,
+                    Message = "Get national ID detail successfully!",
+                    Status = 200,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("national-id/{userId}/approve")]
+        [AllowAnonymous]
+
+        public async Task<IActionResult> ApproveNationalId(Guid userId)
+        {
+            try
+            {
+                var result = await _userService.ApproveNationalIdAsync(userId);
+                if (result)
+                {
+                    return Ok(new { message = "National ID approved successfully" });
+                }
+                return BadRequest(new { message = "Failed to approve National ID" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("national-id/{userId}/reject")]
+        [AllowAnonymous]
+
+        public async Task<IActionResult> RejectNationalId(Guid userId)
+        {
+            try
+            {
+                var result = await _userService.RejectNationalIdAsync(userId);
+                if (result)
+                {
+                    return Ok(new { message = "National ID rejected successfully" });
+                }
+                return BadRequest(new { message = "Failed to reject National ID" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

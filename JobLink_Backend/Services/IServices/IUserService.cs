@@ -22,6 +22,9 @@ namespace JobLink_Backend.Services.IServices
         Task<List<TransactionResponse>> GetTransactionsAsync(TransactionsRequest request);
         Task<bool> UploadNationalIdAsync(IdRequest idRequest);
         Task<List<UserNationalIdDTO>> GetPendingNationalIdsAsync();
+        Task<UserNationalIdDTO> GetNationalIdDetailAsync(Guid userId);
+        Task<bool> ApproveNationalIdAsync(Guid userId);
+        Task<bool> RejectNationalIdAsync(Guid userId);
         Task<UserDTO> GetUserByAccessToken(string accessToken);
         Task<string?> RefreshTokenAsync(string refreshToken);
         Task<UserHompageDTO> GetUserHompageAsync(string accessToken);
