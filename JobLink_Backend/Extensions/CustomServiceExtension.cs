@@ -14,6 +14,7 @@ public static class CustomServiceExtension
         services.AddScoped<IRoleRepository, RoleRepositoryImpl>();
         services.AddScoped<IJobRepository, JobRepositoryImpl>();
         
+        services.AddSignalR();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         services.AddScoped<IUserService, UserServiceImpl>();
@@ -21,6 +22,8 @@ public static class CustomServiceExtension
 
         services.AddScoped<IVietQrService, VietQrService>();
         services.AddScoped<S3Uploader>();
+        services.AddScoped<ITransactionsService, TransactionServiceImpl>();
+        services.AddScoped<IEmailService, EmailServiceImpl>();
         return services;
     }
 }

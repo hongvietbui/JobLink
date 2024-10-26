@@ -2,6 +2,7 @@ using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.Request;
 using JobLink_Backend.Entities;
 using JobLink_Backend.DTOs.Response;
+using JobLink_Backend.DTOs.Response.Users;
 
 namespace JobLink_Backend.Services.IServices
 {
@@ -20,5 +21,6 @@ namespace JobLink_Backend.Services.IServices
         Task<bool> ChangePassword(ChangePassworDTO changePassword);
         Task<UserDTO> GetUserByAccessToken(string accessToken);
         Task<string?> RefreshTokenAsync(string refreshToken);
+        Task<UserHompageDTO> GetUserHompageAsync(string accessToken);
     }
 }

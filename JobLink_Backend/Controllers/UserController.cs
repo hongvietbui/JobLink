@@ -1,6 +1,7 @@
 ﻿using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.Request;
 using JobLink_Backend.DTOs.Response;
+using JobLink_Backend.DTOs.Response.Users;
 using JobLink_Backend.Services.IServices;
 using JobLink_Backend.Utilities.Jwt;
 using Microsoft.AspNetCore.Authorization;
@@ -18,13 +19,13 @@ namespace JobLink_Backend.Controllers
         {
             _userService = userService;
         }
-        
+
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ApiRequest<ChangePassworDTO> changePassword)
         {
             try
             {
-               var result =await _userService.ChangePassword(changePassword.Data);
+                var result = await _userService.ChangePassword(changePassword.Data);
                 if (true)
                     return Ok(new { message = "Change password successfully" });
                 else
@@ -54,6 +55,28 @@ namespace JobLink_Backend.Controllers
                 Status = 200,
                 Timestamp = DateTime.Now.Ticks
             });
+        }
+
+        [HttpGet("homepage")]
+        public async Task<IActionResult> GetUserData([FromHeader] string authorization)
+        {
+            var accessToken = authorization.Split(" ")[1];
+
+            try
+            {
+                var userData = await _userService.GetUserHompageAsync(accessToken);
+                return Ok(new ApiResponse<UserHompageDTO>
+                {
+                    Data = userData,
+                    Message = "Get data successfully!",
+                    Status = 200,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }
