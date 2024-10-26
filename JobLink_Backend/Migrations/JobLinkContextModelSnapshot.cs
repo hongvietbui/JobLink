@@ -287,6 +287,9 @@ namespace JobLink_Backend.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("UserReceive")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
@@ -350,11 +353,14 @@ namespace JobLink_Backend.Migrations
                     b.Property<int?>("Lon")
                         .HasColumnType("int");
 
-                    b.Property<string>("NationalIdBack")
+                    b.Property<string>("NationalIdBackUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("NationalIdFront")
+                    b.Property<string>("NationalIdFrontUrl")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("NationalIdStatus")
+                        .HasColumnType("int");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -370,6 +376,9 @@ namespace JobLink_Backend.Migrations
 
                     b.Property<string>("RefreshToken")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RefreshTokenExpiryTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");

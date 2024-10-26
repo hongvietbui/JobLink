@@ -1,3 +1,5 @@
+using Amazon.S3;
+using JobLink_Backend.ChatHub;
 using JobLink_Backend.Entities;
 using JobLink_Backend.Extensions;
 using JobLink_Backend.Mappings;
@@ -33,10 +35,15 @@ builder.Services.AddCustomAuthentication();
 
 // Add custom services
 builder.Services.AddCustomServices();
+//
+builder.Services.AddCustomHttpClients();
+
+builder.Services.AddAWSService<IAmazonS3>();
 //Add auto mappers
 builder.Services.AddAutoMapper(typeof(MapProfile).Assembly);
 
 var app = builder.Build();
+// Apply the CORS policy here
 app.UseCors("AllowAll");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -47,12 +54,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// **Important**: Apply the CORS policy here
- // Ensure you include this line
-
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.MapHub<ChatHub>("/chatHub");
 app.Run();

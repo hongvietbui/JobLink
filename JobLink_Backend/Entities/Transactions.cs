@@ -12,13 +12,13 @@ public class Transactions : BaseEntity<Guid>
     public decimal Amount { get; set; }
 
     public PaymentType PaymentType { get; set; }
-    public PaymentStatus Status { get; set; }
+    public PaymentStatus Status { get; set; } = 0;
     [Column(TypeName = "nvarchar(51)")]
     public string? BankName { get; set; }
     [Column(TypeName = "nvarchar(51)")]
     public string? BankNumber { get; set; }
-
     public DateTime TransactionDate { get; set; }
+    public string? UserReceive { get; set; }
     
     public User User { get; set; }
 }
