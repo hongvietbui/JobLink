@@ -12,5 +12,7 @@ public class JobDTO
     public string? Address { get; set; }
     public int? Lat { get; set; }
     public int? Lon { get; set; }
+    public double? Duration { get; set; }
+    public decimal? Price { get; set; }
     public string? Status { get; set; }
 }
