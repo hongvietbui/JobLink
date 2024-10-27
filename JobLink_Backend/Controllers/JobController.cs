@@ -2,8 +2,12 @@ using JobLink_Backend.DTOs.All.Job;
 using JobLink_Backend.DTOs.Request;
 using AutoMapper;
 using JobLink_Backend.DTOs.All;
+using JobLink_Backend.DTOs.Request.Jobs;
 using JobLink_Backend.DTOs.Response;
+using JobLink_Backend.DTOs.Response.Jobs;
 using JobLink_Backend.Services.IServices;
+using JobLink_Backend.Utilities.Pagination;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using JobLink_Backend.Utilities.Pagination;
 using JobLink_Backend.Entities;
@@ -12,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace JobLink_Backend.Controllers;
 
+[AllowAnonymous]
 public class JobController(IJobService jobService, IMapper mapper) : BaseController
 {
     private readonly IJobService _jobService = jobService;
@@ -112,4 +117,58 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
                 });
             }
         }
+   /* [HttpPost("create-job")]
+    public async Task<IActionResult> CreateUser([FromBody] ApiRequest<CreateJobDto> addUserDto)
+    {
+        var result = await _userService.AddUserAsync(addUserDto.Data);
+        return CreatedAtAction(nameof(GetDetail), new { id = result.Id }, new ApiResponse<GetJobDto>(201, "User created", result));
+    }*/
+   
+   [HttpGet]
+   public async Task<IActionResult> GetAll([FromQuery] JobListRequestDTO filter, [FromHeader] string authorization)
+   {
+       var accessToken = authorization.Split(" ")[1];
+
+       var jobsList = await _jobService.GetAllJobsDashboardAsync(filter, accessToken); 
+       if (jobsList == null)
+           return NotFound(new ApiResponse<JobDTO>
+           {
+               Data = null,
+               Message = "User role not found",
+               Status = 404,
+               Timestamp = DateTime.Now.Ticks
+           });
+        
+       return Ok(new ApiResponse<Pagination<JobDTO>>
+       {
+           Data = jobsList,
+           Message = "Get user role in job successfully!",
+           Status = 200,
+           Timestamp = DateTime.Now.Ticks
+       });
+   }
+   
+   [HttpGet("statistical")]
+   public async Task<IActionResult> GetAll([FromQuery] JobStatisticalDto filter, [FromHeader] string authorization)
+   {
+       var accessToken = authorization.Split(" ")[1];
+
+       var jobsList = await _jobService.GetJobStatisticalAsync(filter, accessToken); 
+       if (jobsList == null)
+           return NotFound(new ApiResponse<List<JobStatisticalResponseDto>>
+           {
+               Data = null,
+               Message = "User role not found",
+               Status = 404,
+               Timestamp = DateTime.Now.Ticks
+           });
+        
+       return Ok(new ApiResponse<List<JobStatisticalResponseDto>>
+       {
+           Data = jobsList,
+           Message = "Get user role in job successfully!",
+           Status = 200,
+           Timestamp = DateTime.Now.Ticks
+       });
+   }
 }

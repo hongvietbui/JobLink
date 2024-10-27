@@ -28,7 +28,7 @@ public class PasswordHelper
         
         byte[] salt = new byte[16];
         Array.Copy(hashBytes, 0, salt, 0, 16);
-        
+            
         var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations);
         byte[] hash = pbkdf2.GetBytes(20);
 

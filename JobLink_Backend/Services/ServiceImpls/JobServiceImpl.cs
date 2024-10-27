@@ -2,6 +2,8 @@
 using System.Security.Claims;
 using AutoMapper;
 using JobLink_Backend.DTOs.All;
+using JobLink_Backend.DTOs.Request.Jobs;
+using JobLink_Backend.DTOs.Response.Jobs;
 using JobLink_Backend.Entities;
 using JobLink_Backend.Repositories.IRepositories;
 using JobLink_Backend.Services.IServices;
@@ -9,6 +11,7 @@ using JobLink_Backend.Utilities;
 using JobLink_Backend.Utilities.Jwt;
 using JobLink_Backend.Utilities.Pagination;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace JobLink_Backend.Services.ServiceImpls;
 
@@ -34,19 +37,25 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
             throw new Exception("User ID not found in token claims.");
         }
 
-        var job = await _unitOfWork.Repository<Job>().FirstOrDefaultAsync(j => j.Id == jobId);
-
+        var jobList = await _unitOfWork.Repository<Job>().FindByConditionAsync(filter: j => j.Id == jobId, include: j => j.Include(j => j.Owner).Include(j => j.JobWorkers).ThenInclude(j => j.Worker));
+        var job = jobList.FirstOrDefault();
+        
         if (job == null)
         {
             throw new Exception("Job not found.");
         }
 
-        if (job.OwnerId == userId)
+        //get ownerId by userId
+        var owner = await _unitOfWork.Repository<JobOwner>().FirstOrDefaultAsync(jo => jo.UserId == userId);
+        //get workerId by userId
+        var worker = await _unitOfWork.Repository<Worker>().FirstOrDefaultAsync(w => w.UserId == userId);
+        //Check if user is owner of job
+        if (job.OwnerId == owner.Id)
         {
             return await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "JobOwner");
         }
 
-        if (job.WorkerId == userId)
+        if (job.JobWorkers.Any(jw => jw.WorkerId == worker.Id))
         {
             return await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "Worker");
         }
@@ -97,5 +106,79 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         var orderByExpression = Expression.Lambda<Func<Job, object>>(Expression.Convert(sortExpression, typeof(object)), param);
 
         return isDescending ? query.OrderByDescending(orderByExpression) : query.OrderBy(orderByExpression);
+    }
+}
+    public async Task<Pagination<JobDTO>>? GetAllJobsDashboardAsync(JobListRequestDTO filter, string accessToken)
+    {
+        //Todo: Fix GetAllJobsDashboardAsync
+        throw new NotImplementedException();
+        
+        // var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+        //
+        // var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+        // if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        // {
+        //     throw new Exception("User ID not found in token claims.");
+        // }
+        //
+        //
+        // Expression<Func<Job, bool>> filterExpression = t =>
+        //     (string.IsNullOrEmpty(filter.Filter) || t.Name.Contains(filter.Filter)
+        //                                          || t.Description.Contains(filter.Filter))
+        //     && (filter.Status == null || t.Status == filter.Status)
+        //     && ((filter.IsOwner == null && (t.OwnerId == userId || t.WorkerId == userId)) ||
+        //         (filter.IsOwner == true && t.OwnerId == userId) ||
+        //         (filter.IsOwner == false && t.WorkerId == userId));
+        //
+        //
+        // Func<IQueryable<Job>, IIncludableQueryable<Job, object>> include = query =>
+        //     query.Include(u => u.Owner)
+        //         .Include(u => u.Workers);
+        //
+        //
+        // var listJob = await _unitOfWork.Repository<Job>()
+        //     .GetAllAsync(filterExpression, filter.PageNumber, filter.PageSize, include);
+        //
+        // return _mapper.Map<Pagination<JobDTO>>(listJob);
+    }
+
+    public async Task<List<JobStatisticalResponseDto>> GetJobStatisticalAsync(JobStatisticalDto filter, string accessToken)
+    {
+        //Todo: Fix GetJobStatisticalAsync
+        throw new NotImplementedException();
+        
+        // var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+        //
+        // var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+        // if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        // {
+        //     throw new Exception("User ID not found in token claims.");
+        // }
+        //
+        // Expression<Func<Transactions, bool>> filterExpression = t =>
+        //     t.UserId == userId;
+        // Expression<Func<Job, bool>> filterEarnExpression = t =>
+        //     t.WorkerId == userId && t.Status == JobStatus.Completed;
+        //
+        // var listTransaction = await _unitOfWork.Repository<Transactions>().GetAllAsync(filterExpression);
+        //
+        // var listEarn = await _unitOfWork.Repository<Job>().GetAllAsync(filterEarnExpression);
+        // var dateRange = Enumerable.Range(0, (filter.To - filter.From).Days + 1)
+        //     .Select(d => filter.From.AddDays(d))
+        //     .ToList();
+        //
+        //
+        // var result = dateRange.Select(date => new JobStatisticalResponseDto
+        // {
+        //     Date = date,
+        //     Deposit = listTransaction
+        //         .Where(t => t.TransactionDate.Date == date.Date && t.PaymentType == PaymentType.Deposit)
+        //         .Sum(t => t.Amount).ToString(),
+        //     Earn = listEarn
+        //         .Where(t => t.UpdatedAt.Value.Date == date.Date)
+        //         .Sum(t => t.Price).ToString(),
+        // }).ToList();
+        //
+        // return result;
     }
 }

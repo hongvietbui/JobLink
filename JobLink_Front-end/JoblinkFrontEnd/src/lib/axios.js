@@ -14,6 +14,11 @@ const responseBody = (response) => {
 
 
 axios.interceptors.request.use(async (config) => {
+
+  const token = localStorage.getItem("token")
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
   if (config.method === 'post' || config.method === 'put' || config.method === 'delete') {
     const originalData = config.data || {} // preserve original body data
     config.data = {
@@ -150,6 +155,19 @@ const ForgetPassChange = {
 
 const User = {
   changePass: (body) => requests.post('https://localhost:8081/api/user/change-password', body),
+  homepage: () => requests.get('https://localhost:8081/api/user/homepage'),
+  me: () => requests.get('https://localhost:8081/api/user/me'),
+
+}
+
+const Job = {
+  getListJobDoneDashboard: (body) => requests.get('https://localhost:8081/api/job', convertParams(body)),
+  getStatistical : (params) => requests.get('https://localhost:8081/api/job/statistical', params)
+}
+
+const Transaction = {
+  createWithdraw: (body) => requests.post('https://localhost:8081/api/transactions', body),
+ 
 }
 const Job = {
   Listjob: (pageIndex, pageSize, sortBy, isDescending, filter) => {
@@ -173,7 +191,8 @@ const agent = {
   EmailTemplate,
   EmailInput,
   VerifyOtp, ForgetPassChange,
-  Job
+  Job,
+  Transaction
 }
 
 export default agent
