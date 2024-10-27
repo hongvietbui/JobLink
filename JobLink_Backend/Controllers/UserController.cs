@@ -40,6 +40,7 @@ namespace JobLink_Backend.Controllers
             }
         }
 
+        //mine
         [HttpGet("{userId}/notifications")]
         public async Task<IActionResult> GetUserNotifications(Guid userId)
         {
@@ -51,6 +52,7 @@ namespace JobLink_Backend.Controllers
             return Ok(notifications);
         }
 
+        //mine
         [HttpGet("topupHistory")]
         public async Task<IActionResult> GetTopUpHistory([FromQuery] TransactionsRequest request)
         {
@@ -106,6 +108,7 @@ namespace JobLink_Backend.Controllers
             }
         }
 
+        //mine
         [HttpGet("pending-national-ids")]
         [AllowAnonymous]
         public async Task<IActionResult> GetPendingNationalIds()
@@ -124,6 +127,7 @@ namespace JobLink_Backend.Controllers
             });
         }
 
+        //mine
         [HttpGet("national-id/{userId}")]
         [AllowAnonymous]
 
@@ -146,9 +150,9 @@ namespace JobLink_Backend.Controllers
             }
         }
 
+        //mine
         [HttpPost("national-id/{userId}/approve")]
         [AllowAnonymous]
-
         public async Task<IActionResult> ApproveNationalId(Guid userId)
         {
             try
@@ -166,9 +170,9 @@ namespace JobLink_Backend.Controllers
             }
         }
 
+        //mine
         [HttpPost("national-id/{userId}/reject")]
         [AllowAnonymous]
-
         public async Task<IActionResult> RejectNationalId(Guid userId)
         {
             try

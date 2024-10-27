@@ -344,6 +344,7 @@ public class UserServiceImpl(
         return _mapper.Map<UserDTO>(newUser);
     }
 
+    //mine
     public async Task<IEnumerable<NotificationResponse>> GetUserNotificationsAsync(Guid userId)
     {
         var notifications = await _unitOfWork.Repository<Notification>()
@@ -358,6 +359,7 @@ public class UserServiceImpl(
         }).ToList();
     }
 
+    //mine
     public async Task<List<TransactionResponse>> GetTransactionsAsync(TransactionsRequest request)
     {
         var fromDate = request.FromDate ?? DateTime.MinValue;
@@ -379,6 +381,7 @@ public class UserServiceImpl(
         }).ToList();
     }
 
+    //mine
     public async Task<bool> UploadNationalIdAsync(IdRequest idRequest)
     {
         var user = await _userRepository.GetById(idRequest.userId);
@@ -392,6 +395,7 @@ public class UserServiceImpl(
         return true;
     }
 
+    //mine
     public async Task<List<UserNationalIdDTO>> GetPendingNationalIdsAsync()
     {
         var pendingUsers = await _unitOfWork.Repository<User>()
@@ -406,6 +410,7 @@ public class UserServiceImpl(
         }).ToList();
     }
 
+    //mine
     public async Task<UserNationalIdDTO> GetNationalIdDetailAsync(Guid userId)
     {
         var user = await _userRepository.GetByIdAsync(userId);
@@ -423,6 +428,7 @@ public class UserServiceImpl(
         };
     }
 
+    //mine
     public async Task<bool> ApproveNationalIdAsync(Guid userId)
     {
         var user = await _userRepository.GetByIdAsync(userId);
@@ -434,6 +440,7 @@ public class UserServiceImpl(
         return true;
     }
 
+    //mine
     public async Task<bool> RejectNationalIdAsync(Guid userId)
     {
         var user = await _userRepository.GetByIdAsync(userId);
