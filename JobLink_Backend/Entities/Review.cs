@@ -18,8 +18,8 @@ namespace JobLink_Backend.Entities
         public DateTime? OwnerRatingDate { get; set; }
 
         // Navigation properties
-        public User Worker { get; set; }
-        public User Owner { get; set; }
+        public Worker Worker { get; set; }
+        public JobOwner Owner { get; set; }
         public Job Job { get; set; }
     }
 }

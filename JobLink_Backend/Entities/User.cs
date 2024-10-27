@@ -38,11 +38,7 @@ public class User : BaseEntity<Guid>
     public string? QR { get; set; }
     //Navigation properties
     public ICollection<Role> Roles { get; set; }
-    public ICollection<Job> OwnedJobs { get; set; }
-    public ICollection<Job> WorkedJobs { get; set; }
     public ICollection<Notification> Notifications { get; set; }
     public ICollection<Transactions> UserTransactions { get; set; }
-    public ICollection<Review> OwnerReviews { get; set; }
-    public ICollection<Review> WorkerReviews { get; set; }
 }
 
