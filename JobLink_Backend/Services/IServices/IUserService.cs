@@ -21,8 +21,8 @@ namespace JobLink_Backend.Services.IServices
         Task<string?> RefreshTokenAsync(string refreshToken);
         Task<UserHompageDTO> GetUserHompageAsync(string accessToken);
         //mine
-        Task AddNotificationAsync(Guid userId, string message);
-        Task<IEnumerable<NotificationResponse>> GetUserNotificationsAsync(Guid userId);
+        Task AddNotificationAsync(string username, string message);
+        Task<List<NotificationResponse>> GetUserNotificationsAsync(Guid userId);
         Task<List<TransactionResponse>> GetTransactionsAsync(TransactionsRequest request);
         Task<bool> UploadNationalIdAsync(IdRequest idRequest);
         Task<List<UserNationalIdDTO>> GetPendingNationalIdsAsync();

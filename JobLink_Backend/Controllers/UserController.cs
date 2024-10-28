@@ -1,6 +1,7 @@
 ﻿using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.Request;
 using JobLink_Backend.DTOs.Response;
+using JobLink_Backend.DTOs.Response.Transactions;
 using JobLink_Backend.DTOs.Response.Users;
 using JobLink_Backend.Services.IServices;
 using JobLink_Backend.Utilities.Jwt;
@@ -28,7 +29,7 @@ namespace JobLink_Backend.Controllers
                 var result = await _userService.ChangePassword(changePassword.Data);
                 if (true)
                 {
-                    await _userService.AddNotificationAsync(changePassword.Data.UserId, "Your password has been changed!!");
+                    await _userService.AddNotificationAsync(changePassword.Data.Username, "Your password has been changed!!");
                     return Ok(new { message = "Change password successfully" });
                 }
                 else
@@ -42,14 +43,28 @@ namespace JobLink_Backend.Controllers
 
         //mine
         [HttpGet("{userId}/notifications")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetUserNotifications(Guid userId)
         {
             var notifications = await _userService.GetUserNotificationsAsync(userId);
             if (notifications == null || !notifications.Any())
             {
-                return NotFound(new { message = "No notifications found for this user." });
+                return NotFound(new ApiResponse<List<NotificationResponse>>
+                {
+                    Data = null,
+                    Message = "No notifications found for this user.",
+                    Status = 404,
+                    Timestamp = DateTime.Now.Ticks
+                });
             }
-            return Ok(notifications);
+
+            return Ok(new ApiResponse<List<NotificationResponse>>
+            {
+                Data = notifications,
+                Message = "Fetched user notifications successfully.",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
         }
 
         //mine
@@ -62,14 +77,32 @@ namespace JobLink_Backend.Controllers
 
                 if (transactions == null || !transactions.Any())
                 {
-                    return NotFound(new { message = "No transactions found for this user." });
+                    return NotFound(new ApiResponse<List<TransactionResponse>>
+                    {
+                        Data = null,
+                        Message = "No transactions found for this user.",
+                        Status = 404,
+                        Timestamp = DateTime.Now.Ticks
+                    });
                 }
 
-                return Ok(transactions);
-                }
+                return Ok(new ApiResponse<List<TransactionResponse>>
+                {
+                    Data = transactions,
+                    Message = "Fetched top-up history successfully.",
+                    Status = 200,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ApiResponse<string>
+                {
+                    Data = null,
+                    Message = ex.Message,
+                    Status = 400,
+                    Timestamp = DateTime.Now.Ticks
+                });
             }
         }
         

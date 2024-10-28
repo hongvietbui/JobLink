@@ -2,22 +2,20 @@
 using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.Request;
 using JobLink_Backend.DTOs.Response;
+using JobLink_Backend.DTOs.Response.Users;
 using JobLink_Backend.Entities;
 using JobLink_Backend.Repositories.IRepositories;
 using JobLink_Backend.Services.IServices;
-using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Linq.Expressions;
-using System.Net.Mail;
-using System.Net;
-using System.Security.Claims;
 using JobLink_Backend.Utilities;
 using JobLink_Backend.Utilities.Jwt;
+using JobLink_Backend.Utilities.SignalR.SignalRHubs;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
-using JobLink_Backend.DTOs.Request;
-using JobLink_Backend.DTOs.Response.Users;
-using Microsoft.EntityFrameworkCore.Query;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Net;
+using System.Net.Mail;
+using System.Security.Claims;
 
 namespace JobLink_Backend.Services.ServiceImpls;
 
@@ -25,13 +23,15 @@ public class UserServiceImpl(
     IUnitOfWork unitOfWork,
     IUserRepository userRepository,
     IMapper mapper,
-    JwtService jwtService) : IUserService
+    JwtService jwtService,
+    IHubContext<NotificationsHub> notificationHub) : IUserService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IMapper _mapper = mapper;
     private readonly JwtService _jwtService = jwtService;
     private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
+    private readonly IHubContext<NotificationsHub> _notificationsHub = notificationHub;
 
     public async Task SaveRefreshTokenAsync(string username, string refreshToken)
     {
@@ -125,18 +125,18 @@ public class UserServiceImpl(
 
     public async Task<bool> ChangePassword(ChangePassworDTO changePassword)
     {
-        var user = await _userRepository.GetById(changePassword.UserId);
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == changePassword.Username);
         if (user == null)
         {
             throw new Exception("User not found");
         }
 
-        if (user.Password != changePassword.CurrentPassword)
+        if (PasswordHelper.VerifyPassword(user.Password, changePassword.CurrentPassword))
         {
             throw new Exception("Current password is incorrect");
         }
 
-        user.Password = changePassword.NewPassword;
+        user.Password = PasswordHelper.HashPassword(changePassword.NewPassword);
         await _userRepository.Update(user);
         await _userRepository.SaveChangeAsync();
 
@@ -170,17 +170,20 @@ public class UserServiceImpl(
         return _jwtService.GenerateAccessToken(claimList);
     }
 
-    public async Task AddNotificationAsync(Guid userId, string message)
+    public async Task AddNotificationAsync(string username, string message)
     {
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == username);
+        
         var notification = new Notification
         {
-            UserId = userId,
+            UserId = user.Id,
             Message = message,
             Date = DateTime.Now,
             IsRead = false
         };
         await _unitOfWork.Repository<Notification>().AddAsync(notification);
         await _unitOfWork.SaveChangesAsync();
+        await _notificationsHub.Clients.User(user.Id.ToString()).SendAsync("ReceiveNotification", message);
     }
 
     public async Task<string> GetNewAccessTokenAsync(string username, string refreshToken)
@@ -346,7 +349,7 @@ public class UserServiceImpl(
     }
 
     //mine
-    public async Task<IEnumerable<NotificationResponse>> GetUserNotificationsAsync(Guid userId)
+    public async Task<List<NotificationResponse>> GetUserNotificationsAsync(Guid userId)
     {
         var notifications = await _unitOfWork.Repository<Notification>()
                                          .FindByConditionAsync(n => n.UserId == userId);
