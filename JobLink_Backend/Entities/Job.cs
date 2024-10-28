@@ -22,7 +22,6 @@ public class Job : BaseEntity<Guid>
     [Column(TypeName = "decimal(18,2)")]
     public decimal? Price { get; set; }
     public JobOwner Owner { get; set; }
-    
     public ICollection<JobWorker> JobWorkers { get; set; } = new List<JobWorker>();
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
 }

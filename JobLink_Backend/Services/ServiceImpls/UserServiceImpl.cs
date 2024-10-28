@@ -125,18 +125,18 @@ public class UserServiceImpl(
 
     public async Task<bool> ChangePassword(ChangePassworDTO changePassword)
     {
-        var user = await _userRepository.GetById(changePassword.UserId);
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == changePassword.Username);
         if (user == null)
         {
             throw new Exception("User not found");
         }
 
-        if (user.Password != changePassword.CurrentPassword)
+        if (PasswordHelper.VerifyPassword(user.Password, changePassword.CurrentPassword))
         {
             throw new Exception("Current password is incorrect");
         }
 
-        user.Password = changePassword.NewPassword;
+        user.Password = PasswordHelper.HashPassword(changePassword.NewPassword);
         await _userRepository.Update(user);
         await _userRepository.SaveChangeAsync();
 
