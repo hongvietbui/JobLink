@@ -5,7 +5,7 @@ namespace JobLink_Backend.DTOs.Response.Transactions;
 public class TransactionDTO
 {
     public Guid Id { get; set; }
-    public int? Tid { get; set; }
+    public string? Tid { get; set; }
     public Guid? UserId { get; set; }
     public decimal? Amount { get; set; }
 

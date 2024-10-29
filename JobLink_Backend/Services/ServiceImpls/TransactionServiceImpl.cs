@@ -15,9 +15,10 @@ using Newtonsoft.Json;
 
 namespace JobLink_Backend.Services.ServiceImpls;
 
-public class TransactionServiceImpl(IUnitOfWork unitOfWork, IEmailService emailService, IMapper mapper, JwtService jwtService, IHubContext<TransferHub> hubContext) : ITransactionService
+public class TransactionServiceImpl(IUnitOfWork unitOfWork, ITransactionRepository transactionRepository, IEmailService emailService, IMapper mapper, JwtService jwtService, IHubContext<TransferHub> hubContext) : ITransactionService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly ITransactionRepository _transactionRepository = transactionRepository;
     private readonly IEmailService _emailService = emailService;
     private readonly IMapper _mapper = mapper;
     private readonly JwtService _jwtService = jwtService;
@@ -34,8 +35,8 @@ public class TransactionServiceImpl(IUnitOfWork unitOfWork, IEmailService emailS
             .Distinct()
             .ToList();
 
-        var existingTransactions = await _unitOfWork.Repository<Transaction>()
-            .FindByConditionAsync(filter: t => tids.Contains(t.Tid));
+        var existingTransactions =
+            await _unitOfWork.Repository<Transaction>().FindByConditionAsync(t => tids.Contains(t.Tid));
 
         var existingTids = existingTransactions!=null ? new HashSet<string?>(existingTransactions.Select(et => et.Tid)) : new HashSet<string?>();
         
