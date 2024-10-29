@@ -147,8 +147,140 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
            Timestamp = DateTime.Now.Ticks
        });
    }
-   
-   [HttpGet("statistical")]
+    [AllowAnonymous]
+    [HttpGet("created-by-user")]
+    public async Task<IActionResult> GetJobsCreatedByUserAsync([FromHeader] string authorization , int pageIndex = 1, int pageSize = 10, string sortBy = null, bool isDescending = false)
+    {
+        string accessToken = string.Empty;
+
+        if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Bearer "))
+        {
+            accessToken = authorization.Split(" ")[1];
+        }
+        else
+        {
+            return BadRequest(new ApiResponse<string>
+            {
+                Data = null,
+                Message = "Invalid authorization format.",
+                Status = 400,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+
+        try
+        {
+            var result = await _jobService.GetJobsCreatedByUserAsync(pageIndex, pageSize, sortBy, isDescending, accessToken);
+
+            if (result == null || result.Items == null || result.Items.Count == 0)
+            {
+                return NotFound(new ApiResponse<string>
+                {
+                    Data = null,
+                    Message = "No jobs applied by the user found.",
+                    Status = 404,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+
+            return Ok(new ApiResponse<Pagination<JobDTO>>
+            {
+                Data = result,
+                Message = "Jobs applied by the user retrieved successfully!",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ApiResponse<string>
+            {
+                Data = null,
+                Message = ex.Message,
+                Status = 500,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+    }
+
+    [HttpGet("applied-by-user")]
+    public async Task<IActionResult> GetJobsAppliedByUserAsync([FromHeader] string authorization, int pageIndex = 1, int pageSize = 10, string sortBy = null, bool isDescending = false)
+    {
+        string accessToken = string.Empty;
+
+        if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Bearer "))
+        {
+            accessToken = authorization.Split(" ")[1];
+        }
+        else
+        {
+            return BadRequest(new ApiResponse<string>
+            {
+                Data = null,
+                Message = "Invalid authorization format.",
+                Status = 400,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+
+        try
+        {
+            var result = await _jobService.GetJobsAppliedByUserAsync(pageIndex, pageSize, sortBy, isDescending, accessToken);
+
+            if (result == null || result.Items == null || result.Items.Count == 0)
+            {
+                return NotFound(new ApiResponse<string>
+                {
+                    Data = null,
+                    Message = "No jobs applied by the user found.",
+                    Status = 404,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+
+            return Ok(new ApiResponse<Pagination<JobDTO>>
+            {
+                Data = result,
+                Message = "Jobs applied by the user retrieved successfully!",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ApiResponse<string>
+            {
+                Data = null,
+                Message = ex.Message,
+                Status = 500,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+    }
+
+
+    [HttpGet("apply-job/{jobId}")]
+    public async Task<IActionResult> GetApplicantsByJobId([FromRoute] Guid jobId)
+    {
+        var applicants = await _jobService.GetApplicantsByJobIdAsync(jobId);
+        if (applicants == null || !applicants.Any())
+            return NotFound(new ApiResponse<UserDTO>
+            {
+                Data = null,
+                Message = "No applicants found for this job",
+                Status = 404,
+                Timestamp = DateTime.Now.Ticks
+            });
+
+        return Ok(new ApiResponse<List<UserDTO>>
+        {
+            Data = applicants,
+            Message = "Applicants retrieved successfully!",
+            Status = 200,
+            Timestamp = DateTime.Now.Ticks
+        });
+    }
+    [HttpGet("statistical")]
    public async Task<IActionResult> GetAll([FromQuery] JobStatisticalDto filter, [FromHeader] string authorization)
    {
        var accessToken = authorization.Split(" ")[1];

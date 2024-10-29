@@ -19,5 +19,6 @@ namespace JobLink_Backend.DTOs.All.Job
         public int? Lat { get; set; }
         public int? Lon { get; set; }
         public JobStatus Status { get; set; }
+        
     }
 }
