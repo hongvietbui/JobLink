@@ -47,13 +47,13 @@ const priorityIcons = {
 };
 
 const TaskStatus = {
-  0: "Pending-approval",
-  1: "Approved",
-  2: "Rejected",
-  3: "Expired",
-  4: "Deleted",
-  5: "Completed",
-  6: "In progress",
+  'pending-approval': "Pending-approval",
+  'approved': "Approved",
+  'rejected': "Rejected",
+  'expired': "Expired",
+  'deleted': "Deleted",
+  'completed': "Completed",
+  'in-progress': "In progress",
 };
 export default function TaskDone() {
   const [searchTerm, setSearchTerm] = useState("");

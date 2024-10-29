@@ -15,6 +15,7 @@ import useAuthStore from "./stores/useAuthStore";
 import { useEffect } from "react";
 import agent from "./lib/axios";
 import RoutesConfig from "./routes/Route";
+import AddSupportRequest from "./components/support-system/AddSupportRequest";
 function App() {
   const footerLinks = [
     {
@@ -206,6 +207,7 @@ function App() {
           </div>
         </div>
       </footer>
+      <AddSupportRequest />
     </div>
   );
 }

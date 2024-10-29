@@ -12,6 +12,7 @@ public class JobLinkContext : DbContext
     public DbSet<Role> Roles { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Review> Reviews { get; set; }
+    public DbSet<SupportRequest> SupportRequests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -87,5 +88,17 @@ public class JobLinkContext : DbContext
             .WithMany(r => r.Reviews)
             .HasForeignKey(r => r.JobId)
             .OnDelete(DeleteBehavior.NoAction);
+        
+        modelBuilder.Entity<SupportRequest>()
+            .HasOne(t => t.User)
+            .WithMany(u => u.UserSystemRequest)
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<SupportRequest>()
+            .HasOne(t => t.Job)
+            .WithMany(u => u.SupportRequests)
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

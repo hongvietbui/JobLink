@@ -11,7 +11,7 @@ import {
 } from "../ui/select";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import agent from "@//lib/axios";
 import { toast } from "react-toastify";
 import {
@@ -39,10 +39,75 @@ const MoneyWithdrawal = () => {
   const [otp, setOtp] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false); // Track if OTP has been sent
   const [isValidOtp, setIsValidOtp] = useState(false); // Track if OTP is valid
+  const [isResendEnabled, setIsResendEnabled] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(5);
+
+
+  // Start countdown when OTP is sent
+  useEffect(() => {
+    if (isOtpSent && timeLeft > 0) {
+      const timer = setInterval(() => {
+        setTimeLeft((prevTime) => prevTime - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    } else if (timeLeft === 0) {
+      setIsResendEnabled(true);
+    }
+  }, [isOtpSent, timeLeft]);
+  const validateForm = async (e) => {
+    e.preventDefault();
+    let validForm = true; // Assume the form is valid initially
+
+    if (
+      !amount ||
+      isNaN(amount) ||
+      Number(amount) < 10000 ||
+      amount > accountBalance
+    ) {
+      validForm = false; // Mark the form as invalid
+      toast.error("Vui lòng nhập số tiền hợp lệ.");
+    }
+
+    if (!bankName) {
+      validForm = false; // Mark the form as invalid
+      toast.error("Vui lòng chọn ngân hàng.");
+    }
+
+    if (!bankNumber) {
+      validForm = false; // Mark the form as invalid
+      toast.error("Vui lòng nhập số tài khoản.");
+    }
+
+    if (!userReceive) {
+      validForm = false; // Mark the form as invalid
+      toast.error("Vui lòng nhập tên người nhận.");
+    }
+
+    // If any validation failed, exit the function and close the dialog
+    if (!validForm) {
+      setIsOpen(false); // Close the dialog if the form is invalid
+      return; // Exit the function if the form is not valid
+    }
+
+    setIsOpen(true);
+    // If the form is valid, proceed to send OTP
+    await handleSendOtp();
+  };
+
+  const handleResendOtp = async () => {
+    setIsOtpSent(false)
+    setIsResendEnabled(false);
+    setTimeLeft(5); // Reset countdow
+    await handleSendOtp()
+  }
 
   const handleSendOtp = async () => {
+    
+    
     try {
+      console.log("1");
       if (isOtpSent) {
+        console.log("2")
         return;
       }
       await agent.EmailInput.OtpSend({ email }); // Call your API to send the OTP
@@ -56,6 +121,7 @@ const MoneyWithdrawal = () => {
   // Function to verify OTP
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
+
     try {
       const response = await agent.VerifyOtp.verifyCode({ email, code: otp });
       setIsValidOtp(true);
@@ -67,34 +133,7 @@ const MoneyWithdrawal = () => {
 
   const handleSubmit = async () => {
     // Validation
-    if (
-      !amount ||
-      isNaN(amount) ||
-      Number(amount) < 10000 ||
-      amount > accountBalance
-    ) {
-      toast.error("Vui lòng nhập số tiền hợp lệ.");
-      setIsOpen(false);
-      return;
-    }
 
-    if (!bankName) {
-      toast.error("Vui lòng chọn ngân hàng.");
-      setIsOpen(false);
-      return;
-    }
-
-    if (!bankNumber) {
-      toast.error("Vui lòng nhập số tài khoản.");
-      setIsOpen(false);
-      return;
-    }
-
-    if (!userReceive) {
-      toast.error("Vui lòng nhập tên người nhận.");
-      setIsOpen(false);
-      return;
-    }
     const formData = {
       amount,
       bankNumber,
@@ -292,7 +331,7 @@ const MoneyWithdrawal = () => {
 
         <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
           <AlertDialogTrigger>
-            <Button onClick={() => handleSendOtp()}>Rút tiền</Button>
+            <Button onClick={(e) => validateForm(e)}>Rút tiền</Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -326,9 +365,20 @@ const MoneyWithdrawal = () => {
                 </AlertDialogAction>
               ) : (
                 <AlertDialogAction disabled={!isOtpSent}>
-                  Đang gửi OTP
+                  <>
+                    <Loader2 className="animate-spin" />
+                    Đang gửi OTP
+                  </>
                 </AlertDialogAction>
               )}
+              {/* Resend OTP Button */}
+              <Button
+                onClick={handleResendOtp}
+                disabled={!isResendEnabled}
+                className={isResendEnabled ? "enabled-class" : "disabled-class"}
+              >
+                Gửi lại OTP {isResendEnabled ? "" : `(${timeLeft}s)`}
+              </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
