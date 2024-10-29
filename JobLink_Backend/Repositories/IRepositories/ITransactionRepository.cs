@@ -3,7 +3,7 @@ using JobLink_Backend.Entities;
 
 namespace JobLink_Backend.Repositories.IRepositories;
 
-public interface ITransactionRepository : IRepository<Transaction>
+public interface ITransactionRepository : IRepository<Transactions>
 {
-    List<Transaction> GetExistedTransactionList(List<string?> transactionTids);
+    List<Transactions> GetExistedTransactionList(List<string?> transactionTids);
 }

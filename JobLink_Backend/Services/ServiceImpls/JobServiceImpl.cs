@@ -160,7 +160,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         Expression<Func<Transactions, bool>> filterExpression = t =>
             t.UserId == userId;
         Expression<Func<Job, bool>> filterEarnExpression = t =>
-            t.Status == JobStatus.Completed && t.JobWorkers.Any(j => j.Worker.UserId == userId);
+            t.Status == JobStatus.COMPLETED && t.JobWorkers.Any(j => j.Worker.UserId == userId);
 
         var listTransaction = await _unitOfWork.Repository<Transactions>().GetAllAsync(filterExpression);
 

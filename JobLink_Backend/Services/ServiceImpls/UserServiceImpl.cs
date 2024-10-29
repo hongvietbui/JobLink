@@ -234,14 +234,14 @@ public class UserServiceImpl(
 
 // Bộ lọc cho các công việc hoàn thành trong ngày hôm nay
         Expression<Func<Job, bool>> totalJobDoneFilter = t =>
-            t.Status == JobStatus.Completed &&
+            t.Status == JobStatus.COMPLETED &&
             t.UpdatedAt >= todayStart &&
             t.UpdatedAt < tomorrowStart &&
             t.JobWorkers.Any(j => j.Worker.UserId == userId);
 
 // Bộ lọc cho các công việc hoàn thành trong tháng hiện tại
         Expression<Func<Job, bool>> totalEarnMonthFilter = t =>
-            t.Status == JobStatus.Completed &&
+            t.Status == JobStatus.COMPLETED &&
             t.UpdatedAt >= monthStart &&
             t.UpdatedAt < nextMonthStart &&
             t.JobWorkers.Any(j => j.Worker.UserId == userId);

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JobLink_Backend.Repositories.RepositoryImpls;
 
-public class TransactionRepositoryImpl : EFRepository<Transaction>, ITransactionRepository
+public class TransactionRepositoryImpl : EFRepository<Transactions>, ITransactionRepository
 {
     private readonly JobLinkContext _context;
     
@@ -14,9 +14,9 @@ public class TransactionRepositoryImpl : EFRepository<Transaction>, ITransaction
         _context = context;
     }
 
-    public List<Transaction> GetExistedTransactionList(List<string?> transactionTids)
+    public List<Transactions> GetExistedTransactionList(List<string?> transactionTids)
     {
-        return _context.Set<Transaction>()
+        return _context.Set<Transactions>()
             .Where(t => transactionTids.Contains(t.Tid)).ToList();
     }
 }

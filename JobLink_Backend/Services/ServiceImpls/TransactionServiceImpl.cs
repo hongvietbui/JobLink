@@ -36,13 +36,13 @@ public class TransactionServiceImpl(IUnitOfWork unitOfWork, ITransactionReposito
             .ToList();
 
         var existingTransactions =
-            await _unitOfWork.Repository<Transaction>().FindByConditionAsync(t => tids.Contains(t.Tid));
+            await _unitOfWork.Repository<Transactions>().FindByConditionAsync(t => tids.Contains(t.Tid));
 
         var existingTids = existingTransactions!=null ? new HashSet<string?>(existingTransactions.Select(et => et.Tid)) : new HashSet<string?>();
         
         var newTransactions = transactionDTOs
             .Where(t => !string.IsNullOrEmpty(t.Tid) && !existingTids.Contains(t.Tid))
-            .Select(dto => new Transaction
+            .Select(dto => new Transactions
             {
                 Id =  Guid.NewGuid(),
                 UserId = TryParseGuid(dto.Description.Split(" ")[0]).GetValueOrDefault(),
@@ -56,14 +56,14 @@ public class TransactionServiceImpl(IUnitOfWork unitOfWork, ITransactionReposito
         
         if (newTransactions.Any())
         {
-            await _unitOfWork.Repository<Transaction>().AddRangeAsync(newTransactions);
+            await _unitOfWork.Repository<Transactions>().AddRangeAsync(newTransactions);
             await _unitOfWork.SaveChangesAsync();
         }
         
         SendTransferMessageToUsers(newTransactions);
     }
     
-    private void SendTransferMessageToUsers(List<Transaction> transactions)
+    private void SendTransferMessageToUsers(List<Transactions> transactions)
     {
         var transactionDTOs = _mapper.Map<List<TransactionDTO>>(transactions);
         
@@ -97,19 +97,19 @@ public class TransactionServiceImpl(IUnitOfWork unitOfWork, ITransactionReposito
     
     public async Task<TransactionDTO?> GetTransactionByIdAsync(Guid transactionId)
     {
-        var transaction = await _unitOfWork.Repository<Transaction>().FirstOrDefaultAsync(x => x.Id == transactionId);
+        var transaction = await _unitOfWork.Repository<Transactions>().FirstOrDefaultAsync(x => x.Id == transactionId);
 
         return _mapper.Map<TransactionDTO>(transaction);
     }
 
     public async Task<Pagination<TransactionDTO>> GetAllTransactionsAsync(TransactionFilterDTO filter)
     {
-        Expression<Func<Transaction, bool>> filterExpression = t =>
+        Expression<Func<Transactions, bool>> filterExpression = t =>
             (string.IsNullOrEmpty(filter.Query) || t.Id.ToString() == filter.Query)
             && (!filter.StartDate.HasValue || t.TransactionDate >= filter.StartDate)
             && (!filter.EndDate.HasValue || t.TransactionDate <= filter.EndDate);
 
-        var listUser = await _unitOfWork.Repository<Transaction>()
+        var listUser = await _unitOfWork.Repository<Transactions>()
             .GetAllAsync(filterExpression, filter.PageNumber, filter.PageSize);
 
         return _mapper.Map<Pagination<TransactionDTO>>(listUser);
@@ -131,7 +131,7 @@ public class TransactionServiceImpl(IUnitOfWork unitOfWork, ITransactionReposito
             return;
         }
 
-        Transaction transaction = _mapper.Map<Transaction>(transactionDto);
+        Transactions transaction = _mapper.Map<Transactions>(transactionDto);
         string emailContent = $@"
 <!DOCTYPE html>
 <html lang='vi'>
@@ -192,7 +192,7 @@ public class TransactionServiceImpl(IUnitOfWork unitOfWork, ITransactionReposito
         await _emailService.SendEmailAsync(user.Email, "Đặt lệnh rút tiền thành công", emailContent);
 
         user.AccountBalance = user.AccountBalance - transaction.Amount;
-        await _unitOfWork.Repository<Transaction>().AddAsync(transaction);
+        await _unitOfWork.Repository<Transactions>().AddAsync(transaction);
         _unitOfWork.Repository<User>().Update(user);
         await _unitOfWork.SaveChangesAsync();
     }
@@ -200,8 +200,8 @@ public class TransactionServiceImpl(IUnitOfWork unitOfWork, ITransactionReposito
     public async Task UpdateTransactionAsync(TransactionDTO transaction)
     {
         var transactionToUpdate =
-            await _unitOfWork.Repository<Transaction>().FirstOrDefaultAsync(x => x.Id == transaction.Id);
-        _unitOfWork.Repository<Transaction>().Update(transactionToUpdate);
+            await _unitOfWork.Repository<Transactions>().FirstOrDefaultAsync(x => x.Id == transaction.Id);
+        _unitOfWork.Repository<Transactions>().Update(transactionToUpdate);
         await _unitOfWork.SaveChangesAsync();
     }
 }

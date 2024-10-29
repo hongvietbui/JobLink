@@ -411,7 +411,7 @@ namespace JobLink_Backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Transaction");
+                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("JobLink_Backend.Entities.User", b =>

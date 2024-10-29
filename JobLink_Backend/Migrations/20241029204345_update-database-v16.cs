@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace JobLink_Backend.Migrations
 {
     /// <inheritdoc />
-    public partial class updatedatabasev13 : Migration
+    public partial class updatedatabasev16 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
