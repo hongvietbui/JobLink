@@ -303,4 +303,27 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
            Timestamp = DateTime.Now.Ticks
        });
    }
+    [AllowAnonymous]
+    [HttpGet("job-owner-details/{jobId}")]
+    public async Task<IActionResult> GetJobAndOwnerDetails([FromRoute] Guid jobId)
+    {
+        var jobAndOwnerDetails = await _jobService.GetJobAndOwnerDetailsAsync(jobId);
+
+        if (jobAndOwnerDetails == null)
+            return NotFound(new ApiResponse<JobAndOwnerDetailsResponse>
+            {
+                Data = null,
+                Message = "Job or owner not found",
+                Status = 404,
+                Timestamp = DateTime.Now.Ticks
+            });
+
+        return Ok(new ApiResponse<JobAndOwnerDetailsResponse>
+        {
+            Data = jobAndOwnerDetails,
+            Message = "Job and owner details retrieved successfully!",
+            Status = 200,
+            Timestamp = DateTime.Now.Ticks
+        });
+    }
 }

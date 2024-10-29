@@ -3,6 +3,7 @@ using System.Security.Claims;
 using AutoMapper;
 using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.Request.Jobs;
+using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.DTOs.Response.Jobs;
 using JobLink_Backend.Entities;
 using JobLink_Backend.Repositories.IRepositories;
@@ -252,6 +253,29 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         return userDTOs;
     }
 
+    public async Task<JobAndOwnerDetailsResponse?> GetJobAndOwnerDetailsAsync(Guid jobId)
+    {
+        var job = await _unitOfWork.Repository<Job>().FirstOrDefaultAsync(j => j.Id == jobId);
+        if (job == null) return null;
 
+        var jobOwner = await _unitOfWork.Repository<JobOwner>().FirstOrDefaultAsync(jo => jo.Id == job.OwnerId);
+        if (jobOwner == null) return null;
 
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == jobOwner.UserId);
+        if (user == null) return null;
+
+        return new JobAndOwnerDetailsResponse
+        {
+            JobId = job.Id,
+            JobName = job.Name,
+            Description = job.Description,
+            Lat = job.Lat,
+            Lon = job.Lon,
+            FirstName = user.FirstName,
+            Avatar = job.Avatar,
+            LastName = user.LastName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber
+        };
+    }
 }
