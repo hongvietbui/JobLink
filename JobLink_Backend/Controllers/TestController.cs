@@ -29,11 +29,4 @@ public class TestController(S3Uploader s3Uploader, IVietQrService vietQrService)
             return StatusCode(500, $"Lỗi khi upload file: {ex.Message}");
         }
     }
-    
-    [HttpGet("vietQR/{jobId}")]
-    public async Task<IActionResult> GetVietQRUrl(string userId)
-    {
-        var qrUrl = await _qrService.GenerateQrCodeAsync(Guid.Parse(userId));
-        return Ok(new { Url = qrUrl });
-    }
 }
