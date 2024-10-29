@@ -16,5 +16,6 @@ public class JobDTO
     public int? Lat { get; set; }
     public int? Lon { get; set; }
     public string? Status { get; set; }
-    public double? Duration { get; set; } 
+    public double? Duration { get; set; }
+    public string? Avatar { get; set; }
 }
