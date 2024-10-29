@@ -3,12 +3,7 @@
 import { Input } from "./components/ui/input";
 import { Button } from "./components/ui/button";
 import { Separator } from "./components/ui/separator";
-import ChangePass from "./components/change-pass/ChangePass";
-import LandingPage from "./components/landing-page/LandingPage";
-import VerifyEmailPage from "./components/forgot-pass/VerifyGmail";
-import ChangePasswordPage from "./components/forgot-pass/ChangePassForgot";
-import MoneyWithdrawal from "./components/withdraw-money/WithdrawMoney";
-import Dashboard from "./components/dashboard/Dashboard";
+
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import useAuthStore from "./stores/useAuthStore";

@@ -8,7 +8,7 @@ using JobLink_Backend.Services.IServices;
 
 namespace JobLink_Backend.Services.ServiceImpls;
 
-public class VietQrService(IUnitOfWork unitOfWork, IConfiguration config, IHttpClientFactory httpClientFactory) : IVietQrService
+public class VietQRServiceImpl(IUnitOfWork unitOfWork, IConfiguration config, IHttpClientFactory httpClientFactory) : IVietQrService
 {
     private readonly string REQUEST_URI = "generate";
     private readonly string MEDIA_TYPE = "application/json";

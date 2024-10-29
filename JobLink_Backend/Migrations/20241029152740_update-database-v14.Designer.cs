@@ -4,6 +4,7 @@ using JobLink_Backend.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JobLink_Backend.Migrations
 {
     [DbContext(typeof(JobLinkContext))]
-    partial class JobLinkContextModelSnapshot : ModelSnapshot
+    [Migration("20241029152740_update-database-v14")]
+    partial class updatedatabasev14
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,6 +36,7 @@ namespace JobLink_Backend.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Avatar")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("CreatedAt")
@@ -293,67 +297,7 @@ namespace JobLink_Backend.Migrations
                     b.ToTable("Roles");
                 });
 
-            modelBuilder.Entity("JobLink_Backend.Entities.SupportRequest", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Category")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Image")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool?>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid?>("JobId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Priority")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("SupportRequests");
-                });
-
-            modelBuilder.Entity("JobLink_Backend.Entities.Transactions", b =>
+            modelBuilder.Entity("JobLink_Backend.Entities.Transaction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -645,26 +589,7 @@ namespace JobLink_Backend.Migrations
                     b.Navigation("Worker");
                 });
 
-            modelBuilder.Entity("JobLink_Backend.Entities.SupportRequest", b =>
-                {
-                    b.HasOne("JobLink_Backend.Entities.Job", "Job")
-                        .WithMany("SupportRequests")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("JobLink_Backend.Entities.User", "User")
-                        .WithMany("UserSystemRequest")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Job");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("JobLink_Backend.Entities.Transactions", b =>
+            modelBuilder.Entity("JobLink_Backend.Entities.Transaction", b =>
                 {
                     b.HasOne("JobLink_Backend.Entities.User", "User")
                         .WithMany("UserTransactions")
@@ -706,8 +631,6 @@ namespace JobLink_Backend.Migrations
                     b.Navigation("JobWorkers");
 
                     b.Navigation("Reviews");
-
-                    b.Navigation("SupportRequests");
                 });
 
             modelBuilder.Entity("JobLink_Backend.Entities.JobOwner", b =>
@@ -720,8 +643,6 @@ namespace JobLink_Backend.Migrations
             modelBuilder.Entity("JobLink_Backend.Entities.User", b =>
                 {
                     b.Navigation("Notifications");
-
-                    b.Navigation("UserSystemRequest");
 
                     b.Navigation("UserTransactions");
                 });

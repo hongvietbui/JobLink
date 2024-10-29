@@ -2,11 +2,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 
-namespace JobLink_Backend.DTOs.All.Job
+namespace JobLink_Backend.DTOs.Response
 {
-    public class GetJobDto
+    public class ViewJobReponse
     {
-
         [Required]
         public string Name { get; set; }
         [Required]
@@ -19,6 +18,5 @@ namespace JobLink_Backend.DTOs.All.Job
         public int? Lat { get; set; }
         public int? Lon { get; set; }
         public JobStatus Status { get; set; }
-        
     }
 }

@@ -25,14 +25,15 @@ public class UserServiceImpl(
     IUnitOfWork unitOfWork,
     IUserRepository userRepository,
     IMapper mapper,
-    JwtService jwtService) : IUserService
+    JwtService jwtService,
+    IConfiguration configuration) : IUserService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IMapper _mapper = mapper;
     private readonly JwtService _jwtService = jwtService;
     private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
-
+    private readonly IConfiguration _configuration = configuration; 
     public async Task SaveRefreshTokenAsync(string username, string refreshToken)
     {
         var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
@@ -87,6 +88,7 @@ public class UserServiceImpl(
         await _unitOfWork.SaveChangesAsync();
     }
 
+   
     private string GenerateOtp()
     {
         Random random = new Random();
@@ -125,18 +127,18 @@ public class UserServiceImpl(
 
     public async Task<bool> ChangePassword(ChangePassworDTO changePassword)
     {
-        var user = await _userRepository.GetById(changePassword.UserId);
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == changePassword.Username);
         if (user == null)
         {
             throw new Exception("User not found");
         }
 
-        if (user.Password != changePassword.CurrentPassword)
+        if (PasswordHelper.VerifyPassword(user.Password, changePassword.CurrentPassword))
         {
             throw new Exception("Current password is incorrect");
         }
 
-        user.Password = changePassword.NewPassword;
+        user.Password = PasswordHelper.HashPassword(changePassword.NewPassword);
         await _userRepository.Update(user);
         await _userRepository.SaveChangeAsync();
 
@@ -351,9 +353,12 @@ public class UserServiceImpl(
         var notification = await _unitOfWork.Repository<Notification>().FindByConditionAsync(n => n.UserId == userId);
         return notification.Select(n => new NotificationDTO
         {
+            Id = n.Id,
             Message = n.Message,
             Date = n.Date,
             IsRead = n.IsRead
         }).ToList();
     }
 }
+
+

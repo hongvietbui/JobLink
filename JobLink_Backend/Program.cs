@@ -3,6 +3,7 @@ using JobLink_Backend.ChatHub;
 using JobLink_Backend.Entities;
 using JobLink_Backend.Extensions;
 using JobLink_Backend.Mappings;
+using JobLink_Backend.Utilities.SignalR.Hubs;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,7 +29,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<JobLinkContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), sqlOptions =>
+    {
+        sqlOptions.CommandTimeout(60);
+        sqlOptions.EnableRetryOnFailure();
+    }));
 
 // Add custom authentication
 builder.Services.AddCustomAuthentication();
@@ -43,20 +48,32 @@ builder.Services.AddAWSService<IAmazonS3>();
 builder.Services.AddAutoMapper(typeof(MapProfile).Assembly);
 
 var app = builder.Build();
-// Apply the CORS policy here
-app.UseCors("AllowAll");
-// Configure the HTTP request pipeline.
+
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// Redirect HTTP to HTTPS
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
-app.UseAuthorization();
+// config Routing
+app.UseRouting();
+// Cors
+app.UseCors("AllowAll");
 
-app.MapControllers();
-app.MapHub<ChatHub>("/chatHub");
+// Authentication & Authorization
+app.UseAuthentication();
+app.UseAuthorization(); 
+
+// Config endpoints
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapHub<ChatHub>("/chatHub");
+    endpoints.MapHub<TransferHub>("/hub/transfer");
+    endpoints.MapControllers(); // Đảm bảo điều này nằm trong UseEndpoints
+});
+
 app.Run();

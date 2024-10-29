@@ -9,16 +9,18 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace JobLink_Backend.Controllers;
 
-[AllowAnonymous]
-public class TransactionsController(ITransactionsService transactionsService) : BaseController
+[Route("api/[controller]")]
+[ApiController]
+public class TransactionController(ITransactionService transactionsService, IVietQrService vietQrService) : BaseController
 {
-    private readonly ITransactionsService _transactionsService = transactionsService;
+    private readonly ITransactionService _transactionService = transactionsService;
+    private readonly IVietQrService _qrService = vietQrService;
 
 
     [HttpGet]
     public async Task<IActionResult> GetAllTransactions([FromQuery] TransactionFilterDTO filter)
     {
-        var listTransaction = await _transactionsService.GetAllTransactionsAsync(filter);
+        var listTransaction = await _transactionService.GetAllTransactionsAsync(filter);
 
         var listTransactionResponse = new ApiResponse<Pagination<TransactionDTO>>
         {
@@ -34,7 +36,7 @@ public class TransactionsController(ITransactionsService transactionsService) : 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetDetailTransactions(Guid id)
     {
-        var transactionDetail = await _transactionsService.GetTransactionByIdAsync(id);
+        var transactionDetail = await _transactionService.GetTransactionByIdAsync(id);
 
         var listTransactionResponse = new ApiResponse<TransactionDTO>
         {
@@ -50,7 +52,7 @@ public class TransactionsController(ITransactionsService transactionsService) : 
     [HttpPost]
     public async Task<IActionResult> CreateNewTransaction([FromBody]  ApiRequest<TransactionCreateDto> transaction,  [FromHeader] string authorization)
     {  var accessToken = authorization.Split(" ")[1];
-        await _transactionsService.AddTransactionAsync(transaction.Data, accessToken);
+        await _transactionService.AddTransactionAsync(transaction.Data, accessToken);
 
         var listTransactionResponse = new ApiResponse<TransactionCreateDto>
         {
@@ -66,7 +68,7 @@ public class TransactionsController(ITransactionsService transactionsService) : 
     [HttpPut]
     public async Task<IActionResult> UpdateTransaction([FromBody]  ApiRequest<TransactionDTO> transaction)
     {
-        await _transactionsService.UpdateTransactionAsync(transaction.Data);
+        await _transactionService.UpdateTransactionAsync(transaction.Data);
 
         var listTransactionResponse = new ApiResponse<TransactionDTO>
         {
@@ -77,5 +79,18 @@ public class TransactionsController(ITransactionsService transactionsService) : 
         };
 
         return Ok(listTransactionResponse);
+    }
+    
+    [HttpGet("vietQR/{userId}")]
+    public async Task<IActionResult> GetVietQRUrl(string userId)
+    {
+        var qrUrl = await _qrService.GenerateQrCodeAsync(Guid.Parse(userId));
+        return Ok(new ApiResponse<String>
+        {
+            Data = qrUrl,
+            Message = "Get VietQR successful",
+            Status = 200,
+            Timestamp = DateTime.Now.Ticks
+        });
     }
 }

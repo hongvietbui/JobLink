@@ -4,9 +4,10 @@ using JobLink_Backend.Utilities.BaseEntities;
 
 namespace JobLink_Backend.Entities;
 
-public class Transactions : BaseEntity<Guid>
+public class Transaction : BaseEntity<Guid>
 {
     public Guid UserId { get; set; }
+    public string? Tid { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal Amount { get; set; }
