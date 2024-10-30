@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 
-namespace JobLink_Backend.Utilities.SignalR.SignalRHubs
+namespace JobLink_Backend.Hubs
 {
     public class NotificationsHub : Hub
     {

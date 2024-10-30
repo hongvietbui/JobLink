@@ -4,7 +4,7 @@ using JobLink_Backend.DTOs.Request;
 using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.DTOs.Response.Users;
 using JobLink_Backend.Entities;
-using JobLink_Backend.Hub;
+using JobLink_Backend.Hubs;
 using JobLink_Backend.Repositories.IRepositories;
 using JobLink_Backend.Services.IServices;
 using JobLink_Backend.Utilities;
@@ -38,7 +38,10 @@ public class UserServiceImpl(
         var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
         if (user == null) throw new ArgumentException("User not found");
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiryTime = DateTime.Now.AddDays(30);
+        var expiryTime = DateTime.Now.AddDays(30);
+        //convert to yyyy-MM-dd HH:mm:ss
+        user.RefreshTokenExpiryTime = new DateTime(expiryTime.Year, expiryTime.Month, expiryTime.Day, expiryTime.Hour, expiryTime.Minute, expiryTime.Second);
+
         _unitOfWork.Repository<User>().Update(user);
         await _unitOfWork.SaveChangesAsync();
     }
@@ -371,7 +374,7 @@ public class UserServiceImpl(
         var fromDate = request.FromDate ?? DateTime.MinValue;
         var toDate = request.ToDate;
 
-        var transactions = await _unitOfWork.Repository<Transactions>()
+        var transactions = await _unitOfWork.Repository<UserTransaction>()
         .FindByConditionAsync(t =>
             t.UserId == request.UserId &&
             t.TransactionDate >= fromDate &&

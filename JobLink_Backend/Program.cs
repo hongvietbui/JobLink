@@ -1,10 +1,8 @@
-using Amazon.S3;
-using JobLink_Backend.ChatHub;
+﻿using Amazon.S3;
 using JobLink_Backend.Entities;
 using JobLink_Backend.Extensions;
-using JobLink_Backend.Hub;
+using JobLink_Backend.Hubs;
 using JobLink_Backend.Mappings;
-using JobLink_Backend.Utilities.SignalR.Hubs;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -72,18 +70,10 @@ app.UseAuthorization();
 // Config endpoints
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapHub<ChatHub>("/chatHub");
+    endpoints.MapHub<ChatHub>("/hub/chat");
     endpoints.MapHub<TransferHub>("/hub/transfer");
     endpoints.MapControllers(); // Đảm bảo điều này nằm trong UseEndpoints
-    endpoints.MapHub<NotificationHub>("/NotificationHub");
+    //endpoints.MapHub<NotificationHub>("/NotificationHub");
 });
 
-// app.MapControllers();
-// //app.UseEndpoints(endpoints =>
-// //{
-// //    endpoints.MapHub<ChatHub>("/chatHub");
-// //    endpoints.MapHub<NotificationsHub>("/NotificationHub");
-// //});
-// app.MapHub<ChatHub>("/chatHub");
-// app.MapHub<NotificationsHub>("/NotificationHub");
 app.Run();
