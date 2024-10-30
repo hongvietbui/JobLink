@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using AutoMapper;
 using JobLink_Backend.DTOs.All;
+using JobLink_Backend.DTOs.All.Job;
 using JobLink_Backend.DTOs.Request.Jobs;
 using JobLink_Backend.DTOs.Response.Jobs;
 using JobLink_Backend.Entities;
@@ -356,4 +357,56 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         return userDTOs;
     }
 
+    public async Task<JobDTO?> AddJobAsync(CreateJobDto data, string accessToken)
+    {
+        var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+        var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        {
+            throw new Exception("User ID not found in token claims.");
+        }
+
+        var jobOwner = await _unitOfWork.Repository<JobOwner>().FirstOrDefaultAsync(jo => jo.UserId == userId);
+        if (jobOwner == null)
+        {
+            jobOwner = new JobOwner
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                Rating = 0 // Initialize Rating to 0 or any default value
+            };
+
+            // Add the new JobOwner to the repository and save changes
+            await _unitOfWork.Repository<JobOwner>().AddAsync(jobOwner);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        // Map CreateJobDto to Job entity
+        var newJob = new Job
+        {
+            Id = Guid.NewGuid(),
+            Name = data.Name,
+            Description = data.Description,
+            OwnerId = jobOwner.Id,
+            Address = data.Address,
+            Lat = data.Lat,
+            Lon = data.Lon,
+            Status = data.Status,
+            Duration = data.Duration ?? Duration.OneHour,  // Default if Duration is null
+            Price = data.Price,
+            Avatar = data.Avatar,
+            StartTime = data.StartTime != default ? data.StartTime : DateTime.UtcNow,
+            EndTime = data.EndTime
+        };
+
+        // Use AddAsync from the repository to add the new job
+        await _unitOfWork.Repository<Job>().AddAsync(newJob);
+
+        // Save changes using UnitOfWork to complete the transaction
+        await _unitOfWork.SaveChangesAsync();
+
+        // Map the saved Job entity to JobDTO and return it
+        return _mapper.Map<JobDTO>(newJob);
+    }
 }

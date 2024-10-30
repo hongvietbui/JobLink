@@ -1,5 +1,4 @@
-using Amazon.S3;
-using JobLink_Backend.Hubs;
+﻿using Amazon.S3;
 using JobLink_Backend.Entities;
 using JobLink_Backend.Extensions;
 using JobLink_Backend.Hubs;
@@ -73,7 +72,8 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapHub<ChatHub>("/hub/chat");
     endpoints.MapHub<TransferHub>("/hub/transfer");
-    endpoints.MapControllers();
+    endpoints.MapControllers(); // Đảm bảo điều này nằm trong UseEndpoints
+    //endpoints.MapHub<NotificationHub>("/NotificationHub");
 });
 
 app.Run();
