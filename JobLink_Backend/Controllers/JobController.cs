@@ -9,6 +9,7 @@ using JobLink_Backend.Services.IServices;
 using JobLink_Backend.Utilities.Pagination;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using JobLink_Backend.Entities;
 
 namespace JobLink_Backend.Controllers;
 
@@ -119,4 +120,62 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
            Timestamp = DateTime.Now.Ticks
        });
    }
+
+
+    [HttpGet("applied-workers")]
+    public async Task<IActionResult> GetAppliedWorkersByJobId([FromQuery] Guid jobId, [FromHeader] string authorization)
+    {
+        // Lấy access token từ header Authorization
+        var accessToken = authorization.Split(" ")[1];
+
+        try
+        {
+            // Lấy danh sách JobWorkers đã apply vào job nếu user có quyền truy cập
+            var appliedWorkers = await _jobService.GetJobWorkersApplyAsync(jobId, accessToken);
+
+            // Nếu không có worker nào apply, trả về thông báo không tìm thấy
+            if (appliedWorkers == null || !appliedWorkers.Any())
+            {
+                return NotFound(new ApiResponse<List<JobWorker>>
+                {
+                    Data = null,
+                    Message = "No applied workers found for this job",
+                    Status = 404,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+            
+
+            return Ok(new ApiResponse<List<JobWorker>>
+            {
+                Data = appliedWorkers,
+                Message = "Get applied workers successfully",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            // Trả về lỗi nếu user không có quyền truy cập
+            return Unauthorized(new ApiResponse<string>
+            {
+                Data = null,
+                Message = ex.Message,
+                Status = 401,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+        catch (Exception ex)
+        {
+            // Trả về lỗi nếu có lỗi khác xảy ra
+            return StatusCode(500, new ApiResponse<string>
+            {
+                Data = null,
+                Message = $"An error occurred: {ex.Message}",
+                Status = 500,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+    }
+
 }

@@ -135,4 +135,47 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         //
         // return result;
     }
+
+    public async Task<List<JobWorker>> GetJobWorkersApplyAsync(Guid jobId, string accessToken)
+    {
+        // Lấy thông tin user ID từ access token
+        var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+        var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        {
+            throw new Exception("User ID not found in token claims.");
+        }
+
+        // Tìm kiếm job với jobId và load cả owner và các worker apply vào
+        var jobList = await _unitOfWork.Repository<Job>()
+            .FindByConditionAsync(j => j.Id == jobId,
+                                  include: j => j.Include(j => j.Owner)
+                                                 .Include(j => j.JobWorkers)
+                                                 .ThenInclude(jw => jw.Worker));
+        var job = jobList.FirstOrDefault();
+
+        if (job == null)
+        {
+            throw new Exception("Job not found.");
+        }
+
+        // Kiểm tra quyền của JobOwner bằng cách lấy owner từ userId
+        var owner = await _unitOfWork.Repository<JobOwner>().FirstOrDefaultAsync(jo => jo.UserId == userId);
+        if (owner == null)
+        {
+            throw new UnauthorizedAccessException("User is not a job owner.");
+        }
+
+        if (job.OwnerId == owner.Id)
+        {
+            // Nếu user là owner của job, trả về danh sách JobWorkers đã apply
+            return job.JobWorkers.ToList();
+        }
+        else
+        {
+            throw new UnauthorizedAccessException("User does not have permission to view applicants for this job.");
+        }
+    }
+
 }
