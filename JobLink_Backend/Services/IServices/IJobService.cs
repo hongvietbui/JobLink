@@ -1,4 +1,5 @@
 ﻿using JobLink_Backend.DTOs.All;
+using JobLink_Backend.DTOs.All.Job;
 using JobLink_Backend.DTOs.Request.Jobs;
 using JobLink_Backend.DTOs.Response.Jobs;
 using JobLink_Backend.Entities;
@@ -17,4 +18,5 @@ public interface IJobService
     Task<List<UserDTO>> GetApplicantsByJobIdAsync(Guid jobId);
     Task<Pagination<JobDTO>> GetAllJobsDashboardAsync(JobListRequestDTO filter, string accessToken);
     Task<List<JobStatisticalResponseDto>> GetJobStatisticalAsync(JobStatisticalDto filter, string accessToken);
+    Task<JobDTO?> AddJobAsync(CreateJobDto data, string accessToken);
 }
