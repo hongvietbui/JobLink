@@ -1,9 +1,9 @@
 using Amazon.S3;
-using JobLink_Backend.ChatHub;
+using JobLink_Backend.Hubs;
 using JobLink_Backend.Entities;
 using JobLink_Backend.Extensions;
+using JobLink_Backend.Hubs;
 using JobLink_Backend.Mappings;
-using JobLink_Backend.Utilities.SignalR.Hubs;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
