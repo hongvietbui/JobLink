@@ -8,8 +8,8 @@ public class TransactionProfile: MapProfile
 {
     public TransactionProfile()
     {
-        CreateMap<Transaction, TransactionDTO>().ReverseMap();
-        CreateMap<Transaction, TransactionCreateDto>().ReverseMap();
+        CreateMap<UserTransaction, TransactionDTO>().ReverseMap();
+        CreateMap<UserTransaction, TransactionCreateDto>().ReverseMap();
         
     }
 }

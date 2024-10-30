@@ -39,7 +39,10 @@ public class UserServiceImpl(
         var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
         if (user == null) throw new ArgumentException("User not found");
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiryTime = DateTime.Now.AddDays(30);
+        var expiryTime = DateTime.Now.AddDays(30);
+        //convert to yyyy-MM-dd HH:mm:ss
+        user.RefreshTokenExpiryTime = new DateTime(expiryTime.Year, expiryTime.Month, expiryTime.Day, expiryTime.Hour, expiryTime.Minute, expiryTime.Second);
+
         _unitOfWork.Repository<User>().Update(user);
         await _unitOfWork.SaveChangesAsync();
     }

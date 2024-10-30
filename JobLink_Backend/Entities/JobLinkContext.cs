@@ -43,7 +43,7 @@ public class JobLinkContext : DbContext
         
         modelBuilder.Entity<Worker>()
             .HasOne(jo => jo.User)
-            .WithOne()
+            .WithOne(u => u.Worker)
             .HasForeignKey<Worker>(jo => jo.UserId)
             .OnDelete(DeleteBehavior.Cascade);
         
@@ -55,7 +55,7 @@ public class JobLinkContext : DbContext
         
         modelBuilder.Entity<JobOwner>()
             .HasOne(jo => jo.User)
-            .WithOne()
+            .WithOne(u => u.JobOwner)
             .HasForeignKey<JobOwner>(jo => jo.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
