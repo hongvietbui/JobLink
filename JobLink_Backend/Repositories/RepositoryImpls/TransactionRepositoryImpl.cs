@@ -13,10 +13,4 @@ public class TransactionRepositoryImpl : EFRepository<UserTransaction>, ITransac
     {
         _context = context;
     }
-
-    public List<UserTransaction> GetExistedTransactionList(List<string?> transactionTids)
-    {
-        return _context.Set<UserTransaction>()
-            .Where(t => transactionTids.Contains(t.Tid)).ToList();
-    }
 }

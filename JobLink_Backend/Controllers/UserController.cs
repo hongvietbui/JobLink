@@ -112,9 +112,10 @@ namespace JobLink_Backend.Controllers
         public async Task<IActionResult> GetCurrentUser([FromHeader] String authorization)
         {
             var accessToken = authorization.Split(" ")[1];
+            var user = await _userService.GetUserByAccessToken(accessToken);
             return Ok(new ApiResponse<UserDTO>
             {
-                Data = await _userService.GetUserByAccessToken(accessToken),
+                Data = user,
                 Message = "Get user details successfully!",
                 Status = 200,
                 Timestamp = DateTime.Now.Ticks
