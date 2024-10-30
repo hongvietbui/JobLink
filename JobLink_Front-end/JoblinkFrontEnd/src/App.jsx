@@ -5,6 +5,10 @@ import ChangePasswordPage from './components/forgot-pass/ChangePassForgot'
 import ChangePass from './components/change-pass/ChangePass';
 import LoginPage from './components/login/Login';
 import JobList from './components/list-job/ListJob';
+import UserProfile from './components/user-profile/UserProfileDetail';
+import CreateLocation from './components/job/CreateLocation';
+import CreateJob from './components/job/CreateJob';
+import ConfirmJob from './components/job/ConfirmationScreen';
 function App() {
   const footerLinks = [
     {
@@ -63,28 +67,28 @@ function App() {
     },
   ];
 
-  const { setAuthData } = useAuthStore();
+  // const { setAuthData } = useAuthStore();
 
-  useEffect(() => {
-    agent.User.me()
-      .then((response) => {
-        setAuthData(
-          response.id,
-          response.username,
-          response.email,
-          response.firstName,
-          response.lastName,
-          response.phoneNumber,
-          response.avatar,
-          response.refreshToken,
-          response.accountBalance
-        );
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
-      });
-  }, []);
+  // useEffect(() => {
+  //   agent.User.me()
+  //     .then((response) => {
+  //       setAuthData(
+  //         response.id,
+  //         response.username,
+  //         response.email,
+  //         response.firstName,
+  //         response.lastName,
+  //         response.phoneNumber,
+  //         response.avatar,
+  //         response.refreshToken,
+  //         response.accountBalance
+  //       );
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error:", error);
+  //       toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+  //     });
+  // }, []);
 
   // const handleSetAuthData = () => {
   //   setAuthData(
@@ -108,6 +112,10 @@ function App() {
         <Route path="/changePasswordPage" element={<ChangePasswordPage />} />
         <Route path="/Login" element={<LoginPage />} />
         <Route path="/listJob" element={<JobList />} />
+        <Route path="/userProfile" element={<UserProfile />} />
+        <Route path="/createLocation" element={<CreateLocation />} />
+        <Route path="/createJob" element={<CreateJob />} />
+        <Route path="/confirmJob" element={<ConfirmJob />} />
       </Routes>
     </Router>
   );

@@ -117,14 +117,15 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
                 });
             }
         }
-   /* [HttpPost("create-job")]
-    public async Task<IActionResult> CreateUser([FromBody] ApiRequest<CreateJobDto> addUserDto)
+/*    [HttpPost("create-job")]
+    public async Task<IActionResult> CreateJob([FromBody] ApiRequest<CreateJobDto> createJobDto)
     {
-        var result = await _userService.AddUserAsync(addUserDto.Data);
-        return CreatedAtAction(nameof(GetDetail), new { id = result.Id }, new ApiResponse<GetJobDto>(201, "User created", result));
+        var result = await _userService.AddUserAsync(createJobDto.Data);
+        return CreatedAtAction(nameof(GetJobById), new { id = result.Id }, 
+            new ApiResp<JobDTO>(201, "Job created", result));
     }*/
-   
-   [HttpGet]
+
+    [HttpGet]
    public async Task<IActionResult> GetAll([FromQuery] JobListRequestDTO filter, [FromHeader] string authorization)
    {
        var accessToken = authorization.Split(" ")[1];
