@@ -214,6 +214,43 @@ public class EFRepository<T> : IRepository<T> where T : class
         }
     }
 
+    public IEnumerable<T>? FindByCondition(Expression<Func<T, bool>> filter = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null,
+        bool disableTracking = true)
+    {
+        try
+        {
+            IQueryable<T> query = _dbSet;
+
+            if (disableTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            if (filter != null)
+            {
+                query = query.Where(filter); // Áp dụng điều kiện lọc nếu có
+            }
+
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
+
+            return query.ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(ex.Message + " "+ ex.StackTrace);
+            throw;
+        }
+    }
+
+
     public async Task<IEnumerable<T>?> FirstOrDefaultCondition(Expression<Func<T, bool>> filter,
         Func<IQueryable<T>, IIncludableQueryable<T, object>> include, bool disableTracking = true)
     {
