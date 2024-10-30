@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using JobLink_Backend.Utilities.CustomDateTimeConverter;
+using Newtonsoft.Json;
 
 namespace JobLink_Backend.DTOs.All;
 
@@ -8,11 +9,12 @@ public class BankingTransactionDTO
     public string? Tid { get; set; }
     public string? Description { get; set; }
     public decimal? Amount { get; set; }
-    [JsonPropertyName("cusum_balance")]
+    [JsonProperty("cusum_balance")]
     public decimal? CusumBalance { get; set; }
-    [JsonPropertyName("when")]
+    [JsonProperty("when")]
+    [JsonConverter(typeof(CustomDateTimeConverter))] 
     public DateTime? When { get; set; }
-    [JsonPropertyName("bank_sub_acc_id")]
+    [JsonProperty("bank_sub_acc_id")]
     public string? BankSubAccId { get; set; }
     public string? SubAccId { get; set; }
     public string? BankName { get; set; }

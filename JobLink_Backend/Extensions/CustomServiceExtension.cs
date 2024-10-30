@@ -10,19 +10,22 @@ public static class CustomServiceExtension
 {
     public static IServiceCollection AddCustomServices(this IServiceCollection services)
     {
+        //repositories
         services.AddScoped<IUserRepository, UserRepositoryImpl>();
         services.AddScoped<IRoleRepository, RoleRepositoryImpl>();
         services.AddScoped<IJobRepository, JobRepositoryImpl>();
+        services.AddScoped<ITransactionRepository, TransactionRepositoryImpl>();
         
         services.AddSignalR();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
+        //services
         services.AddScoped<IUserService, UserServiceImpl>();
         services.AddScoped<IJobService, JobServiceImpl>();
 
-        services.AddScoped<IVietQrService, VietQrService>();
+        services.AddScoped<IVietQrService, VietQRServiceImpl>();
         services.AddScoped<S3Uploader>();
-        services.AddScoped<ITransactionsService, TransactionServiceImpl>();
+        services.AddScoped<ITransactionService, TransactionServiceImpl>();
         services.AddScoped<IEmailService, EmailServiceImpl>();
         return services;
     }
