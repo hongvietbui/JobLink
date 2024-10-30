@@ -160,8 +160,33 @@ public class UserServiceImpl(
     {
         var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
         var userId = Guid.Parse(claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
-        var user = await _unitOfWork.Repository<User>().GetByIdAsync(userId);
-        return _mapper.Map<UserDTO>(user);
+        var users = await _unitOfWork.Repository<User>()
+            .FindByConditionAsync(filter: u => u.Id == userId, include: u => u.Include(u => u.Roles));
+        var user = users.FirstOrDefault();
+        
+        var userDTO = new UserDTO
+        {
+            Address = user.Address,
+            DateOfBirth = user.DateOfBirth,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            Id = user.Id,
+            LastName = user.LastName,
+            PhoneNumber = user.PhoneNumber,
+            Username = user.Username,
+            RoleList = user.Roles.Select(r => r.Name).ToList(),
+            RefreshToken = user.RefreshToken,
+            RefreshTokenExpiryTime = user.RefreshTokenExpiryTime,
+            Status = user.Status.GetStringValue(),
+            AccountBalance = user.AccountBalance,
+            Password = user.Password,
+            Lat = user.Lat,
+            Lon = user.Lon,
+            Avatar = user.Avatar,
+            RoleId = user.Roles.FirstOrDefault().Id
+        };
+        
+        return userDTO;
     }
 
     public async Task<string?> RefreshTokenAsync(string refreshToken)
