@@ -356,4 +356,14 @@ public class UserServiceImpl(
             IsRead = n.IsRead
         }).ToList();
     }
+
+    public async Task<User> GetUserByWorkerId(Guid workerId)
+    {
+        return await _userRepository.GetByIdAsync(workerId);
+    }
+
+    public async Task<User> GetUserByJobOwnerId(Guid jobOwnerId)
+    {
+        return await _userRepository.GetByIdAsync(jobOwnerId);
+    }
 }

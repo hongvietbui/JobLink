@@ -178,4 +178,18 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         }
     }
 
+    public Task<JobWorker> UpdateJobWorkerStatus(Guid jobId, JobWorker jobWorker, string accessToken, ApplyStatus newStatus)
+    {
+        //// Lấy thông tin user ID từ access token
+        //var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+        //var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+        //if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        //{
+        //    throw new Exception("User ID not found in token claims.");
+        //}
+
+
+        return null;
+    }
 }
