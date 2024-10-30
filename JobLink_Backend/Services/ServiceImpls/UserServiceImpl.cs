@@ -25,20 +25,24 @@ public class UserServiceImpl(
     IUnitOfWork unitOfWork,
     IUserRepository userRepository,
     IMapper mapper,
-    JwtService jwtService) : IUserService
+    JwtService jwtService,
+    IConfiguration configuration) : IUserService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IMapper _mapper = mapper;
     private readonly JwtService _jwtService = jwtService;
     private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
-
+    private readonly IConfiguration _configuration = configuration; 
     public async Task SaveRefreshTokenAsync(string username, string refreshToken)
     {
         var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
         if (user == null) throw new ArgumentException("User not found");
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiryTime = DateTime.Now.AddDays(30);
+        var expiryTime = DateTime.Now.AddDays(30);
+        //convert to yyyy-MM-dd HH:mm:ss
+        user.RefreshTokenExpiryTime = new DateTime(expiryTime.Year, expiryTime.Month, expiryTime.Day, expiryTime.Hour, expiryTime.Minute, expiryTime.Second);
+
         _unitOfWork.Repository<User>().Update(user);
         await _unitOfWork.SaveChangesAsync();
     }
@@ -87,6 +91,7 @@ public class UserServiceImpl(
         await _unitOfWork.SaveChangesAsync();
     }
 
+   
     private string GenerateOtp()
     {
         Random random = new Random();
@@ -351,6 +356,7 @@ public class UserServiceImpl(
         var notification = await _unitOfWork.Repository<Notification>().FindByConditionAsync(n => n.UserId == userId);
         return notification.Select(n => new NotificationDTO
         {
+            Id = n.Id,
             Message = n.Message,
             Date = n.Date,
             IsRead = n.IsRead

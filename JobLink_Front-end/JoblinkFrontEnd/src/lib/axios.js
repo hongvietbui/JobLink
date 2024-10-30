@@ -128,6 +128,8 @@ const CsrfToken = {
 const Account = {
   login: (values) =>
     requests.post(META.BACKEND + '/api/Auth/signin-google', values),
+  loginEmail: (username, password) =>
+    requests.post('http://localhost:8080/api/Auth/login', username, password),
   logout: (values) =>
     requests.postFront(META.BACKEND + '/api/Auth/logout', values),
   refreshToken: (values) =>
@@ -142,13 +144,13 @@ const EmailTemplate = {
   list: () => requests.get(META.BACKEND + '/api/email-template'),
 }
 const EmailInput = {
-  OtpSend: (Email) => requests.post('https://localhost:8081/api/Auth/sent-otp', Email),
+  OtpSend: (Email) => requests.post('http://localhost:8080/api/Auth/sent-otp', Email),
 }
 const VerifyOtp = {
-  verifyCode: (email, code) => requests.post('https://localhost:8081/api/Auth/verify-otp', email, code),
+  verifyCode: (email, code) => requests.post('http://localhost:8080/api/Auth/verify-otp', email, code),
 }
 const ForgetPassChange = {
-  changePass: (email, password) => requests.post('https://localhost:8081/api/Auth/reset-password', email, password),
+  changePass: (email, password) => requests.post('http://localhost:8080/api/Auth/reset-password', email, password),
 }
 
 const User = {
@@ -167,6 +169,20 @@ const Transaction = {
   createWithdraw: (body) => requests.post('https://localhost:8081/api/transactions', body),
  
 }
+const Job = {
+  Listjob: (pageIndex, pageSize, sortBy, isDescending, filter) => {
+    const params = {
+      pageIndex,
+      pageSize,
+      sortBy,
+      isDescending,
+      filter,
+    };
+
+    return requests.get('http://localhost:8080/api/Job/get-jobs', { params });
+  }
+};
+
 
 const agent = {
   CsrfToken,

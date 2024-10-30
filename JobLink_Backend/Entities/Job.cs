@@ -18,9 +18,13 @@ public class Job : BaseEntity<Guid>
     public int? Lat { get; set; }
     public int? Lon { get; set; }
     public JobStatus Status { get; set; }
-    public double? Duration { get; set; } 
+    public Duration Duration { get; set; } 
     [Column(TypeName = "decimal(18,2)")]
     public decimal? Price { get; set; }
+    public string? Avatar {  get; set; }
+    public DateTime StartTime { get; set; }
+    //Actual end date
+    public DateTime? EndTime { get; set; }
     public JobOwner Owner { get; set; }
     public ICollection<JobWorker> JobWorkers { get; set; } = new List<JobWorker>();
     public ICollection<Review> Reviews { get; set; } = new List<Review>();

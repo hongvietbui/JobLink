@@ -7,6 +7,7 @@ using JobLink_Backend.DTOs.Response.Jobs;
 using JobLink_Backend.Entities;
 using JobLink_Backend.Repositories.IRepositories;
 using JobLink_Backend.Services.IServices;
+using JobLink_Backend.Utilities;
 using JobLink_Backend.Utilities.Jwt;
 using JobLink_Backend.Utilities.Pagination;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +39,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
         var jobList = await _unitOfWork.Repository<Job>().FindByConditionAsync(filter: j => j.Id == jobId, include: j => j.Include(j => j.Owner).Include(j => j.JobWorkers).ThenInclude(j => j.Worker));
         var job = jobList.FirstOrDefault();
-        
+
         if (job == null)
         {
             throw new Exception("Job not found.");
@@ -62,11 +63,56 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         return null;
     }
 
+    public async Task<Pagination<JobDTO>> GetJobsAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, Expression<Func<Job, bool>>? filter = null)
+    {
+        var jobRepository = _unitOfWork.Repository<Job>();
+        var userRepository = _unitOfWork.Repository<User>();
+
+        filter ??= job => true;
+
+        IQueryable<Job> query = jobRepository.GetAll(filter);
+
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            query = ApplySorting(query, sortBy, isDescending);
+        }
+
+        var totalItems = await jobRepository.CountAsync(filter);
+
+        var paginatedJobs = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+
+        var viewJobDtos = _mapper.Map<List<JobDTO>>(paginatedJobs);
+
+        return new Pagination<JobDTO>
+        {
+
+            Items = viewJobDtos,
+            TotalItems = totalItems,
+            PageIndex = pageIndex,
+            PageSize = pageSize
+        };
+    }
+
+
+    private IQueryable<Job> ApplySorting(IQueryable<Job> query, string sortBy, bool isDescending)
+    {
+        if (typeof(Job).GetProperty(sortBy) == null)
+        {
+            throw new ArgumentException($"Property '{sortBy}' does not exist on type '{typeof(Job).Name}'");
+        }
+
+        var param = Expression.Parameter(typeof(Job), "job");
+        var sortExpression = Expression.Property(param, sortBy);
+        var orderByExpression = Expression.Lambda<Func<Job, object>>(Expression.Convert(sortExpression, typeof(object)), param);
+
+        return isDescending ? query.OrderByDescending(orderByExpression) : query.OrderBy(orderByExpression);
+    }
+
     public async Task<Pagination<JobDTO>>? GetAllJobsDashboardAsync(JobListRequestDTO filter, string accessToken)
     {
         //Todo: Fix GetAllJobsDashboardAsync
         throw new NotImplementedException();
-        
+
         // var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
         //
         // var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
@@ -100,7 +146,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
     {
         //Todo: Fix GetJobStatisticalAsync
         throw new NotImplementedException();
-        
+
         // var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
         //
         // var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
@@ -135,6 +181,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         //
         // return result;
     }
+
 
     public async Task<List<JobWorker>> GetJobWorkersApplyAsync(Guid jobId, string accessToken)
     {
@@ -192,4 +239,67 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
         return null;
     }
+
+    public async Task<Pagination<JobDTO>> GetJobsCreatedByUserAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, string accessToken)
+    {
+        Expression<Func<Job, bool>> filter = job => job.Owner.UserId == userId;
+
+        var jobs = await _unitOfWork.Repository<Job>()
+            .GetAllAsync(filter, pageIndex, pageSize, include: q => q.Include(j => j.JobWorkers));
+
+        var jobDTOs = _mapper.Map<Pagination<JobDTO>>(jobs);
+
+
+        return jobDTOs;
+    }
+
+
+    public async Task<Pagination<JobDTO>> GetJobsAppliedByUserAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, string accessToken)
+    {
+        var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+        var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        {
+            throw new Exception("User ID not found in token claims.");
+        }
+
+        var worker = await _unitOfWork.Repository<Worker>().FirstOrDefaultAsync(w => w.UserId == userId);
+        if (worker == null) return new Pagination<JobDTO>();
+
+        var jobWorkers = await _unitOfWork.Repository<JobWorker>()
+            .FindByConditionAsync(jw => jw.WorkerId == worker.Id && jw.ApplyStatus == ApplyStatus.Accepted);
+
+        var jobIds = jobWorkers.Select(jw => jw.JobId).ToList();
+
+        Expression<Func<Job, bool>> filter = j => jobIds.Contains(j.Id);
+
+    
+        var jobs = await _unitOfWork.Repository<Job>()
+            .GetAllAsync(filter, pageIndex, pageSize, include: q => q.Include(j => j.JobWorkers));
+
+        var jobDTOs = _mapper.Map<Pagination<JobDTO>>(jobs);
+        return jobDTOs;
+    }
+
+    public async Task<List<UserDTO>> GetApplicantsByJobIdAsync(Guid jobId)
+    {
+        var jobWorkers = await _unitOfWork.Repository<JobWorker>()
+            .FindByConditionAsync(jw => jw.JobId == jobId && jw.ApplyStatus == ApplyStatus.Accepted);
+
+        var workerIds = jobWorkers.Select(jw => jw.WorkerId).ToList();
+
+        var workers = await _unitOfWork.Repository<Worker>()
+            .FindByConditionAsync(w => workerIds.Contains(w.Id));
+
+        var userIds = workers.Select(w => w.UserId).Distinct().ToList();
+
+        var users = await _unitOfWork.Repository<User>()
+            .FindByConditionAsync(u => userIds.Contains(u.Id));
+
+        var userDTOs = _mapper.Map<List<UserDTO>>(users);
+
+        return userDTOs;
+    }
+
 }

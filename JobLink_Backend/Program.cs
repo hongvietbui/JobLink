@@ -31,6 +31,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<JobLinkContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), sqlOptions =>
     {
+        sqlOptions.CommandTimeout(60);
         sqlOptions.EnableRetryOnFailure();
     }));
 
@@ -72,7 +73,7 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapHub<ChatHub>("/hub/chat");
     endpoints.MapHub<TransferHub>("/hub/transfer");
-    endpoints.MapControllers(); // Đảm bảo điều này nằm trong UseEndpoints
+    endpoints.MapControllers();
 });
 
 app.Run();
