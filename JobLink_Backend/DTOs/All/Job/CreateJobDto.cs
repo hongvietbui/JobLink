@@ -9,10 +9,6 @@ namespace JobLink_Backend.DTOs.All.Job
     {
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public string Address { get; set; } = string.Empty;
-        public int? Lat { get; set; }
-        public int? Lon { get; set; }
-        public JobStatus Status { get; set; }
         public Duration? Duration { get; set; }
         public decimal? Price { get; set; }
         public string Avatar { get; set; } = string.Empty;

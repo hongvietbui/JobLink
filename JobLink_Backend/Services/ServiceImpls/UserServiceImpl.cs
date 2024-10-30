@@ -173,6 +173,7 @@ public class UserServiceImpl(
             PhoneNumber = user.PhoneNumber,
             Username = user.Username,
             RoleList = user.Roles.Select(r => r.Name).ToList(),
+            RoleId = user.Roles.FirstOrDefault().Id,
             RefreshToken = user.RefreshToken,
             RefreshTokenExpiryTime = user.RefreshTokenExpiryTime,
             Status = user.Status.GetStringValue(),
@@ -181,7 +182,6 @@ public class UserServiceImpl(
             Lat = user.Lat,
             Lon = user.Lon,
             Avatar = user.Avatar,
-            RoleId = user.Roles.FirstOrDefault().Id
         };
         
         return userDTO;
@@ -364,16 +364,48 @@ public class UserServiceImpl(
             PhoneNumber = request.PhoneNumber,
             DateOfBirth = DateOnly.FromDateTime(request.DateOfBirth.Value),
             Address = request.Address,
-            Status = UserStatus.PendingVerification
+            Status = UserStatus.PendingVerification,
+            AccountBalance = 0
         };
 
-        await _userRepository.AddAsync(newUser);
+        await _userRepository.AddAsync(newUser, roleList.Select(r => r.Name).ToList());
         await _unitOfWork.SaveChangesAsync();
-        newUser.Roles = roleList;
 
-        await _userRepository.Update(newUser);
+        var jobOwner = new JobOwner()
+        {
+            Id = Guid.NewGuid(),
+            UserId = newUser.Id
+        };
+        await _unitOfWork.Repository<JobOwner>().AddAsync(jobOwner);
+        var worker = new Worker()
+        {
+            Id = Guid.NewGuid(),
+            UserId = newUser.Id
+        };
+        await _unitOfWork.Repository<Worker>().AddAsync(worker);
         await _unitOfWork.SaveChangesAsync();
-        return _mapper.Map<UserDTO>(newUser);
+        
+        return new UserDTO
+        {
+            Id = newUser.Id,
+            Username = newUser.Username,
+            AccountBalance = newUser.AccountBalance,
+            Password = newUser.Password,
+            Email = newUser.Email,
+            FirstName = newUser.FirstName,
+            LastName = newUser.LastName,
+            PhoneNumber = newUser.PhoneNumber,
+            DateOfBirth = newUser.DateOfBirth,
+            Address = newUser.Address,
+            Lat = newUser.Lat,
+            Lon = newUser.Lon,
+            Avatar = newUser.Avatar,
+            RoleList = newUser.Roles.Select(r => r.Name).ToList(),
+            RefreshToken = newUser.RefreshToken,
+            RefreshTokenExpiryTime = newUser.RefreshTokenExpiryTime,
+            Status = newUser.Status.GetStringValue(),
+            RoleId = newUser.Roles.Select(r => r.Id).FirstOrDefault()
+        };
     }
 
     //mine

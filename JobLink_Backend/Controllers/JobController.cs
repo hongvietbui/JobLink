@@ -14,6 +14,7 @@ using JobLink_Backend.Entities;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Authorization;
 using System.Net;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace JobLink_Backend.Controllers;
 
@@ -62,9 +63,9 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
                 Timestamp = DateTime.Now.Ticks
             });
         
-        return Ok(new ApiResponse<RoleDTO>
+        return Ok(new ApiResponse<string>
         {
-            Data = _mapper.Map<RoleDTO>(role),
+            Data = role,
             Message = "Get user role in job successfully!",
             Status = 200,
             Timestamp = DateTime.Now.Ticks
@@ -427,8 +428,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
                 Status = 200,
                 Timestamp = DateTime.Now.Ticks
             });
-        }
-        catch (UnauthorizedAccessException ex)
+        }catch (UnauthorizedAccessException ex)
         {
             // Trả về lỗi nếu user không có quyền truy cập
             return Unauthorized(new ApiResponse<string>
@@ -451,5 +451,62 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             });
         }
     }
-
+              
+    [HttpGet("assign/{jobId}")]
+    public async Task<IActionResult> AssignJob([FromHeader] string authorization, string jobId)
+    {
+        try
+        {
+            var jobIdGuid = Guid.Parse(jobId);
+            var accessToken = authorization.Split(" ")[1];
+            await _jobService.AssignJobAsync(jobIdGuid, accessToken);
+            return Ok(new ApiResponse<string>
+            {
+                Data = null,
+                Message = "Job assign successfully",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ApiResponse<string>()
+            {
+                Data = null,
+                Message = ex.Message,
+                Status = 400,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+    }
+    
+    [HttpGet("accept/{jobId}/{workerId}")]
+    public async Task<IActionResult> AcceptWorker([FromHeader] string authorization, string jobId, string workerId)
+    {
+        try
+        {
+            var jobIdGuid = Guid.Parse(jobId);
+            var workerIdGuid = Guid.Parse(workerId);
+            
+            var accessToken = authorization.Split(" ")[1];
+            await _jobService.AcceptJobAsync(jobIdGuid, workerIdGuid, accessToken);
+            return Ok(new ApiResponse<string>
+            {
+                Data = null,
+                Message = "Job accept successfully",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ApiResponse<string>()
+            {
+                Data = null,
+                Message = ex.Message,
+                Status = 400,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+    }
 }
