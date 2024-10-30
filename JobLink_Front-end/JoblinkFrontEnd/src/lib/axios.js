@@ -169,7 +169,7 @@ const Transaction = {
   createWithdraw: (body) => requests.post('https://localhost:8081/api/transactions', body),
  
 }
-const Job = {
+const Job1 = {
   Listjob: (pageIndex, pageSize, sortBy, isDescending, filter) => {
     const params = {
       pageIndex,

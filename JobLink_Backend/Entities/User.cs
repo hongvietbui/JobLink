@@ -44,4 +44,4 @@ public class User : BaseEntity<Guid>
     public JobOwner JobOwner { get; set; }
     public Worker Worker { get; set; }
 }
-    
+

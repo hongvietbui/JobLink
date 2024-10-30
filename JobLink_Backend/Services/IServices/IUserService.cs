@@ -16,11 +16,18 @@ namespace JobLink_Backend.Services.IServices
         Task<OtpReponse> SendResetPasswordOtpAsync(string email); 
         Task<bool> VerifyOtpAsync(string email, string otp); 
         Task ResetPasswordAsync(string email, string newPassword);
-        Task AddNotificationAsync(Guid userId, string message);
-        Task<IEnumerable<NotificationDTO>> GetUserNotificationsAsync(Guid userId);
         Task<bool> ChangePassword(ChangePassworDTO changePassword);
         Task<UserDTO> GetUserByAccessToken(string accessToken);
         Task<string?> RefreshTokenAsync(string refreshToken);
         Task<UserHompageDTO> GetUserHompageAsync(string accessToken);
+        //mine
+        Task AddNotificationAsync(string username, string message);
+        Task<List<NotificationResponse>> GetUserNotificationsAsync(string username);
+        Task<List<TransactionResponse>> GetTransactionsAsync(TransactionsRequest request);
+        Task<bool> UploadNationalIdAsync(IdRequest idRequest);
+        Task<List<UserNationalIdDTO>> GetPendingNationalIdsAsync();
+        Task<UserNationalIdDTO> GetNationalIdDetailAsync(Guid userId);
+        Task<bool> ApproveNationalIdAsync(Guid userId);
+        Task<bool> RejectNationalIdAsync(Guid userId);
     }
 }
