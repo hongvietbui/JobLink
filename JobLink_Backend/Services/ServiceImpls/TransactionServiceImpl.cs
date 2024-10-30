@@ -9,7 +9,7 @@ using JobLink_Backend.Repositories.IRepositories;
 using JobLink_Backend.Services.IServices;
 using JobLink_Backend.Utilities.Jwt;
 using JobLink_Backend.Utilities.Pagination;
-using JobLink_Backend.Utilities.SignalR.Hubs;
+using JobLink_Backend.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 

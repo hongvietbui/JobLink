@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace JobLink_Backend.ChatHub;
+namespace JobLink_Backend.Hubs;
 
 public class ChatHub : Hub
 {
