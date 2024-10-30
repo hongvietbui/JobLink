@@ -11,6 +11,7 @@ public class EFRepository<T> : IRepository<T> where T : class
 {
     private readonly DbContext _context;
     private readonly DbSet<T> _dbSet;
+    private readonly ILogger _logger;
 
     public EFRepository(DbContext context)
     {
@@ -180,24 +181,37 @@ public class EFRepository<T> : IRepository<T> where T : class
         Func<IQueryable<T>, IOrderedQueryable<T>> orderBy, Func<IQueryable<T>, IIncludableQueryable<T, object>> include,
         bool disableTracking = true)
     {
-        IQueryable<T> query = _dbSet;
-
-        if (disableTracking)
+        try
         {
-            query = query.AsNoTracking();
-        }
+            IQueryable<T> query = _dbSet;
 
-        if (include != null)
+            if (disableTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            if (filter != null)
+            {
+                query = query.Where(filter); // Áp dụng điều kiện lọc nếu có
+            }
+
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
+
+            return await query.ToListAsync();
+        }
+        catch (Exception ex)
         {
-            query = include(query);
+            Console.Error.WriteLine(ex.Message + " "+ ex.StackTrace);
+            throw;
         }
-
-        if (orderBy != null)
-        {
-            query = orderBy(query);
-        }
-
-        return await query.Where(filter).ToListAsync();
     }
 
     public async Task<IEnumerable<T>?> FirstOrDefaultCondition(Expression<Func<T, bool>> filter,

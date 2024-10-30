@@ -117,14 +117,46 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
                 });
             }
         }
-   /* [HttpPost("create-job")]
-    public async Task<IActionResult> CreateUser([FromBody] ApiRequest<CreateJobDto> addUserDto)
+    [AllowAnonymous]
+    [HttpPost("create-job")]
+    public async Task<IActionResult> CreateJob([FromBody] ApiRequest<CreateJobDto> createJobDto, [FromHeader] string authorization)
     {
-        var result = await _userService.AddUserAsync(addUserDto.Data);
-        return CreatedAtAction(nameof(GetDetail), new { id = result.Id }, new ApiResponse<GetJobDto>(201, "User created", result));
-    }*/
-   
-   [HttpGet]
+        string accessToken = string.Empty;
+
+        if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Bearer "))
+        {
+            accessToken = authorization.Split(" ")[1];
+        }
+        else
+        {
+            return BadRequest(new ApiResponse<string>
+            {
+                Data = null,
+                Message = "Invalid authorization format.",
+                Status = 400,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+
+        try
+        {
+            var result = await _jobService.AddJobAsync(createJobDto.Data, accessToken);
+            return CreatedAtAction(nameof(GetJobById), new { id = result.Id },
+                new ApiResp<JobDTO>(201, "Job created", result));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ApiResponse<string>
+            {
+                Data = null,
+                Message = ex.Message,
+                Status = 500,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+    }
+
+    [HttpGet]
    public async Task<IActionResult> GetAll([FromQuery] JobListRequestDTO filter, [FromHeader] string authorization)
    {
        var accessToken = authorization.Split(" ")[1];
