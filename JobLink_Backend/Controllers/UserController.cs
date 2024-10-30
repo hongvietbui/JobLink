@@ -4,6 +4,7 @@ using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.DTOs.Response.Transactions;
 using JobLink_Backend.DTOs.Response.Users;
 using JobLink_Backend.Services.IServices;
+using JobLink_Backend.Utilities;
 using JobLink_Backend.Utilities.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -219,6 +220,48 @@ namespace JobLink_Backend.Controllers
                     return Ok(new { message = "National ID rejected successfully" });
                 }
                 return BadRequest(new { message = "Failed to reject National ID" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("/worker/{workerId}")]
+        public async Task<IActionResult> GetUserByWorkerId(Guid workerId)
+        {
+            try
+            {
+                var user = await _userService.GetUserByWorkerId(workerId);
+                var userDTO = new UserDTO
+                {
+                    Address = user.Address,
+                    DateOfBirth = user.DateOfBirth,
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    Id = user.Id,
+                    LastName = user.LastName,
+                    PhoneNumber = user.PhoneNumber,
+                    Username = user.Username,
+                    RoleList = user.Roles.Select(r => r.Name).ToList(),
+                    RefreshToken = user.RefreshToken,
+                    RefreshTokenExpiryTime = user.RefreshTokenExpiryTime,
+                    Status = user.Status.GetStringValue(),
+                    AccountBalance = user.AccountBalance,
+                    Password = user.Password,
+                    Lat = user.Lat,
+                    Lon = user.Lon,
+                    Avatar = user.Avatar,
+                    RoleId = user.Roles.FirstOrDefault().Id
+                };
+                return Ok(new ApiResponse<UserDTO>
+                {
+                    Data = userDTO,
+                    Message = "Get user successfully!",
+                    Status = 200,
+                    Timestamp = DateTime.Now.Ticks
+                });
+
             }
             catch (Exception ex)
             {
