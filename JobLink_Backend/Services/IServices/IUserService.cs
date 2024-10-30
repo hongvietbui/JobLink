@@ -22,7 +22,7 @@ namespace JobLink_Backend.Services.IServices
         Task<UserHompageDTO> GetUserHompageAsync(string accessToken);
         //mine
         Task AddNotificationAsync(string username, string message);
-        Task<List<NotificationResponse>> GetUserNotificationsAsync(Guid userId);
+        Task<List<NotificationResponse>> GetUserNotificationsAsync(string username);
         Task<List<TransactionResponse>> GetTransactionsAsync(TransactionsRequest request);
         Task<bool> UploadNationalIdAsync(IdRequest idRequest);
         Task<List<UserNationalIdDTO>> GetPendingNationalIdsAsync();

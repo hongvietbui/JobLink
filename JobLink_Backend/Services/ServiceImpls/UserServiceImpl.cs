@@ -349,10 +349,12 @@ public class UserServiceImpl(
     }
 
     //mine
-    public async Task<List<NotificationResponse>> GetUserNotificationsAsync(Guid userId)
+    public async Task<List<NotificationResponse>> GetUserNotificationsAsync(string username)
     {
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == username);
+
         var notifications = await _unitOfWork.Repository<Notification>()
-                                         .FindByConditionAsync(n => n.UserId == userId);
+                                         .FindByConditionAsync(n => n.UserId == user.Id);
 
         return notifications.Select(n => new NotificationResponse
         {

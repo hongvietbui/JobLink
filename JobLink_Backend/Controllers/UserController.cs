@@ -42,11 +42,13 @@ namespace JobLink_Backend.Controllers
         }
 
         //mine
-        [HttpGet("{userId}/notifications")]
+        //[HttpGet("{userId}/notifications")]
+        [HttpGet("notifications/{username}")]
+        
         [AllowAnonymous]
-        public async Task<IActionResult> GetUserNotifications(Guid userId)
+        public async Task<IActionResult> GetUserNotifications(string username)
         {
-            var notifications = await _userService.GetUserNotificationsAsync(userId);
+            var notifications = await _userService.GetUserNotificationsAsync(username);
             if (notifications == null || !notifications.Any())
             {
                 return NotFound(new ApiResponse<List<NotificationResponse>>
