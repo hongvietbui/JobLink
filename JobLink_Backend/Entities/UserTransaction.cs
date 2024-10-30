@@ -4,7 +4,7 @@ using JobLink_Backend.Utilities.BaseEntities;
 
 namespace JobLink_Backend.Entities;
 
-public class Transaction : BaseEntity<Guid>
+public class UserTransaction : BaseEntity<Guid>
 {
     public Guid UserId { get; set; }
     public string? Tid { get; set; }

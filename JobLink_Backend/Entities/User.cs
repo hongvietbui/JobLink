@@ -39,6 +39,6 @@ public class User : BaseEntity<Guid>
     //Navigation properties
     public ICollection<Role> Roles { get; set; }
     public ICollection<Notification> Notifications { get; set; }
-    public ICollection<Transaction> UserTransactions { get; set; }
+    public ICollection<UserTransaction> UserTransactions { get; set; }
 }
     
