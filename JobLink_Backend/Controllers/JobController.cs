@@ -202,7 +202,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             });
         }
     }
-
+    [AllowAnonymous]
     [HttpGet("applied-by-user")]
     public async Task<IActionResult> GetJobsAppliedByUserAsync([FromHeader] string authorization, int pageIndex = 1, int pageSize = 10, string sortBy = null, bool isDescending = false)
     {
