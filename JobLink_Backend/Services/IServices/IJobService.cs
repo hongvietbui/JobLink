@@ -18,7 +18,7 @@ public interface IJobService
     Task<Pagination<JobDTO>> GetAllJobsDashboardAsync(JobListRequestDTO filter, string accessToken);
     Task<List<JobStatisticalResponseDto>> GetJobStatisticalAsync(JobStatisticalDto filter, string accessToken);
 
-    Task<List<JobWorker>> GetJobWorkersApplyAsync(Guid jobId, string accessToken);
+    Task<List<JobWorkerDTO>> GetJobWorkersApplyAsync(Guid jobId, string accessToken);
 
     Task UpdateJobWorkerStatusAsync(JobWorker jobWorker, string accessToken, ApplyStatus newStatus);
 }

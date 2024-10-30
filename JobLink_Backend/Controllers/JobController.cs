@@ -319,7 +319,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             // Nếu không có worker nào apply, trả về thông báo không tìm thấy
             if (appliedWorkers == null || !appliedWorkers.Any())
             {
-                return NotFound(new ApiResponse<List<JobWorker>>
+                return NotFound(new ApiResponse<List<JobWorkerDTO>>
                 {
                     Data = null,
                     Message = "No applied workers found for this job",
@@ -329,7 +329,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             }
             
 
-            return Ok(new ApiResponse<List<JobWorker>>
+            return Ok(new ApiResponse<List<JobWorkerDTO>>
             {
                 Data = appliedWorkers,
                 Message = "Get applied workers successfully",

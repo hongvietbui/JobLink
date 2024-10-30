@@ -183,7 +183,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
     }
 
 
-    public async Task<List<JobWorker>> GetJobWorkersApplyAsync(Guid jobId, string accessToken)
+    public async Task<List<JobWorkerDTO>> GetJobWorkersApplyAsync(Guid jobId, string accessToken)
     {
         // Lấy thông tin user ID từ access token
         var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
@@ -217,7 +217,14 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         if (job.OwnerId == owner.Id)
         {
             // Nếu user là owner của job, trả về danh sách JobWorkers đã apply
-            return job.JobWorkers.ToList();
+            var jobWorkerDTOs = job.JobWorkers.Select(jw => new JobWorkerDTO
+            {
+                WorkerId = jw.Worker.Id,
+                JobId = jw.JobId,
+                ApplyStatus = jw.ApplyStatus.ToString()
+            }).ToList();
+
+            return jobWorkerDTOs;
         }
         else
         {
@@ -252,14 +259,20 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
             throw new Exception("User is not the job owner");
         }
 
-        if(newStatus.Equals(ApplyStatus.Accepted))
+        var jobWorkerDto = new JobWorkerDTO{ 
+            JobId = jobWorker.JobId,
+            WorkerId = jobWorker.WorkerId,
+            ApplyStatus = jobWorker.ApplyStatus.ToString()
+        };
+
+        if (newStatus.Equals(ApplyStatus.Accepted))
         {
             var listApllicant = await GetJobWorkersApplyAsync(jobId, accessToken);
 
             for(int i = 0; i < listApllicant.Count; i++)
             {
-                listApllicant[i].ApplyStatus = ApplyStatus.Rejected;
-                if (listApllicant[i] == jobWorker)
+                listApllicant[i].ApplyStatus = ApplyStatus.Rejected.ToString();
+                if (listApllicant[i] == jobWorkerDto)
                 {
                     continue;
                 }
