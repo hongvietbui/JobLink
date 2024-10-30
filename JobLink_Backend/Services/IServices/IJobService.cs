@@ -20,5 +20,5 @@ public interface IJobService
 
     Task<List<JobWorker>> GetJobWorkersApplyAsync(Guid jobId, string accessToken);
 
-    Task<JobWorker> UpdateJobWorkerStatus(Guid jobId, JobWorker jobWorker, string accessToken, ApplyStatus newStatus);
+    Task UpdateJobWorkerStatusAsync(JobWorker jobWorker, string accessToken, ApplyStatus newStatus);
 }

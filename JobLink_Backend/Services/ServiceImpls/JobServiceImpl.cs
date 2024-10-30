@@ -225,19 +225,52 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         }
     }
 
-    public Task<JobWorker> UpdateJobWorkerStatus(Guid jobId, JobWorker jobWorker, string accessToken, ApplyStatus newStatus)
+    public async Task UpdateJobWorkerStatusAsync(JobWorker jobWorker, string accessToken, ApplyStatus newStatus)
     {
-        //// Lấy thông tin user ID từ access token
-        //var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
-        //var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+        // Lấy thông tin user ID từ access token
+        var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+        var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
 
-        //if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
-        //{
-        //    throw new Exception("User ID not found in token claims.");
-        //}
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        {
+            throw new Exception("User ID not found in token claims.");
+        }
+        var jobRepository = _unitOfWork.Repository<Job>();
+        var jobWorkerRepository = _unitOfWork.Repository<JobWorker>();
 
+        var jobId = jobWorker.JobId;
 
-        return null;
+        var job = await jobRepository.FirstOrDefaultAsync(x => x.Id == jobId);
+
+        if(job == null)
+        {
+            throw new Exception("Job not found.");
+        }
+
+        if(job.OwnerId != userId)
+        {
+            throw new Exception("User is not the job owner");
+        }
+
+        if(newStatus.Equals(ApplyStatus.Accepted))
+        {
+            var listApllicant = await GetJobWorkersApplyAsync(jobId, accessToken);
+
+            for(int i = 0; i < listApllicant.Count; i++)
+            {
+                listApllicant[i].ApplyStatus = ApplyStatus.Rejected;
+                if (listApllicant[i] == jobWorker)
+                {
+                    continue;
+                }
+            }
+        }
+
+        jobWorker.ApplyStatus = newStatus;
+        jobWorkerRepository.Update(jobWorker);
+
+        await _unitOfWork.SaveChangesAsync();
+
     }
 
     public async Task<Pagination<JobDTO>> GetJobsCreatedByUserAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, string accessToken)
