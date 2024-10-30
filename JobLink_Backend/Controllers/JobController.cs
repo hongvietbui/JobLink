@@ -13,6 +13,7 @@ using JobLink_Backend.Utilities.Pagination;
 using JobLink_Backend.Entities;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Authorization;
+using System.Net;
 
 namespace JobLink_Backend.Controllers;
 
@@ -365,6 +366,64 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             {
                 Data = appliedWorkers,
                 Message = "Get applied workers successfully",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            // Trả về lỗi nếu user không có quyền truy cập
+            return Unauthorized(new ApiResponse<string>
+            {
+                Data = null,
+                Message = ex.Message,
+                Status = 401,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+        catch (Exception ex)
+        {
+            // Trả về lỗi nếu có lỗi khác xảy ra
+            return StatusCode(500, new ApiResponse<string>
+            {
+                Data = null,
+                Message = $"An error occurred: {ex.Message}",
+                Status = 500,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+    }
+
+    
+    [HttpPut("update-jobworker")]
+    public async Task<IActionResult> UpdateJobWorkerStatusAsync(
+    [FromBody] JobWorkerDTO jobWorkerDto,
+    [FromHeader] string authorization,
+    [FromQuery] string newStatus)
+    {
+        // Lấy access token từ header Authorization
+        if (string.IsNullOrWhiteSpace(authorization) || !authorization.StartsWith("Bearer "))
+        {
+            return Unauthorized(new ApiResponse<string>
+            {
+                Data = null,
+                Message = "Authorization header is missing or invalid.",
+                Status = 401,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+
+        var accessToken = authorization.Split(" ")[1];
+
+        try
+        {
+            // Gọi phương thức cập nhật trạng thái cho JobWorker
+            await _jobService.UpdateJobWorkerStatusAsync(jobWorkerDto, accessToken, newStatus);
+
+            return Ok(new ApiResponse<string>
+            {
+                Data = null,
+                Message = "Job worker status updated successfully.",
                 Status = 200,
                 Timestamp = DateTime.Now.Ticks
             });

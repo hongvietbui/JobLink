@@ -23,24 +23,55 @@ namespace JobLink_Backend.Controllers
         }
 
         [HttpPost("change-password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ApiRequest<ChangePassworDTO> changePassword)
+        public async Task<IActionResult> ChangePassword([FromHeader] string authorization, [FromBody] ApiRequest<ChangePassworDTO> changePassword)
         {
             try
             {
-                var result = await _userService.ChangePassword(changePassword.Data);
-                if (true)
+                // Validate Authorization header and extract access token
+                if (string.IsNullOrWhiteSpace(authorization) || !authorization.StartsWith("Bearer "))
                 {
-                    await _userService.AddNotificationAsync(changePassword.Data.Username, "Your password has been changed!!");
-                    return Ok(new { message = "Change password successfully" });
+                    return Unauthorized(new ApiResponse<string>
+                    {
+                        Data = null,
+                        Message = "Authorization header is missing or invalid.",
+                        Status = 401,
+                        Timestamp = DateTime.Now.Ticks
+                    });
+                }
+
+                var accessToken = authorization.Split(" ")[1];
+                var user = await _userService.GetUserByAccessToken(accessToken);
+
+                // Check if the user in token matches the UserId in the changePassword data
+                if (user == null || user.Id != changePassword.Data.UserId)
+                {
+                    return StatusCode(403, new ApiResponse<string>
+                    {
+                        Data = null,
+                        Message = "Access denied.",
+                        Status = 403,
+                        Timestamp = DateTime.Now.Ticks
+                    });
+                }
+
+                // Attempt password change and notify user
+                var result = await _userService.ChangePassword(changePassword.Data);
+                if (result)
+                {
+                    await _userService.AddNotificationAsync(user.Username, "Your password has been changed!!");
+                    return Ok(new { message = "Password changed successfully" });
                 }
                 else
-                    return BadRequest(new { message = "Change password failed" });
+                {
+                    return BadRequest(new { message = "Password change failed" });
+                }
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return StatusCode(500, new { message = $"An error occurred: {ex.Message}" });
             }
         }
+
 
         //mine
         //[HttpGet("{userId}/notifications")]

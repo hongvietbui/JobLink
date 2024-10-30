@@ -128,7 +128,7 @@ public class UserServiceImpl(
 
     public async Task<bool> ChangePassword(ChangePassworDTO changePassword)
     {
-        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == changePassword.Username);
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == changePassword.UserId);
         if (user == null)
         {
             throw new Exception("User not found");
@@ -401,6 +401,7 @@ public class UserServiceImpl(
     public async Task<User> GetUserByJobOwnerId(Guid jobOwnerId)
     {
         return await _userRepository.GetByIdAsync(jobOwnerId);
+    }
     //mine
     public async Task<List<TransactionResponse>> GetTransactionsAsync(TransactionsRequest request)
     {

@@ -236,7 +236,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         }
     }
 
-    public async Task UpdateJobWorkerStatusAsync(JobWorker jobWorker, string accessToken, ApplyStatus newStatus)
+    public async Task UpdateJobWorkerStatusAsync(JobWorkerDTO jobWorkerDto, string accessToken, string newStatus)
     {
         // Lấy thông tin user ID từ access token
         var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
@@ -246,49 +246,58 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         {
             throw new Exception("User ID not found in token claims.");
         }
+
         var jobRepository = _unitOfWork.Repository<Job>();
         var jobWorkerRepository = _unitOfWork.Repository<JobWorker>();
 
-        var jobId = jobWorker.JobId;
+        var jobId = jobWorkerDto.JobId; // Sử dụng JobId từ jobWorkerDto
 
         var job = await jobRepository.FirstOrDefaultAsync(x => x.Id == jobId);
 
-        if(job == null)
+        if (job == null)
         {
             throw new Exception("Job not found.");
         }
 
-        if(job.OwnerId != userId)
+        if (job.OwnerId != userId)
         {
             throw new Exception("User is not the job owner");
         }
 
-        var jobWorkerDto = new JobWorkerDTO{ 
-            JobId = jobWorker.JobId,
-            WorkerId = jobWorker.WorkerId,
-            ApplyStatus = jobWorker.ApplyStatus.ToString()
-        };
-
-        if (newStatus.Equals(ApplyStatus.Accepted))
+        // Chuyển đổi chuỗi newStatus sang enum ApplyStatus
+        if (Enum.TryParse<ApplyStatus>(newStatus, true, out ApplyStatus applyStatus))
         {
-            var listApllicant = await GetJobWorkersApplyAsync(jobId, accessToken);
-
-            for(int i = 0; i < listApllicant.Count; i++)
+            if (applyStatus == ApplyStatus.Accepted)
             {
-                listApllicant[i].ApplyStatus = ApplyStatus.Rejected.ToString();
-                if (listApllicant[i] == jobWorkerDto)
+                var listApplicant = await GetJobWorkersApplyAsync(jobId, accessToken);
+
+                for (int i = 0; i < listApplicant.Count; i++)
                 {
-                    continue;
+                    // Chỉ từ chối ứng viên không phải là jobWorkerDto
+                    if (listApplicant[i].WorkerId != jobWorkerDto.WorkerId)
+                    {
+                        listApplicant[i].ApplyStatus = ApplyStatus.Rejected.ToString();
+                    }
                 }
             }
+
+            // Cập nhật trạng thái cho jobWorker từ jobWorkerDto
+            var jobWorker = await jobWorkerRepository.FirstOrDefaultAsync(x => x.JobId == jobId && x.WorkerId == jobWorkerDto.WorkerId);
+            if (jobWorker == null)
+            {
+                throw new Exception("JobWorker not found.");
+            }
+
+            jobWorker.ApplyStatus = applyStatus; 
+
+            await _unitOfWork.SaveChangesAsync();
         }
-
-        jobWorker.ApplyStatus = newStatus;
-        jobWorkerRepository.Update(jobWorker);
-
-        await _unitOfWork.SaveChangesAsync();
-
+        else
+        {
+            throw new Exception("Invalid status provided.");
+        }
     }
+
 
     public async Task<Pagination<JobDTO>> GetJobsCreatedByUserAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, string accessToken)
     {
