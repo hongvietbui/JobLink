@@ -28,7 +28,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         return _mapper.Map<JobDTO>(job);
     }
 
-    public async Task<Role?> GetUserRoleInJobAsync(Guid jobId, string accessToken)
+    public async Task<string> GetUserRoleInJobAsync(Guid jobId, string accessToken)
     {
         var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
 
@@ -51,14 +51,14 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         //get workerId by userId
         var worker = await _unitOfWork.Repository<Worker>().FirstOrDefaultAsync(w => w.UserId == userId);
         //Check if user is owner of job
-        if (job.OwnerId == owner.Id)
+        if (owner!= null)
         {
-            return await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "JobOwner");
+            return "JobOwner";
         }
 
-        if (job.JobWorkers.Any(jw => jw.WorkerId == worker.Id))
+        if (worker!=null)
         {
-            return await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "Worker");
+            return "Worker";
         }
 
         return null;
@@ -306,5 +306,73 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
         // Map the saved Job entity to JobDTO and return it
         return _mapper.Map<JobDTO>(newJob);
+    }
+
+    public async Task AssignJobAsync(Guid jobId, string accessToken)
+    {
+        var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken);
+        var userIdClaim = claims.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        {
+            throw new Exception("User ID not found in token claims.");
+        }
+
+        var role = await GetUserRoleInJobAsync(jobId, accessToken);
+        if(role!= null && role == "JobOwner")
+        {
+            throw new Exception("Job owner cannot assign job.");
+        }
+
+        var job = await _unitOfWork.Repository<Job>().FirstOrDefaultAsync(j => j.Id == jobId);
+        
+        if(job.Status == JobStatus.IN_PROGRESS)
+        {
+            throw new Exception("Job is already in progress.");
+        }
+        if(job.Status == JobStatus.DELETED)
+        {
+            throw new Exception("Job is deleted.");
+        }
+        if(job.Status == JobStatus.COMPLETED)
+        {
+            throw new Exception("Job is completed.");
+        }
+        
+        var worker = await _unitOfWork.Repository<Worker>().FirstOrDefaultAsync(w => w.UserId == userId);
+        var jobWorker = new JobWorker
+        {
+            JobId = jobId,
+            WorkerId = worker.Id,
+            ApplyStatus = ApplyStatus.Pending
+        };
+        await _unitOfWork.Repository<JobWorker>().AddAsync(jobWorker);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task AcceptJobAsync(Guid jobId, Guid workerId, string accessToken)
+    {
+        var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken);
+        var userIdClaim = claims.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+        
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        {
+            throw new Exception("User ID not found in token claims.");
+        }
+        
+        var role = await GetUserRoleInJobAsync(jobId, accessToken);
+        if(role != "JobOwner")
+        {
+            throw new Exception("Only job owner can accept job.");
+        }
+        
+        var jobWorker = await _unitOfWork.Repository<JobWorker>().FirstOrDefaultAsync(jw => jw.JobId == jobId && jw.WorkerId == workerId);
+        if(jobWorker == null)
+        {
+            throw new Exception("Worker is not applied for this job.");
+        }
+        
+        jobWorker.ApplyStatus = ApplyStatus.Accepted;
+        _unitOfWork.Repository<JobWorker>().Update(jobWorker);
+        await _unitOfWork.SaveChangesAsync();
     }
 }
