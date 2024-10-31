@@ -475,7 +475,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task AcceptJobAsync(Guid jobId, Guid workerId, string accessToken)
+    public async Task AcceptWorkerAsync(Guid jobId, Guid workerId, string accessToken)
     {
         var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken);
         var userIdClaim = claims.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
@@ -492,7 +492,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         }
         
         var jobWorkerList = await _unitOfWork.Repository<JobWorker>()
-            .FindByConditionAsync(jw => jw.JobId == jobId && jw.ApplyStatus == ApplyStatus.Accepted);
+            .FindByConditionAsync(jw => jw.JobId == jobId && jw.ApplyStatus == ApplyStatus.Pending);
         
         foreach(var jobWorker in jobWorkerList)
         {
@@ -507,7 +507,40 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         _unitOfWork.Repository<JobWorker>().UpdateRange(jobWorkerList);
         await _unitOfWork.SaveChangesAsync();
     }
+
+    public async Task RejectWorkerAsync(Guid jobId, Guid workerId, string accessToken)
+    {
+        var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken);
+        var userIdClaim = claims.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        {
+            throw new Exception("User ID not found in token claims.");
+        }
+
+        var role = await GetUserRoleInJobAsync(jobId, accessToken);
+        if (role != "JobOwner")
+        {
+            throw new Exception("Only job owners can reject job applicants.");
+        }
+
+        var jobWorker = await _unitOfWork.Repository<JobWorker>()
+            .FindByConditionAsync(jw => jw.JobId == jobId && jw.WorkerId == workerId && jw.ApplyStatus == ApplyStatus.Pending);
+
+        var jobWorkerEntity = jobWorker.FirstOrDefault();
+        if (jobWorkerEntity == null)
+        {
+            throw new Exception("Worker application not found or not in pending status.");
+        }
+
+        // Update the worker's status to rejected
+        jobWorkerEntity.ApplyStatus = ApplyStatus.Rejected;
+
+        _unitOfWork.Repository<JobWorker>().Update(jobWorkerEntity);
+        await _unitOfWork.SaveChangesAsync();
+    }
+
 }
 
-   
+
 

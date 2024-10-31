@@ -456,11 +456,41 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             var workerIdGuid = Guid.Parse(workerId);
             
             var accessToken = authorization.Split(" ")[1];
-            await _jobService.AcceptJobAsync(jobIdGuid, workerIdGuid, accessToken);
+            await _jobService.AcceptWorkerAsync(jobIdGuid, workerIdGuid, accessToken);
             return Ok(new ApiResponse<string>
             {
                 Data = null,
-                Message = "Job accept successfully",
+                Message = "Worker accept successfully",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ApiResponse<string>()
+            {
+                Data = null,
+                Message = ex.Message,
+                Status = 400,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+    }
+
+    [HttpGet("reject/{jobId}/{workerId}")]
+    public async Task<IActionResult> RejectWorker([FromHeader] string authorization, string jobId, string workerId)
+    {
+        try
+        {
+            var jobIdGuid = Guid.Parse(jobId);
+            var workerIdGuid = Guid.Parse(workerId);
+
+            var accessToken = authorization.Split(" ")[1];
+            await _jobService.RejectWorkerAsync(jobIdGuid, workerIdGuid, accessToken);
+            return Ok(new ApiResponse<string>
+            {
+                Data = null,
+                Message = "Worker reject successfully",
                 Status = 200,
                 Timestamp = DateTime.Now.Ticks
             });
