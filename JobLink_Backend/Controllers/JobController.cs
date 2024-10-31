@@ -508,7 +508,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
     }
 
 
-    [HttpGet("reject/{jobId}/{workerId}")]
+    [HttpPatch("reject/{jobId}/{workerId}")]
     public async Task<IActionResult> RejectWorker([FromHeader] string authorization, string jobId, string workerId)
     {
         try
