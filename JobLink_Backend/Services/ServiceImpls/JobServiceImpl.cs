@@ -509,6 +509,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
             }
         }
         job.UpdatedAt = DateTime.Now;
+        job.Status = JobStatus.IN_PROGRESS;
         _unitOfWork.Repository<Job>().Update(job);
         _unitOfWork.Repository<JobWorker>().UpdateRange(jobWorkerList);
         await _unitOfWork.SaveChangesAsync();
