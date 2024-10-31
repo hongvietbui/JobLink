@@ -26,5 +26,6 @@ public interface IJobService
 
     Task<JobDTO?> AddJobAsync(CreateJobDto data, string accessToken);
     Task AssignJobAsync(Guid jobId, string accessToken);
-    Task AcceptJobAsync(Guid jobId, Guid workerId, string accessToken);
+    Task AcceptWorkerAsync(Guid jobId, Guid workerId, string accessToken);
+    Task RejectWorkerAsync(Guid jobId, Guid workerId, string accessToken);
 }
