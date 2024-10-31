@@ -87,10 +87,12 @@ public class UserServiceImpl(
         var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Email == email);
         if (user == null) throw new ArgumentException("User not found");
 
-        user.Password = newPassword;
+         user.Password = PasswordHelper.HashPassword(newPassword);
+
         _unitOfWork.Repository<User>().Update(user);
         await _unitOfWork.SaveChangesAsync();
     }
+
 
     private string GenerateOtp()
     {
@@ -164,27 +166,7 @@ public class UserServiceImpl(
             .FindByConditionAsync(filter: u => u.Id == userId, include: u => u.Include(u => u.Roles));
         var user = users.FirstOrDefault();
         
-        var userDTO = new UserDTO
-        {
-            Address = user.Address,
-            DateOfBirth = user.DateOfBirth,
-            Email = user.Email,
-            FirstName = user.FirstName,
-            Id = user.Id,
-            LastName = user.LastName,
-            PhoneNumber = user.PhoneNumber,
-            Username = user.Username,
-            RoleList = user.Roles.Select(r => r.Name).ToList(),
-            RoleId = user.Roles.FirstOrDefault().Id,
-            RefreshToken = user.RefreshToken,
-            RefreshTokenExpiryTime = user.RefreshTokenExpiryTime,
-            Status = user.Status.GetStringValue(),
-            AccountBalance = user.AccountBalance,
-            Password = user.Password,
-            Lat = user.Lat,
-            Lon = user.Lon,
-            Avatar = user.Avatar,
-        };
+        var userDTO = _mapper.Map<UserDTO>(user);
         
         return userDTO;
     }
@@ -390,28 +372,8 @@ public class UserServiceImpl(
         };
         await _unitOfWork.Repository<Worker>().AddAsync(worker);
         await _unitOfWork.SaveChangesAsync();
-        
-        return new UserDTO
-        {
-            Id = newUser.Id,
-            Username = newUser.Username,
-            AccountBalance = newUser.AccountBalance,
-            Password = newUser.Password,
-            Email = newUser.Email,
-            FirstName = newUser.FirstName,
-            LastName = newUser.LastName,
-            PhoneNumber = newUser.PhoneNumber,
-            DateOfBirth = newUser.DateOfBirth,
-            Address = newUser.Address,
-            Lat = newUser.Lat,
-            Lon = newUser.Lon,
-            Avatar = newUser.Avatar,
-            RoleList = newUser.Roles.Select(r => r.Name).ToList(),
-            RefreshToken = newUser.RefreshToken,
-            RefreshTokenExpiryTime = newUser.RefreshTokenExpiryTime,
-            Status = newUser.Status.GetStringValue(),
-            RoleId = newUser.Roles.Select(r => r.Id).FirstOrDefault()
-        };
+
+        return _mapper.Map<UserDTO>(newUser);
     }
 
     //mine
@@ -433,12 +395,14 @@ public class UserServiceImpl(
 
     public async Task<User> GetUserByWorkerId(Guid workerId)
     {
-        return await _userRepository.GetByIdAsync(workerId);
+        var worker = await _unitOfWork.Repository<Worker>().FirstOrDefaultAsync(w => w.Id == workerId);
+        return await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == worker.UserId, include: u => u.Include(u => u.Roles));
     }
 
     public async Task<User> GetUserByJobOwnerId(Guid jobOwnerId)
     {
-        return await _userRepository.GetByIdAsync(jobOwnerId);
+        var jobOwner = await _unitOfWork.Repository<JobOwner>().FirstOrDefaultAsync(jo => jo.Id == jobOwnerId);
+        return await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == jobOwner.UserId, include: u => u.Include(u => u.Roles));
     }
     //mine
     public async Task<List<TransactionResponse>> GetTransactionsAsync(TransactionsRequest request)
