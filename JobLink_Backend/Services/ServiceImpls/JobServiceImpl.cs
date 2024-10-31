@@ -425,7 +425,9 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
             Price = data.Price,
             Avatar = data.Avatar,
             StartTime = data.StartTime != default ? data.StartTime : DateTime.UtcNow,
-            EndTime = data.EndTime
+            EndTime = data.EndTime,
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now
         };
 
         await _unitOfWork.Repository<Job>().AddAsync(newJob);
@@ -493,9 +495,12 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         
         var jobWorkerList = await _unitOfWork.Repository<JobWorker>()
             .FindByConditionAsync(jw => jw.JobId == jobId && jw.ApplyStatus == ApplyStatus.Pending);
-        
-        foreach(var jobWorker in jobWorkerList)
+
+        var job = await _unitOfWork.Repository<Job>().FirstOrDefaultAsync(j => j.Id == jobWorkerList.First().JobId);
+
+        foreach (var jobWorker in jobWorkerList)
         {
+            
             jobWorker.ApplyStatus = ApplyStatus.Rejected;
             
             if(jobWorker.WorkerId == workerId)
@@ -503,7 +508,9 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
                 jobWorker.ApplyStatus = ApplyStatus.Accepted;
             }
         }
-
+        job.UpdatedAt = DateTime.Now;
+        job.Status = JobStatus.IN_PROGRESS;
+        _unitOfWork.Repository<Job>().Update(job);
         _unitOfWork.Repository<JobWorker>().UpdateRange(jobWorkerList);
         await _unitOfWork.SaveChangesAsync();
     }
@@ -533,9 +540,13 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
             throw new Exception("Worker application not found or not in pending status.");
         }
 
+        var job = await _unitOfWork.Repository<Job>().FirstOrDefaultAsync(j => j.Id == jobWorkerEntity.JobId);
+
         // Update the worker's status to rejected
         jobWorkerEntity.ApplyStatus = ApplyStatus.Rejected;
+        job.UpdatedAt = DateTime.Now;
 
+        _unitOfWork.Repository<Job>().Update(job);
         _unitOfWork.Repository<JobWorker>().Update(jobWorkerEntity);
         await _unitOfWork.SaveChangesAsync();
     }
