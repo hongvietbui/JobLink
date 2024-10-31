@@ -2,6 +2,7 @@
 
 public enum Duration
 {
+    None = 0,
     OneHour,
     TwoHours,
     ThreeHours,

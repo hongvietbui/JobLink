@@ -4,6 +4,7 @@ using AutoMapper;
 using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.All.Job;
 using JobLink_Backend.DTOs.Request.Jobs;
+using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.DTOs.Response.Jobs;
 using JobLink_Backend.Entities;
 using JobLink_Backend.Repositories.IRepositories;
@@ -64,35 +65,49 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         return null;
     }
 
-    public async Task<Pagination<JobDTO>> GetJobsAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, Expression<Func<Job, bool>>? filter = null)
+ public async Task<Pagination<JobDTO>> GetJobsAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, Expression<Func<Job, bool>>? filter = null)
+{
+    var jobRepository = _unitOfWork.Repository<Job>();
+    var userRepository = _unitOfWork.Repository<User>();
+
+   
+    filter ??= job => true;
+
+    IQueryable<Job> query = jobRepository.GetAll(filter);
+
+    if (!string.IsNullOrEmpty(sortBy))
     {
-        var jobRepository = _unitOfWork.Repository<Job>();
-        var userRepository = _unitOfWork.Repository<User>();
-
-        filter ??= job => true;
-
-        IQueryable<Job> query = jobRepository.GetAll(filter);
-
-        if (!string.IsNullOrEmpty(sortBy))
-        {
-            query = ApplySorting(query, sortBy, isDescending);
-        }
-
-        var totalItems = await jobRepository.CountAsync(filter);
-
-        var paginatedJobs = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
-
-        var viewJobDtos = _mapper.Map<List<JobDTO>>(paginatedJobs);
-
-        return new Pagination<JobDTO>
-        {
-
-            Items = viewJobDtos,
-            TotalItems = totalItems,
-            PageIndex = pageIndex,
-            PageSize = pageSize
-        };
+        query = ApplySorting(query, sortBy, isDescending);
     }
+
+    var totalItems = await jobRepository.CountAsync(filter);
+
+    var paginatedJobs = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+
+    var viewJobDtos = paginatedJobs.Select(job => new JobDTO
+    {
+        Id = job.Id,
+        Name = job.Name,
+        Description = job.Description,
+        Price = job.Price,
+        OwnerId = job.OwnerId,
+        Address = job.Address,
+        Lat = job.Lat,
+        Lon = job.Lon,
+        Status = job.Status.GetStringValue(),
+        Duration = job.Duration,
+        Avatar = job.Avatar
+    }).ToList();
+
+    return new Pagination<JobDTO>
+    {
+        Items = viewJobDtos,
+        TotalItems = totalItems,
+        PageIndex = pageIndex,
+        PageSize = pageSize
+    };
+}
+
 
 
     private IQueryable<Job> ApplySorting(IQueryable<Job> query, string sortBy, bool isDescending)
@@ -250,12 +265,27 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
         Expression<Func<Job, bool>> filter = job => job.Owner.UserId == userId;
 
-        var jobs = await _unitOfWork.Repository<Job>()
-            .GetAllAsync(filter, pageIndex, pageSize, include: q => q.Include(j => j.JobWorkers));
+        IQueryable<Job> query = _unitOfWork.Repository<Job>()
+            .GetAll(filter)
+            .Include(j => j.JobWorkers);
 
-        var jobDTOs = _mapper.Map<Pagination<JobDTO>>(jobs);
-        
-        return jobDTOs;
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            query = ApplySorting(query, sortBy, isDescending);
+        }
+
+        var totalItems = await query.CountAsync();
+        var paginatedJobs = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+
+        var jobDTOs = _mapper.Map<List<JobDTO>>(paginatedJobs);
+
+        return new Pagination<JobDTO>
+        {
+            Items = jobDTOs,
+            TotalItems = totalItems,
+            PageIndex = pageIndex,
+            PageSize = pageSize
+        };
     }
 
 
@@ -279,13 +309,30 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
         Expression<Func<Job, bool>> filter = j => jobIds.Contains(j.Id);
 
-    
-        var jobs = await _unitOfWork.Repository<Job>()
-            .GetAllAsync(filter, pageIndex, pageSize, include: q => q.Include(j => j.JobWorkers));
+      
+        IQueryable<Job> query = _unitOfWork.Repository<Job>()
+            .GetAll(filter)
+            .Include(j => j.JobWorkers);
 
-        var jobDTOs = _mapper.Map<Pagination<JobDTO>>(jobs);
-        return jobDTOs;
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            query = ApplySorting(query, sortBy, isDescending);
+        }
+
+        var totalItems = await query.CountAsync();
+        var paginatedJobs = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+
+        var jobDTOs = _mapper.Map<List<JobDTO>>(paginatedJobs);
+
+        return new Pagination<JobDTO>
+        {
+            Items = jobDTOs,
+            TotalItems = totalItems,
+            PageIndex = pageIndex,
+            PageSize = pageSize
+        };
     }
+
 
     public async Task<List<UserDTO>> GetApplicantsByJobIdAsync(Guid jobId)
     {
@@ -305,6 +352,32 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         var userDTOs = _mapper.Map<List<UserDTO>>(users);
 
         return userDTOs;
+    }
+
+    public async Task<JobAndOwnerDetailsResponse?> GetJobAndOwnerDetailsAsync(Guid jobId)
+    {
+        var job = await _unitOfWork.Repository<Job>().FirstOrDefaultAsync(j => j.Id == jobId);
+        if (job == null) return null;
+
+        var jobOwner = await _unitOfWork.Repository<JobOwner>().FirstOrDefaultAsync(jo => jo.Id == job.OwnerId);
+        if (jobOwner == null) return null;
+
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == jobOwner.UserId);
+        if (user == null) return null;
+
+        return new JobAndOwnerDetailsResponse
+        {
+            JobId = job.Id,
+            JobName = job.Name,
+            Description = job.Description,
+            Lat = job.Lat,
+            Lon = job.Lon,
+            FirstName = user.FirstName,
+            Avatar = job.Avatar,
+            LastName = user.LastName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber
+        };
     }
 
     public async Task<JobDTO?> AddJobAsync(CreateJobDto data, string accessToken)
@@ -429,3 +502,6 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         await _unitOfWork.SaveChangesAsync();
     }
 }
+
+   
+
