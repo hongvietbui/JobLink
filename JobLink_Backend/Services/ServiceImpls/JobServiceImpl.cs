@@ -236,67 +236,6 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         }
     }
 
-    public async Task UpdateJobWorkerStatusAsync(JobWorkerDTO jobWorkerDto, string accessToken, string newStatus)
-    {
-        // Lấy thông tin user ID từ access token
-        var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
-        var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-
-        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
-        {
-            throw new Exception("User ID not found in token claims.");
-        }
-
-        var jobRepository = _unitOfWork.Repository<Job>();
-        var jobWorkerRepository = _unitOfWork.Repository<JobWorker>();
-
-        var jobId = jobWorkerDto.JobId; // Sử dụng JobId từ jobWorkerDto
-
-        var job = await jobRepository.FirstOrDefaultAsync(x => x.Id == jobId);
-
-        if (job == null)
-        {
-            throw new Exception("Job not found.");
-        }
-
-        if (job.OwnerId != userId)
-        {
-            throw new Exception("User is not the job owner");
-        }
-
-        // Chuyển đổi chuỗi newStatus sang enum ApplyStatus
-        if (Enum.TryParse<ApplyStatus>(newStatus, true, out ApplyStatus applyStatus))
-        {
-            if (applyStatus == ApplyStatus.Accepted)
-            {
-                var listApplicant = await GetJobWorkersApplyAsync(jobId, accessToken);
-
-                for (int i = 0; i < listApplicant.Count; i++)
-                {
-                    // Chỉ từ chối ứng viên không phải là jobWorkerDto
-                    if (listApplicant[i].WorkerId != jobWorkerDto.WorkerId)
-                    {
-                        listApplicant[i].ApplyStatus = ApplyStatus.Rejected.ToString();
-                    }
-                }
-            }
-
-            // Cập nhật trạng thái cho jobWorker từ jobWorkerDto
-            var jobWorker = await jobWorkerRepository.FirstOrDefaultAsync(x => x.JobId == jobId && x.WorkerId == jobWorkerDto.WorkerId);
-            if (jobWorker == null)
-            {
-                throw new Exception("JobWorker not found.");
-            }
-
-            jobWorker.ApplyStatus = applyStatus; 
-
-            await _unitOfWork.SaveChangesAsync();
-        }
-        else
-        {
-            throw new Exception("Invalid status provided.");
-        }
-    }
 
 
     public async Task<Pagination<JobDTO>> GetJobsCreatedByUserAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, string accessToken)
