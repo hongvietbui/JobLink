@@ -417,6 +417,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             Status = 200,
             Timestamp = DateTime.Now.Ticks
         });
+    }
 
     [HttpGet("assign/{jobId}")]
     public async Task<IActionResult> AssignJob([FromHeader] string authorization, string jobId)
