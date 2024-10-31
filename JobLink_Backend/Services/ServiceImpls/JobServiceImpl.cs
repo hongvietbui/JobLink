@@ -52,12 +52,12 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         //get workerId by userId
         var worker = await _unitOfWork.Repository<Worker>().FirstOrDefaultAsync(w => w.UserId == userId);
         //Check if user is owner of job
-        if (owner!= null)
+        if (owner!= null && job.OwnerId == owner.Id)
         {
             return "JobOwner";
         }
 
-        if (worker!=null)
+        if (worker!=null && job.JobWorkers.Any(jw => jw.WorkerId == worker.Id))
         {
             return "Worker";
         }
