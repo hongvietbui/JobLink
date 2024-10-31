@@ -87,20 +87,22 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
         var paginatedJobs = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
 
-        var viewJobDtos = paginatedJobs.Select(job => new JobDTO
-        {
-            Id = job.Id,
-            Name = job.Name,
-            Description = job.Description,
-            Price = job.Price,
-            OwnerId = job.OwnerId,
-            Address = job.Address,
-            Lat = job.Lat,
-            Lon = job.Lon,
-            Status = job.Status.GetStringValue(),
-            Duration = job.Duration,
-            Avatar = job.Avatar
-        }).ToList();
+        // var viewJobDtos = paginatedJobs.Select(job => new JobDTO
+        // {
+        //     Id = job.Id,
+        //     Name = job.Name,
+        //     Description = job.Description,
+        //     Price = job.Price,
+        //     OwnerId = job.OwnerId,
+        //     Address = job.Address,
+        //     Lat = job.Lat,
+        //     Lon = job.Lon,
+        //     Status = job.Status.GetStringValue(),
+        //     Duration = job.Duration,
+        //     Avatar = job.Avatar
+        // }).ToList();
+        
+        var viewJobDtos = _mapper.Map<List<JobDTO>>(paginatedJobs);
 
         return new Pagination<JobDTO>
         {

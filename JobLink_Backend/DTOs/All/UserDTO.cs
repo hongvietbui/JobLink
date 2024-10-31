@@ -17,9 +17,8 @@ public class UserDTO
     public int? Lat { get; set; }
     public int? Lon { get; set; }
     public string? Avatar { get; set; }
-    public Guid RoleId { get; set; }
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiryTime { get; set; }
     public string? Status { get; set; }
-    public List<string> RoleList { get; set; }
+    public List<RoleDTO> RoleList { get; set; }
 }

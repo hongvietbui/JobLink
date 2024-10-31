@@ -1,4 +1,5 @@
-﻿using JobLink_Backend.DTOs.All;
+﻿using AutoMapper;
+using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.Request;
 using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.DTOs.Response.Transactions;
@@ -12,15 +13,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace JobLink_Backend.Controllers
 {
-    public class UserController : BaseController
+    public class UserController(IUserService userService, JwtService jwtService, IMapper mapper) : BaseController
     {
-        private readonly IUserService _userService;
-        private readonly JwtService _jwtService;
-
-        public UserController(IUserService userService)
-        {
-            _userService = userService;
-        }
+        private readonly IUserService _userService = userService;
+        private readonly JwtService _jwtService = jwtService;
+        private readonly IMapper _mapper = mapper;
 
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromHeader] string authorization, [FromBody] ApiRequest<ChangePassworDTO> changePassword)
@@ -264,27 +261,7 @@ namespace JobLink_Backend.Controllers
             try
             {
                 var user = await _userService.GetUserByWorkerId(workerId);
-                var userDTO = new UserDTO
-                {
-                    Address = user.Address,
-                    DateOfBirth = user.DateOfBirth,
-                    Email = user.Email,
-                    FirstName = user.FirstName,
-                    Id = user.Id,
-                    LastName = user.LastName,
-                    PhoneNumber = user.PhoneNumber,
-                    Username = user.Username,
-                    RoleList = user.Roles.Select(r => r.Name).ToList(),
-                    RefreshToken = user.RefreshToken,
-                    RefreshTokenExpiryTime = user.RefreshTokenExpiryTime,
-                    Status = user.Status.GetStringValue(),
-                    AccountBalance = user.AccountBalance,
-                    Password = user.Password,
-                    Lat = user.Lat,
-                    Lon = user.Lon,
-                    Avatar = user.Avatar,
-                    RoleId = user.Roles.FirstOrDefault().Id
-                };
+                var userDTO = _mapper.Map<UserDTO>(user);
                 return Ok(new ApiResponse<UserDTO>
                 {
                     Data = userDTO,
