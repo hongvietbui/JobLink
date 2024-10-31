@@ -87,10 +87,12 @@ public class UserServiceImpl(
         var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Email == email);
         if (user == null) throw new ArgumentException("User not found");
 
-        user.Password = newPassword;
+         user.Password = PasswordHelper.HashPassword(newPassword);
+
         _unitOfWork.Repository<User>().Update(user);
         await _unitOfWork.SaveChangesAsync();
     }
+
 
     private string GenerateOtp()
     {

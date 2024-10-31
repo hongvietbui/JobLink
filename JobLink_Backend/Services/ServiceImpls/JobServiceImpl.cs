@@ -47,17 +47,14 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
             throw new Exception("Job not found.");
         }
 
-        //get ownerId by userId
         var owner = await _unitOfWork.Repository<JobOwner>().FirstOrDefaultAsync(jo => jo.UserId == userId);
-        //get workerId by userId
         var worker = await _unitOfWork.Repository<Worker>().FirstOrDefaultAsync(w => w.UserId == userId);
-        //Check if user is owner of job
-        if (owner!= null && job.OwnerId == owner.Id)
+        if (owner!= null)
         {
             return "JobOwner";
         }
 
-        if (worker!=null && job.JobWorkers.Any(jw => jw.WorkerId == worker.Id))
+        if (worker!=null)
         {
             return "Worker";
         }
@@ -67,46 +64,52 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
  public async Task<Pagination<JobDTO>> GetJobsAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, Expression<Func<Job, bool>>? filter = null)
 {
-    var jobRepository = _unitOfWork.Repository<Job>();
-    var userRepository = _unitOfWork.Repository<User>();
+        var jobRepository = _unitOfWork.Repository<Job>();
+        var userRepository = _unitOfWork.Repository<User>();
 
-   
-    filter ??= job => true;
+        if (filter == null)
+        {
+            filter = job => job.Status == JobStatus.PENDING_APPROVAL;
+        }
+        else
+        {
+            filter = job => filter.Compile()(job) && job.Status == JobStatus.PENDING_APPROVAL;
+        }
 
-    IQueryable<Job> query = jobRepository.GetAll(filter);
+        IQueryable<Job> query = jobRepository.GetAll(filter);
 
-    if (!string.IsNullOrEmpty(sortBy))
-    {
-        query = ApplySorting(query, sortBy, isDescending);
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            query = ApplySorting(query, sortBy, isDescending);
+        }
+
+        var totalItems = await jobRepository.CountAsync(filter);
+
+        var paginatedJobs = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+
+        var viewJobDtos = paginatedJobs.Select(job => new JobDTO
+        {
+            Id = job.Id,
+            Name = job.Name,
+            Description = job.Description,
+            Price = job.Price,
+            OwnerId = job.OwnerId,
+            Address = job.Address,
+            Lat = job.Lat,
+            Lon = job.Lon,
+            Status = job.Status.GetStringValue(),
+            Duration = job.Duration,
+            Avatar = job.Avatar
+        }).ToList();
+
+        return new Pagination<JobDTO>
+        {
+            Items = viewJobDtos,
+            TotalItems = totalItems,
+            PageIndex = pageIndex,
+            PageSize = pageSize
+        };
     }
-
-    var totalItems = await jobRepository.CountAsync(filter);
-
-    var paginatedJobs = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
-
-    var viewJobDtos = paginatedJobs.Select(job => new JobDTO
-    {
-        Id = job.Id,
-        Name = job.Name,
-        Description = job.Description,
-        Price = job.Price,
-        OwnerId = job.OwnerId,
-        Address = job.Address,
-        Lat = job.Lat,
-        Lon = job.Lon,
-        Status = job.Status.GetStringValue(),
-        Duration = job.Duration,
-        Avatar = job.Avatar
-    }).ToList();
-
-    return new Pagination<JobDTO>
-    {
-        Items = viewJobDtos,
-        TotalItems = totalItems,
-        PageIndex = pageIndex,
-        PageSize = pageSize
-    };
-}
 
 
 
@@ -307,9 +310,8 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
         var jobIds = jobWorkers.Select(jw => jw.JobId).ToList();
 
-        Expression<Func<Job, bool>> filter = j => jobIds.Contains(j.Id);
+        Expression<Func<Job, bool>> filter = j => jobIds.Contains(j.Id) && j.Status == JobStatus.PENDING_APPROVAL;
 
-      
         IQueryable<Job> query = _unitOfWork.Repository<Job>()
             .GetAll(filter)
             .Include(j => j.JobWorkers);
@@ -332,6 +334,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
             PageSize = pageSize
         };
     }
+
 
 
     public async Task<List<UserDTO>> GetApplicantsByJobIdAsync(Guid jobId)
@@ -550,6 +553,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         _unitOfWork.Repository<JobWorker>().Update(jobWorkerEntity);
         await _unitOfWork.SaveChangesAsync();
     }
+
     public async Task CompleteJobAsync(Guid jobId, Guid workerId, string accessToken)
     {
         var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
@@ -611,8 +615,6 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
         await _unitOfWork.SaveChangesAsync();
     }
-
-
 }
 
 
