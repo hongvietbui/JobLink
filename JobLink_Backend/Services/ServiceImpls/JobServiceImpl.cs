@@ -539,6 +539,68 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         _unitOfWork.Repository<JobWorker>().Update(jobWorkerEntity);
         await _unitOfWork.SaveChangesAsync();
     }
+    public async Task CompleteJobAsync(Guid jobId, Guid workerId, string accessToken)
+    {
+        var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+        var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        {
+            throw new Exception("User ID not found in token claims.");
+        }
+
+        var role = await GetUserRoleInJobAsync(jobId, accessToken);
+        if (role != "JobOwner")
+        {
+            throw new Exception("Only job owner can complete the job.");
+        }
+
+        // Fetch the Job entity
+        var job = await _unitOfWork.Repository<Job>().FirstOrDefaultAsync(j => j.Id == jobId);
+        if (job == null)
+        {
+            throw new Exception("Job not found.");
+        }
+
+        // Fetch the JobWorker entity
+        var jobWorker = await _unitOfWork.Repository<JobWorker>().FirstOrDefaultAsync(jw => jw.JobId == jobId && jw.WorkerId == workerId);
+        if (jobWorker == null || jobWorker.ApplyStatus != ApplyStatus.Accepted)
+        {
+            throw new Exception("Worker not found or not accepted for this job.");
+        }
+
+        // Fetch the Worker entity along with its User
+        var worker = await _unitOfWork.Repository<Worker>()
+           .FirstOrDefaultAsync(w => w.Id == workerId);
+
+        if (worker == null)
+        {
+            throw new Exception("Worker not found.");
+        }
+
+        var user = await _unitOfWork.Repository<User>()
+            .FirstOrDefaultAsync(u => u.Id == worker.UserId);
+
+        if (user == null)
+        {
+            throw new Exception("Associated user not found.");
+        }
+
+        // Update JobWorker status to Done
+        jobWorker.ApplyStatus = ApplyStatus.Done;
+        _unitOfWork.Repository<JobWorker>().Update(jobWorker);
+
+        // Update Job status to Done
+        job.Status = JobStatus.DONE;
+        _unitOfWork.Repository<Job>().Update(job);
+
+        // Add job payment to worker's user's account balance
+        worker.User.AccountBalance = (worker.User.AccountBalance ?? 0) + job.Price;
+        _unitOfWork.Repository<User>().Update(worker.User);
+
+        await _unitOfWork.SaveChangesAsync();
+    }
+
 
 }
 

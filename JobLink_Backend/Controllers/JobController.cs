@@ -476,6 +476,37 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             });
         }
     }
+    [HttpPatch("complete/{jobId}/{workerId}")]
+    public async Task<IActionResult> CompleteJob([FromHeader] string authorization, string jobId, string workerId)
+    {
+        try
+        {
+            var jobIdGuid = Guid.Parse(jobId);
+            var workerIdGuid = Guid.Parse(workerId);
+
+            var accessToken = authorization.Split(" ")[1];
+            await _jobService.CompleteJobAsync(jobIdGuid, workerIdGuid, accessToken);
+
+            return Ok(new ApiResponse<string>
+            {
+                Data = null,
+                Message = "Job completed and worker status updated successfully",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ApiResponse<string>
+            {
+                Data = null,
+                Message = ex.Message,
+                Status = 400,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+    }
+
 
     [HttpGet("reject/{jobId}/{workerId}")]
     public async Task<IActionResult> RejectWorker([FromHeader] string authorization, string jobId, string workerId)

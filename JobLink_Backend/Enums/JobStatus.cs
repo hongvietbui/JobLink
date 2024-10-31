@@ -19,5 +19,7 @@ public enum JobStatus
     [StringValue("IN_PROGRESS")]
     IN_PROGRESS,
     [StringValue("WAITING_FOR_APPLICANTS")]
-    WAITING_FOR_APPLICANTS // New status for jobs awaiting applicants
+    WAITING_FOR_APPLICANTS, // New status for jobs awaiting applicants
+    [StringValue("DONE")]
+    DONE // New status for jobs awaiting applicants
 }
