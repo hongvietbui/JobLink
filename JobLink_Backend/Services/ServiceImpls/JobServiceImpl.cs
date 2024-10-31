@@ -49,13 +49,12 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
         var owner = await _unitOfWork.Repository<JobOwner>().FirstOrDefaultAsync(jo => jo.UserId == userId);
         var worker = await _unitOfWork.Repository<Worker>().FirstOrDefaultAsync(w => w.UserId == userId);
-        //Check if user is owner of job
-        if (owner!= null && job.OwnerId == owner.Id)
+        if (owner!= null)
         {
             return "JobOwner";
         }
 
-        if (worker!=null && job.JobWorkers.Any(jw => jw.WorkerId == worker.Id))
+        if (worker!=null)
         {
             return "Worker";
         }
@@ -311,7 +310,6 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
         var jobIds = jobWorkers.Select(jw => jw.JobId).ToList();
 
-        // Add filter to include only jobs with "PendingApprove" status
         Expression<Func<Job, bool>> filter = j => jobIds.Contains(j.Id) && j.Status == JobStatus.PENDING_APPROVAL;
 
         IQueryable<Job> query = _unitOfWork.Repository<Job>()
@@ -555,6 +553,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         _unitOfWork.Repository<JobWorker>().Update(jobWorkerEntity);
         await _unitOfWork.SaveChangesAsync();
     }
+
     public async Task CompleteJobAsync(Guid jobId, Guid workerId, string accessToken)
     {
         var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
@@ -616,8 +615,6 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
         await _unitOfWork.SaveChangesAsync();
     }
-
-
 }
 
 
