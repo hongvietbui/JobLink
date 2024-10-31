@@ -606,8 +606,8 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         _unitOfWork.Repository<Job>().Update(job);
 
         // Add job payment to worker's user's account balance
-        worker.User.AccountBalance = (worker.User.AccountBalance ?? 0) + job.Price;
-        _unitOfWork.Repository<User>().Update(worker.User);
+        user.AccountBalance = (user.AccountBalance ?? 0) + job.Price;
+        _unitOfWork.Repository<User>().Update(user);
 
         await _unitOfWork.SaveChangesAsync();
     }
