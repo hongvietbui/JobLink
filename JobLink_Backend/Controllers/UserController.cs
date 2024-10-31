@@ -258,7 +258,7 @@ namespace JobLink_Backend.Controllers
             }
         }
 
-        [HttpGet("/worker/{workerId}")]
+        [HttpGet("worker/{workerId}")]
         public async Task<IActionResult> GetUserByWorkerId(Guid workerId)
         {
             try

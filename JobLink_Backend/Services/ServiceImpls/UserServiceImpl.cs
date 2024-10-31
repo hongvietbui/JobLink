@@ -433,12 +433,14 @@ public class UserServiceImpl(
 
     public async Task<User> GetUserByWorkerId(Guid workerId)
     {
-        return await _userRepository.GetByIdAsync(workerId);
+        var worker = await _unitOfWork.Repository<Worker>().FirstOrDefaultAsync(w => w.Id == workerId);
+        return await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == worker.UserId, include: u => u.Include(u => u.Roles));
     }
 
     public async Task<User> GetUserByJobOwnerId(Guid jobOwnerId)
     {
-        return await _userRepository.GetByIdAsync(jobOwnerId);
+        var jobOwner = await _unitOfWork.Repository<JobOwner>().FirstOrDefaultAsync(jo => jo.Id == jobOwnerId);
+        return await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == jobOwner.UserId, include: u => u.Include(u => u.Roles));
     }
     //mine
     public async Task<List<TransactionResponse>> GetTransactionsAsync(TransactionsRequest request)
