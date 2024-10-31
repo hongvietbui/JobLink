@@ -439,14 +439,20 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
             throw new Exception("Only job owner can accept job.");
         }
         
-        var jobWorker = await _unitOfWork.Repository<JobWorker>().FirstOrDefaultAsync(jw => jw.JobId == jobId && jw.WorkerId == workerId);
-        if(jobWorker == null)
-        {
-            throw new Exception("Worker is not applied for this job.");
-        }
+        var jobWorkerList = await _unitOfWork.Repository<JobWorker>()
+            .FindByConditionAsync(jw => jw.JobId == jobId && jw.ApplyStatus == ApplyStatus.Accepted);
         
-        jobWorker.ApplyStatus = ApplyStatus.Accepted;
-        _unitOfWork.Repository<JobWorker>().Update(jobWorker);
+        foreach(var jobWorker in jobWorkerList)
+        {
+            jobWorker.ApplyStatus = ApplyStatus.Rejected;
+            
+            if(jobWorker.WorkerId == workerId)
+            {
+                jobWorker.ApplyStatus = ApplyStatus.Accepted;
+            }
+        }
+
+        _unitOfWork.Repository<JobWorker>().UpdateRange(jobWorkerList);
         await _unitOfWork.SaveChangesAsync();
     }
 }
