@@ -419,7 +419,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
         });
     }
 
-    [HttpGet("assign/{jobId}")]
+    [HttpPatch("assign/{jobId}")]
     public async Task<IActionResult> AssignJob([FromHeader] string authorization, string jobId)
     {
         try
@@ -447,7 +447,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
         }
     }
     
-    [HttpGet("accept/{jobId}/{workerId}")]
+    [HttpPatch("accept/{jobId}/{workerId}")]
     public async Task<IActionResult> AcceptWorker([FromHeader] string authorization, string jobId, string workerId)
     {
         try
@@ -477,7 +477,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
         }
     }
 
-    [HttpGet("reject/{jobId}/{workerId}")]
+    [HttpPatch("reject/{jobId}/{workerId}")]
     public async Task<IActionResult> RejectWorker([FromHeader] string authorization, string jobId, string workerId)
     {
         try
