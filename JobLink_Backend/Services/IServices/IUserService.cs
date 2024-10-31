@@ -20,6 +20,9 @@ namespace JobLink_Backend.Services.IServices
         Task<UserDTO> GetUserByAccessToken(string accessToken);
         Task<string?> RefreshTokenAsync(string refreshToken);
         Task<UserHompageDTO> GetUserHompageAsync(string accessToken);
+        Task<User> GetUserByWorkerId(Guid workerId);
+        Task<User> GetUserByJobOwnerId(Guid jobOwnerId);
+        
         //mine
         Task AddNotificationAsync(string username, string message);
         Task<List<NotificationResponse>> GetUserNotificationsAsync(string username);

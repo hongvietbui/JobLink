@@ -4,6 +4,7 @@ using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.DTOs.Response.Transactions;
 using JobLink_Backend.DTOs.Response.Users;
 using JobLink_Backend.Services.IServices;
+using JobLink_Backend.Utilities;
 using JobLink_Backend.Utilities.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -22,24 +23,55 @@ namespace JobLink_Backend.Controllers
         }
 
         [HttpPost("change-password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ApiRequest<ChangePassworDTO> changePassword)
+        public async Task<IActionResult> ChangePassword([FromHeader] string authorization, [FromBody] ApiRequest<ChangePassworDTO> changePassword)
         {
             try
             {
-                var result = await _userService.ChangePassword(changePassword.Data);
-                if (true)
+                // Validate Authorization header and extract access token
+                if (string.IsNullOrWhiteSpace(authorization) || !authorization.StartsWith("Bearer "))
                 {
-                    await _userService.AddNotificationAsync(changePassword.Data.Username, "Your password has been changed!!");
-                    return Ok(new { message = "Change password successfully" });
+                    return Unauthorized(new ApiResponse<string>
+                    {
+                        Data = null,
+                        Message = "Authorization header is missing or invalid.",
+                        Status = 401,
+                        Timestamp = DateTime.Now.Ticks
+                    });
+                }
+
+                var accessToken = authorization.Split(" ")[1];
+                var user = await _userService.GetUserByAccessToken(accessToken);
+
+                // Check if the user in token matches the UserId in the changePassword data
+                if (user == null || user.Id != changePassword.Data.UserId)
+                {
+                    return StatusCode(403, new ApiResponse<string>
+                    {
+                        Data = null,
+                        Message = "Access denied.",
+                        Status = 403,
+                        Timestamp = DateTime.Now.Ticks
+                    });
+                }
+
+                // Attempt password change and notify user
+                var result = await _userService.ChangePassword(changePassword.Data);
+                if (result)
+                {
+                    await _userService.AddNotificationAsync(user.Username, "Your password has been changed!!");
+                    return Ok(new { message = "Password changed successfully" });
                 }
                 else
-                    return BadRequest(new { message = "Change password failed" });
+                {
+                    return BadRequest(new { message = "Password change failed" });
+                }
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return StatusCode(500, new { message = $"An error occurred: {ex.Message}" });
             }
         }
+
 
         //mine
         //[HttpGet("{userId}/notifications")]
@@ -219,6 +251,48 @@ namespace JobLink_Backend.Controllers
                     return Ok(new { message = "National ID rejected successfully" });
                 }
                 return BadRequest(new { message = "Failed to reject National ID" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("/worker/{workerId}")]
+        public async Task<IActionResult> GetUserByWorkerId(Guid workerId)
+        {
+            try
+            {
+                var user = await _userService.GetUserByWorkerId(workerId);
+                var userDTO = new UserDTO
+                {
+                    Address = user.Address,
+                    DateOfBirth = user.DateOfBirth,
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    Id = user.Id,
+                    LastName = user.LastName,
+                    PhoneNumber = user.PhoneNumber,
+                    Username = user.Username,
+                    RoleList = user.Roles.Select(r => r.Name).ToList(),
+                    RefreshToken = user.RefreshToken,
+                    RefreshTokenExpiryTime = user.RefreshTokenExpiryTime,
+                    Status = user.Status.GetStringValue(),
+                    AccountBalance = user.AccountBalance,
+                    Password = user.Password,
+                    Lat = user.Lat,
+                    Lon = user.Lon,
+                    Avatar = user.Avatar,
+                    RoleId = user.Roles.FirstOrDefault().Id
+                };
+                return Ok(new ApiResponse<UserDTO>
+                {
+                    Data = userDTO,
+                    Message = "Get user successfully!",
+                    Status = 200,
+                    Timestamp = DateTime.Now.Ticks
+                });
+
             }
             catch (Exception ex)
             {
