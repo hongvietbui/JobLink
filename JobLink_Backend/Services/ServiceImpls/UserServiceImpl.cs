@@ -134,7 +134,7 @@ public class UserServiceImpl(
             throw new Exception("User not found");
         }
 
-        if (PasswordHelper.VerifyPassword(user.Password, changePassword.CurrentPassword))
+        if (PasswordHelper.VerifyPassword(changePassword.CurrentPassword, user.Password))
         {
             throw new Exception("Current password is incorrect");
         }
