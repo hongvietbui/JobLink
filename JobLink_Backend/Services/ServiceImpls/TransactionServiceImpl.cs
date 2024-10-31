@@ -61,6 +61,23 @@ public class TransactionServiceImpl(IUnitOfWork unitOfWork, ITransactionReposito
             await _unitOfWork.SaveChangesAsync();
         }
         
+        var userIds = newTransactions.Select(t => t.UserId).Distinct().ToList();
+        
+        var users = await _unitOfWork.Repository<User>()
+            .GetAllAsync(u => userIds.Contains(u.Id));
+        
+        var userDictionary = users.ToDictionary(u => u.Id);
+        
+        foreach (var transaction in newTransactions)
+        {
+            if (userDictionary.TryGetValue(transaction.UserId, out var user))
+            {
+                user.AccountBalance += transaction.Amount;
+                _unitOfWork.Repository<User>().Update(user);
+            }
+        }
+        
+        await _unitOfWork.SaveChangesAsync();
         SendTransferMessageToUsers(newTransactions);
     }
     

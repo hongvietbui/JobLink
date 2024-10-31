@@ -9,5 +9,7 @@ public enum ApplyStatus
     [StringValue("ACCEPTED")]
     Accepted,
     [StringValue("REJECTED")]
-    Rejected
+    Rejected,
+    [StringValue("DONE")]
+    Done
 }

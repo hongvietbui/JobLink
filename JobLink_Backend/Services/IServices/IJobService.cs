@@ -28,4 +28,5 @@ public interface IJobService
     Task AssignJobAsync(Guid jobId, string accessToken);
     Task AcceptWorkerAsync(Guid jobId, Guid workerId, string accessToken);
     Task RejectWorkerAsync(Guid jobId, Guid workerId, string accessToken);
+    Task CompleteJobAsync(Guid jobIdGuid, Guid workerIdGuid, string accessToken);
 }
