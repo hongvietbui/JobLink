@@ -93,45 +93,6 @@ namespace JobLink_Backend.Controllers
             }
         }
 
-        //mine
-        [HttpGet("topupHistory")]
-        public async Task<IActionResult> GetTopUpHistory([FromQuery] TransactionsRequest request)
-        {
-            try
-            {
-                var transactions = await _userService.GetTransactionsAsync(request);
-
-                if (transactions == null || !transactions.Any())
-                {
-                    return NotFound(new ApiResponse<List<TransactionResponse>>
-                    {
-                        Data = null,
-                        Message = "No transactions found for this user.",
-                        Status = 404,
-                        Timestamp = DateTime.Now.Ticks
-                    });
-                }
-
-                return Ok(new ApiResponse<List<TransactionResponse>>
-                {
-                    Data = transactions,
-                    Message = "Fetched top-up history successfully.",
-                    Status = 200,
-                    Timestamp = DateTime.Now.Ticks
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse<string>
-                {
-                    Data = null,
-                    Message = ex.Message,
-                    Status = 400,
-                    Timestamp = DateTime.Now.Ticks
-                });
-            }
-        }
-        
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser([FromHeader] String authorization)
         {
@@ -168,7 +129,6 @@ namespace JobLink_Backend.Controllers
             }
         }
 
-        //mine
         [HttpGet("pending-national-ids")]
         [AllowAnonymous]
         public async Task<IActionResult> GetPendingNationalIds()
@@ -187,7 +147,6 @@ namespace JobLink_Backend.Controllers
             });
         }
 
-        //mine
         [HttpGet("national-id/{userId}")]
         [AllowAnonymous]
 
@@ -210,7 +169,6 @@ namespace JobLink_Backend.Controllers
             }
         }
 
-        //mine
         [HttpPost("national-id/{userId}/approve")]
         [AllowAnonymous]
         public async Task<IActionResult> ApproveNationalId(Guid userId)
@@ -230,7 +188,6 @@ namespace JobLink_Backend.Controllers
             }
         }
 
-        //mine
         [HttpPost("national-id/{userId}/reject")]
         [AllowAnonymous]
         public async Task<IActionResult> RejectNationalId(Guid userId)
