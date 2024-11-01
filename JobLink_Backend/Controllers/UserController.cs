@@ -42,31 +42,55 @@ namespace JobLink_Backend.Controllers
         }
 
         //mine
-        //[HttpGet("{userId}/notifications")]
-        [HttpGet("notifications/{username}")]
-        
-        [AllowAnonymous]
-        public async Task<IActionResult> GetUserNotifications(string username)
+        [HttpGet("notifications")]
+        public async Task<IActionResult> GetUserNotifications([FromHeader] string authorization)
         {
-            var notifications = await _userService.GetUserNotificationsAsync(username);
-            if (notifications == null || !notifications.Any())
+            if (string.IsNullOrEmpty(authorization) || !authorization.StartsWith("Bearer "))
             {
-                return NotFound(new ApiResponse<List<NotificationResponse>>
+                return BadRequest(new ApiResponse<string>
                 {
                     Data = null,
-                    Message = "No notifications found for this user.",
-                    Status = 404,
+                    Message = "Invalid authorization format.",
+                    Status = 400,
                     Timestamp = DateTime.Now.Ticks
                 });
             }
 
-            return Ok(new ApiResponse<List<NotificationResponse>>
+            var accessToken = authorization.Split(" ")[1];
+
+            try
             {
-                Data = notifications,
-                Message = "Fetched user notifications successfully.",
-                Status = 200,
-                Timestamp = DateTime.Now.Ticks
-            });
+                var notifications = await _userService.GetUserNotificationsAsync(accessToken);
+
+                if (notifications == null || !notifications.Any())
+                {
+                    return NotFound(new ApiResponse<List<NotificationResponse>>
+                    {
+                        Data = null,
+                        Message = "No notifications found for this user.",
+                        Status = 404,
+                        Timestamp = DateTime.Now.Ticks
+                    });
+                }
+
+                return Ok(new ApiResponse<List<NotificationResponse>>
+                {
+                    Data = notifications,
+                    Message = "Fetched user notifications successfully.",
+                    Status = 200,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<string>
+                {
+                    Data = null,
+                    Message = $"An error occurred: {ex.Message}",
+                    Status = 500,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
         }
 
         //mine
