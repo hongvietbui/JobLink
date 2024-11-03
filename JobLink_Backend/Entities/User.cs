@@ -35,6 +35,7 @@ public class User : BaseEntity<Guid>
     public string? NationalIdBackUrl { get; set; }
     public NationalIdStatus? NationalIdStatus { get; set; }
     public string? BankAccount { get; set; }
+    
     public string? QR { get; set; }
     //Navigation properties
     public ICollection<Role> Roles { get; set; }

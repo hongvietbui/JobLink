@@ -5,6 +5,7 @@ using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.Request.Transactions;
 using JobLink_Backend.DTOs.Response.Transactions;
 using JobLink_Backend.Entities;
+using JobLink_Backend.Hubs;
 using JobLink_Backend.Repositories.IRepositories;
 using JobLink_Backend.Services.IServices;
 using JobLink_Backend.Utilities.Jwt;
@@ -61,6 +62,23 @@ public class TransactionServiceImpl(IUnitOfWork unitOfWork, ITransactionReposito
             await _unitOfWork.SaveChangesAsync();
         }
         
+        var userIds = newTransactions.Select(t => t.UserId).Distinct().ToList();
+        
+        var users = await _unitOfWork.Repository<User>()
+            .GetAllAsync(u => userIds.Contains(u.Id));
+        
+        var userDictionary = users.ToDictionary(u => u.Id);
+        
+        foreach (var transaction in newTransactions)
+        {
+            if (userDictionary.TryGetValue(transaction.UserId, out var user))
+            {
+                user.AccountBalance += transaction.Amount;
+                _unitOfWork.Repository<User>().Update(user);
+            }
+        }
+        
+        await _unitOfWork.SaveChangesAsync();
         SendTransferMessageToUsers(newTransactions);
     }
     

@@ -13,9 +13,11 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace JobLink_Backend.Services.ServiceImpls;
 
@@ -85,10 +87,12 @@ public class UserServiceImpl(
         var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Email == email);
         if (user == null) throw new ArgumentException("User not found");
 
-        user.Password = newPassword;
+         user.Password = PasswordHelper.HashPassword(newPassword);
+
         _unitOfWork.Repository<User>().Update(user);
         await _unitOfWork.SaveChangesAsync();
     }
+
 
     private string GenerateOtp()
     {
@@ -128,13 +132,13 @@ public class UserServiceImpl(
 
     public async Task<bool> ChangePassword(ChangePassworDTO changePassword)
     {
-        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == changePassword.Username);
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == changePassword.UserId);
         if (user == null)
         {
             throw new Exception("User not found");
         }
 
-        if (PasswordHelper.VerifyPassword(user.Password, changePassword.CurrentPassword))
+        if (PasswordHelper.VerifyPassword(changePassword.CurrentPassword, user.Password))
         {
             throw new Exception("Current password is incorrect");
         }
@@ -162,27 +166,7 @@ public class UserServiceImpl(
             .FindByConditionAsync(filter: u => u.Id == userId, include: u => u.Include(u => u.Roles));
         var user = users.FirstOrDefault();
         
-        var userDTO = new UserDTO
-        {
-            Address = user.Address,
-            DateOfBirth = user.DateOfBirth,
-            Email = user.Email,
-            FirstName = user.FirstName,
-            Id = user.Id,
-            LastName = user.LastName,
-            PhoneNumber = user.PhoneNumber,
-            Username = user.Username,
-            RoleList = user.Roles.Select(r => r.Name).ToList(),
-            RoleId = user.Roles.FirstOrDefault().Id,
-            RefreshToken = user.RefreshToken,
-            RefreshTokenExpiryTime = user.RefreshTokenExpiryTime,
-            Status = user.Status.GetStringValue(),
-            AccountBalance = user.AccountBalance,
-            Password = user.Password,
-            Lat = user.Lat,
-            Lon = user.Lon,
-            Avatar = user.Avatar,
-        };
+        var userDTO = _mapper.Map<UserDTO>(user);
         
         return userDTO;
     }
@@ -218,7 +202,11 @@ public class UserServiceImpl(
     {
         //get user by username
         var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
-        //Todo: check if refreshToken is valid
+        
+        if (user.RefreshToken == null || user.RefreshTokenExpiryTime < DateTime.Now)
+        {
+            throw new Exception("Refresh token is invalid");
+        }
         //change accessToken
         var clams = new List<Claim>
         {
@@ -244,73 +232,73 @@ public class UserServiceImpl(
 
     public async Task<UserHompageDTO> GetUserHompageAsync(string accessToken)
     {
-        //Todo: Fix GetUserHompageAsync
-        throw new NotImplementedException();
-//         var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
-//
-//         var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-//         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
-//         {
-//             throw new Exception("User ID not found in token claims.");
-//         }
-//
-//         // Tính toán ngày bắt đầu và kết thúc của các khoảng thời gian trước khi đưa vào truy vấn
-//         var todayStart = DateTime.Today;
-//         var tomorrowStart = todayStart.AddDays(1);
-//
-//         var monthStart = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-//         var nextMonthStart = monthStart.AddMonths(1);
-//
-// // Bộ lọc cho các công việc hoàn thành trong ngày hôm nay
-//         Expression<Func<Job, bool>> totalJobDoneFilter = t =>
-//             t.Status == JobStatus.Completed &&
-//             t.UpdatedAt >= todayStart &&
-//             t.UpdatedAt < tomorrowStart &&
-//             t.WorkerId == userId;
-//
-// // Bộ lọc cho các công việc hoàn thành trong tháng hiện tại
-//         Expression<Func<Job, bool>> totalEarnMonthFilter = t =>
-//             t.Status == JobStatus.Completed &&
-//             t.UpdatedAt >= monthStart &&
-//             t.UpdatedAt < nextMonthStart &&
-//             t.WorkerId == userId;
-//
-// // Bộ lọc cho các công việc được tạo trong ngày hôm nay
-//         Expression<Func<Job, bool>> totalJobCreateFilter = t =>
-//             t.OwnerId == userId &&
-//             t.UpdatedAt >= todayStart &&
-//             t.UpdatedAt < tomorrowStart;
-//
-// // Bộ lọc cho các giao dịch tiền gửi trong tháng hiện tại
-//         Expression<Func<Transactions, bool>> totalDepositFilter = t =>
-//             t.UpdatedAt >= monthStart &&
-//             t.UpdatedAt < nextMonthStart &&
-//             t.UserId == userId;
-//
-//
-//         Func<IQueryable<User>, IIncludableQueryable<User, object>> include = query =>
-//             query.Include(u => u.Roles);
-//
-//         var userData = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Id == userId, include);
-//
-//         var totalEarnToday = await _unitOfWork.Repository<Job>().GetAllAsync(totalJobDoneFilter);
-//
-//         var totalEarnMonth = await _unitOfWork.Repository<Job>().GetAllAsync(totalEarnMonthFilter);
-//
-//         var totalJobCreate = await _unitOfWork.Repository<Job>().CountAsync(totalJobCreateFilter);
-//
-//         var totalDeposit = await _unitOfWork.Repository<Transactions>().GetAllAsync(totalDepositFilter);
-//         UserHompageDTO response = new UserHompageDTO
-//         {
-//             UserName = userData.FirstName + " " + userData.LastName,
-//             AccountBalance = string.Format("{0:N0}", userData.AccountBalance),
-//             TotalJobDone = totalEarnToday.Count(),
-//             AmountEarnedToday = string.Format("{0:N0}", totalEarnToday.Sum(t => t.Price)),
-//             AmountEarnedThisMonth = string.Format("{0:N0}", totalEarnMonth.Sum(t => t.Price)),
-//             DepositAmount = string.Format("{0:N0}", totalDeposit.Sum(t => t.Amount)),
-//             CreateJobThisMonth = totalJobCreate
-//         };
-//         return response;
+        var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+
+        var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        {
+            throw new Exception("User ID not found in token claims.");
+        }
+
+        // Tính toán ngày bắt đầu và kết thúc của các khoảng thời gian trước khi đưa vào truy vấn
+        var todayStart = DateTime.Today;
+        var tomorrowStart = todayStart.AddDays(1);
+
+        var monthStart = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+        var nextMonthStart = monthStart.AddMonths(1);
+
+        var worker = await _unitOfWork.Repository<Worker>().FirstOrDefaultAsync(w => w.UserId == userId);
+        
+        // Bộ lọc cho các công việc hoàn thành trong ngày hôm nay
+        Expression<Func<Job, bool>> totalJobDoneFilter = t =>
+            t.Status == JobStatus.COMPLETED &&
+            t.UpdatedAt >= todayStart &&
+            t.UpdatedAt < tomorrowStart &&
+            t.JobWorkers.Any(j => j.WorkerId == worker.Id);
+
+        // Bộ lọc cho các công việc hoàn thành trong tháng hiện tại
+        Expression<Func<Job, bool>> totalEarnMonthFilter = t =>
+            t.Status == JobStatus.COMPLETED &&
+            t.UpdatedAt >= monthStart &&
+            t.UpdatedAt < nextMonthStart &&
+            t.JobWorkers.Any(j => j.WorkerId == worker.Id);
+
+        // Bộ lọc cho các công việc được tạo trong ngày hôm nay
+        Expression<Func<Job, bool>> totalJobCreateFilter = t =>
+            t.OwnerId == userId &&
+            t.UpdatedAt >= todayStart &&
+            t.UpdatedAt < tomorrowStart;
+
+        // Bộ lọc cho các giao dịch tiền gửi trong tháng hiện tại
+        Expression<Func<UserTransaction, bool>> totalDepositFilter = t =>
+            t.UpdatedAt >= monthStart &&
+            t.UpdatedAt < nextMonthStart &&
+            t.UserId == userId;
+
+
+        Func<IQueryable<User>, IIncludableQueryable<User, object>> include = query =>
+            query.Include(u => u.Roles);
+
+        var userData = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Id == userId, include);
+
+        var totalEarnToday = await _unitOfWork.Repository<Job>().GetAllAsync(totalJobDoneFilter);
+
+        var totalEarnMonth = await _unitOfWork.Repository<Job>().GetAllAsync(totalEarnMonthFilter);
+
+        var totalJobCreate = await _unitOfWork.Repository<Job>().CountAsync(totalJobCreateFilter);
+
+        var totalDeposit = await _unitOfWork.Repository<UserTransaction>().GetAllAsync(totalDepositFilter);
+        UserHompageDTO response = new UserHompageDTO
+        {
+            UserName = userData.FirstName + " " + userData.LastName,
+            AccountBalance = string.Format("{0:N0}", userData.AccountBalance),
+            TotalJobDone = totalEarnToday.Count(),
+            AmountEarnedToday = string.Format("{0:N0}", totalEarnToday.Sum(t => t.Price)),
+            AmountEarnedThisMonth = string.Format("{0:N0}", totalEarnMonth.Sum(t => t.Price)),
+            DepositAmount = string.Format("{0:N0}", totalDeposit.Sum(t => t.Amount)),
+            CreateJobThisMonth = totalJobCreate
+        };
+        return response;
     }
 
     public async Task LogoutAsync(string username)
@@ -384,28 +372,8 @@ public class UserServiceImpl(
         };
         await _unitOfWork.Repository<Worker>().AddAsync(worker);
         await _unitOfWork.SaveChangesAsync();
-        
-        return new UserDTO
-        {
-            Id = newUser.Id,
-            Username = newUser.Username,
-            AccountBalance = newUser.AccountBalance,
-            Password = newUser.Password,
-            Email = newUser.Email,
-            FirstName = newUser.FirstName,
-            LastName = newUser.LastName,
-            PhoneNumber = newUser.PhoneNumber,
-            DateOfBirth = newUser.DateOfBirth,
-            Address = newUser.Address,
-            Lat = newUser.Lat,
-            Lon = newUser.Lon,
-            Avatar = newUser.Avatar,
-            RoleList = newUser.Roles.Select(r => r.Name).ToList(),
-            RefreshToken = newUser.RefreshToken,
-            RefreshTokenExpiryTime = newUser.RefreshTokenExpiryTime,
-            Status = newUser.Status.GetStringValue(),
-            RoleId = newUser.Roles.Select(r => r.Id).FirstOrDefault()
-        };
+
+        return _mapper.Map<UserDTO>(newUser);
     }
 
     //mine
@@ -433,6 +401,17 @@ public class UserServiceImpl(
         }).ToList();
     }
 
+    public async Task<User> GetUserByWorkerId(Guid workerId)
+    {
+        var worker = await _unitOfWork.Repository<Worker>().FirstOrDefaultAsync(w => w.Id == workerId);
+        return await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == worker.UserId, include: u => u.Include(u => u.Roles));
+    }
+
+    public async Task<User> GetUserByJobOwnerId(Guid jobOwnerId)
+    {
+        var jobOwner = await _unitOfWork.Repository<JobOwner>().FirstOrDefaultAsync(jo => jo.Id == jobOwnerId);
+        return await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == jobOwner.UserId, include: u => u.Include(u => u.Roles));
+    }
     //mine
     public async Task<List<TransactionResponse>> GetTransactionsAsync(TransactionsRequest request)
     {

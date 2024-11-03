@@ -1,9 +1,11 @@
-﻿using JobLink_Backend.DTOs.All;
+﻿using AutoMapper;
+using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.Request;
 using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.DTOs.Response.Transactions;
 using JobLink_Backend.DTOs.Response.Users;
 using JobLink_Backend.Services.IServices;
+using JobLink_Backend.Utilities;
 using JobLink_Backend.Utilities.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -11,35 +13,62 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace JobLink_Backend.Controllers
 {
-    public class UserController : BaseController
+    public class UserController(IUserService userService, JwtService jwtService, IMapper mapper) : BaseController
     {
-        private readonly IUserService _userService;
-        private readonly JwtService _jwtService;
-
-        public UserController(IUserService userService)
-        {
-            _userService = userService;
-        }
+        private readonly IUserService _userService = userService;
+        private readonly JwtService _jwtService = jwtService;
+        private readonly IMapper _mapper = mapper;
 
         [HttpPost("change-password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ApiRequest<ChangePassworDTO> changePassword)
+        public async Task<IActionResult> ChangePassword([FromHeader] string authorization, [FromBody] ApiRequest<ChangePassworDTO> changePassword)
         {
             try
             {
-                var result = await _userService.ChangePassword(changePassword.Data);
-                if (true)
+                // Validate Authorization header and extract access token
+                if (string.IsNullOrWhiteSpace(authorization) || !authorization.StartsWith("Bearer "))
                 {
-                    await _userService.AddNotificationAsync(changePassword.Data.Username, "Your password has been changed!!");
-                    return Ok(new { message = "Change password successfully" });
+                    return Unauthorized(new ApiResponse<string>
+                    {
+                        Data = null,
+                        Message = "Authorization header is missing or invalid.",
+                        Status = 401,
+                        Timestamp = DateTime.Now.Ticks
+                    });
+                }
+
+                var accessToken = authorization.Split(" ")[1];
+                var user = await _userService.GetUserByAccessToken(accessToken);
+
+                // Check if the user in token matches the UserId in the changePassword data
+                if (user == null || user.Id != changePassword.Data.UserId)
+                {
+                    return StatusCode(403, new ApiResponse<string>
+                    {
+                        Data = null,
+                        Message = "Access denied.",
+                        Status = 403,
+                        Timestamp = DateTime.Now.Ticks
+                    });
+                }
+
+                // Attempt password change and notify user
+                var result = await _userService.ChangePassword(changePassword.Data);
+                if (result)
+                {
+                    await _userService.AddNotificationAsync(user.Username, "Your password has been changed!!");
+                    return Ok(new { message = "Password changed successfully" });
                 }
                 else
-                    return BadRequest(new { message = "Change password failed" });
+                {
+                    return BadRequest(new { message = "Password change failed" });
+                }
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return StatusCode(500, new { message = $"An error occurred: {ex.Message}" });
             }
         }
+
 
         //mine
         [HttpGet("notifications")]
@@ -200,6 +229,28 @@ namespace JobLink_Backend.Controllers
                     return Ok(new { message = "National ID rejected successfully" });
                 }
                 return BadRequest(new { message = "Failed to reject National ID" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("worker/{workerId}")]
+        public async Task<IActionResult> GetUserByWorkerId(Guid workerId)
+        {
+            try
+            {
+                var user = await _userService.GetUserByWorkerId(workerId);
+                var userDTO = _mapper.Map<UserDTO>(user);
+                return Ok(new ApiResponse<UserDTO>
+                {
+                    Data = userDTO,
+                    Message = "Get user successfully!",
+                    Status = 200,
+                    Timestamp = DateTime.Now.Ticks
+                });
+
             }
             catch (Exception ex)
             {
