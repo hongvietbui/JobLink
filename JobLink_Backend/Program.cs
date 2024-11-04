@@ -72,6 +72,7 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapHub<ChatHub>("/hub/chat");
     endpoints.MapHub<TransferHub>("/hub/transfer");
+    endpoints.MapHub<NotificationHub>("/hub/notification");
     endpoints.MapControllers(); // Đảm bảo điều này nằm trong UseEndpoints
     //endpoints.MapHub<NotificationHub>("/NotificationHub");
 });

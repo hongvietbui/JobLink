@@ -26,14 +26,14 @@ public class UserServiceImpl(
     IUserRepository userRepository,
     IMapper mapper,
     JwtService jwtService,
-    IHubContext<NotificationsHub> notificationHub) : IUserService
+    IHubContext<NotificationHub> notificationHub) : IUserService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IMapper _mapper = mapper;
     private readonly JwtService _jwtService = jwtService;
     private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
-    private readonly IHubContext<NotificationsHub> _notificationsHub = notificationHub;
+    private readonly IHubContext<NotificationHub> _notificationsHub = notificationHub;
 
     public async Task SaveRefreshTokenAsync(string username, string refreshToken)
     {
@@ -377,12 +377,20 @@ public class UserServiceImpl(
     }
 
     //mine
-    public async Task<List<NotificationResponse>> GetUserNotificationsAsync(string username)
+    public async Task<List<NotificationResponse>> GetUserNotificationsAsync(string accessToken)
     {
-        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == username);
+
+        var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken)?.Claims;
+        var userIdClaim = claims?.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        {
+            throw new Exception("User ID not found in token claims.");
+        }
+
 
         var notifications = await _unitOfWork.Repository<Notification>()
-                                         .FindByConditionAsync(n => n.UserId == user.Id);
+                                         .FindByConditionAsync(n => n.UserId == userId);
 
         return notifications.Select(n => new NotificationResponse
         {

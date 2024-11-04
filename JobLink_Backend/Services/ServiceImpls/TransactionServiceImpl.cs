@@ -13,6 +13,7 @@ using JobLink_Backend.Utilities.Pagination;
 using JobLink_Backend.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
+using JobLink_Backend.DTOs.Response;
 
 namespace JobLink_Backend.Services.ServiceImpls;
 
@@ -221,5 +222,31 @@ public class TransactionServiceImpl(IUnitOfWork unitOfWork, ITransactionReposito
             await _unitOfWork.Repository<UserTransaction>().FirstOrDefaultAsync(x => x.Id == transaction.Id);
         _unitOfWork.Repository<UserTransaction>().Update(transactionToUpdate);
         await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task<List<TransactionResponse>> GetUserTransactionsAsync(DateTime? fromDate, DateTime? toDate, string accessToken)
+    {
+        var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken)?.Claims;
+        var userIdClaim = claims?.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        {
+            throw new Exception("User ID not found in token claims.");
+        }
+
+        Expression<Func<UserTransaction, bool>> filterExpression = t =>
+            t.UserId == userId && // Lọc theo UserId
+            (!fromDate.HasValue || t.TransactionDate >= fromDate.Value) &&
+            (!toDate.HasValue || t.TransactionDate <= toDate.Value);
+
+        var transactions = await _unitOfWork.Repository<UserTransaction>().FindByConditionAsync(filterExpression);
+
+        return transactions.Select(t => new TransactionResponse
+        {
+            Amount = t.Amount,
+            PaymentType = t.PaymentType,
+            Status = t.Status,
+            TransactionDate = t.TransactionDate
+        }).ToList();
     }
 }
