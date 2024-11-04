@@ -298,11 +298,11 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
     {
         var applicants = await _jobService.GetApplicantsByJobIdAsync(jobId);
         if (applicants == null || !applicants.Any())
-            return NotFound(new ApiResponse<UserDTO>
+            return Ok(new ApiResponse<UserDTO>
             {
                 Data = null,
                 Message = "No applicants found for this job",
-                Status = 404,
+                Status = 204,
                 Timestamp = DateTime.Now.Ticks
             });
 
@@ -354,11 +354,11 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             // Nếu không có worker nào apply, trả về thông báo không tìm thấy
             if (appliedWorkers == null || !appliedWorkers.Any())
             {
-                return NotFound(new ApiResponse<List<JobWorkerDTO>>
+                return Ok(new ApiResponse<List<JobWorkerDTO>>
                 {
                     Data = null,
                     Message = "No applied workers found for this job",
-                    Status = 404,
+                    Status = 204,
                     Timestamp = DateTime.Now.Ticks
                 });
             }
