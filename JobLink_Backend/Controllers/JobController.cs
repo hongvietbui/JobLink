@@ -263,11 +263,11 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
 
             if (result == null || result.Items == null || result.Items.Count == 0)
             {
-                return NotFound(new ApiResponse<string>
+                return Ok(new ApiResponse<string>
                 {
                     Data = null,
                     Message = "No jobs applied by the user found.",
-                    Status = 404,
+                    Status = 204,
                     Timestamp = DateTime.Now.Ticks
                 });
             }
@@ -286,7 +286,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             {
                 Data = null,
                 Message = ex.Message,
-                Status = 500,
+                Status = 400,
                 Timestamp = DateTime.Now.Ticks
             });
         }
