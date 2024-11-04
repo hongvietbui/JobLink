@@ -26,14 +26,14 @@ public class UserServiceImpl(
     IUserRepository userRepository,
     IMapper mapper,
     JwtService jwtService,
-    IHubContext<NotificationsHub> notificationHub) : IUserService
+    IHubContext<NotificationHub> notificationHub) : IUserService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IMapper _mapper = mapper;
     private readonly JwtService _jwtService = jwtService;
     private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
-    private readonly IHubContext<NotificationsHub> _notificationsHub = notificationHub;
+    private readonly IHubContext<NotificationHub> _notificationsHub = notificationHub;
 
     public async Task SaveRefreshTokenAsync(string username, string refreshToken)
     {
