@@ -1,3 +1,4 @@
+using JobLink_Backend.Hubs;
 using JobLink_Backend.Repositories.IRepositories;
 using JobLink_Backend.Repositories.RepositoryImpls;
 using JobLink_Backend.Services.IServices;
@@ -22,6 +23,7 @@ public static class CustomServiceExtension
         //services
         services.AddScoped<IUserService, UserServiceImpl>();
         services.AddScoped<IJobService, JobServiceImpl>();
+        services.AddScoped<INotificationService, NotificationServiceImpl>();
 
         services.AddScoped<IVietQrService, VietQRServiceImpl>();
         services.AddScoped<S3Uploader>();
