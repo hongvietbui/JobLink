@@ -71,72 +71,57 @@ namespace JobLink_Backend.Controllers
 
 
         //mine
-        //[HttpGet("{userId}/notifications")]
-        [HttpGet("notifications/{username}")]
-        
-        [AllowAnonymous]
-        public async Task<IActionResult> GetUserNotifications(string username)
+        [HttpGet("notifications")]
+        public async Task<IActionResult> GetUserNotifications([FromHeader] string authorization)
         {
-            var notifications = await _userService.GetUserNotificationsAsync(username);
-            if (notifications == null || !notifications.Any())
+            if (string.IsNullOrEmpty(authorization) || !authorization.StartsWith("Bearer "))
             {
-                return NotFound(new ApiResponse<List<NotificationResponse>>
+                return BadRequest(new ApiResponse<string>
                 {
                     Data = null,
-                    Message = "No notifications found for this user.",
-                    Status = 404,
+                    Message = "Invalid authorization format.",
+                    Status = 400,
                     Timestamp = DateTime.Now.Ticks
                 });
             }
 
-            return Ok(new ApiResponse<List<NotificationResponse>>
-            {
-                Data = notifications,
-                Message = "Fetched user notifications successfully.",
-                Status = 200,
-                Timestamp = DateTime.Now.Ticks
-            });
-        }
+            var accessToken = authorization.Split(" ")[1];
 
-        //mine
-        [HttpGet("topupHistory")]
-        public async Task<IActionResult> GetTopUpHistory([FromQuery] TransactionsRequest request)
-        {
             try
             {
-                var transactions = await _userService.GetTransactionsAsync(request);
+                var notifications = await _userService.GetUserNotificationsAsync(accessToken);
 
-                if (transactions == null || !transactions.Any())
+                if (notifications == null || !notifications.Any())
                 {
-                    return NotFound(new ApiResponse<List<TransactionResponse>>
+                    return NotFound(new ApiResponse<List<NotificationResponse>>
                     {
                         Data = null,
-                        Message = "No transactions found for this user.",
+                        Message = "No notifications found for this user.",
                         Status = 404,
                         Timestamp = DateTime.Now.Ticks
                     });
                 }
 
-                return Ok(new ApiResponse<List<TransactionResponse>>
+                return Ok(new ApiResponse<List<NotificationResponse>>
                 {
-                    Data = transactions,
-                    Message = "Fetched top-up history successfully.",
+                    Data = notifications,
+                    Message = "Fetched user notifications successfully.",
                     Status = 200,
                     Timestamp = DateTime.Now.Ticks
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new ApiResponse<string>
+                return StatusCode(500, new ApiResponse<string>
                 {
                     Data = null,
-                    Message = ex.Message,
-                    Status = 400,
+                    Message = $"An error occurred: {ex.Message}",
+                    Status = 500,
                     Timestamp = DateTime.Now.Ticks
                 });
             }
         }
-        
+
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser([FromHeader] String authorization)
         {
@@ -173,7 +158,6 @@ namespace JobLink_Backend.Controllers
             }
         }
 
-        //mine
         [HttpGet("pending-national-ids")]
         [AllowAnonymous]
         public async Task<IActionResult> GetPendingNationalIds()
@@ -192,7 +176,6 @@ namespace JobLink_Backend.Controllers
             });
         }
 
-        //mine
         [HttpGet("national-id/{userId}")]
         [AllowAnonymous]
 
@@ -215,7 +198,6 @@ namespace JobLink_Backend.Controllers
             }
         }
 
-        //mine
         [HttpPost("national-id/{userId}/approve")]
         [AllowAnonymous]
         public async Task<IActionResult> ApproveNationalId(Guid userId)
@@ -235,7 +217,6 @@ namespace JobLink_Backend.Controllers
             }
         }
 
-        //mine
         [HttpPost("national-id/{userId}/reject")]
         [AllowAnonymous]
         public async Task<IActionResult> RejectNationalId(Guid userId)
