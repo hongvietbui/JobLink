@@ -194,9 +194,7 @@ namespace JobLink_Backend.Controllers
 
         //mine
         [HttpGet("national-id/{userId}")]
-        [AllowAnonymous]
-
-        public async Task<IActionResult> GetNationalIdDetail(Guid userId)
+        public async Task<IActionResult> GetNationalIdDetails(Guid userId)
         {
             try
             {
@@ -217,7 +215,6 @@ namespace JobLink_Backend.Controllers
 
         //mine
         [HttpPost("national-id/{userId}/approve")]
-        [AllowAnonymous]
         public async Task<IActionResult> ApproveNationalId(Guid userId)
         {
             try
@@ -237,7 +234,6 @@ namespace JobLink_Backend.Controllers
 
         //mine
         [HttpPost("national-id/{userId}/reject")]
-        [AllowAnonymous]
         public async Task<IActionResult> RejectNationalId(Guid userId)
         {
             try

@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace JobLink_Backend.Controllers;
 
-[AllowAnonymous]
 public class JobController(IJobService jobService, IMapper mapper) : BaseController
 {
     private readonly IJobService _jobService = jobService;
@@ -71,7 +70,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             Timestamp = DateTime.Now.Ticks
         });
     }
-    [AllowAnonymous]
+    
     [HttpGet("all")]
         public async Task<IActionResult> GetJobsAsync(int pageIndex = 1, int pageSize = 10, string sortBy = null, bool isDescending = false, string filter = null)
         {
@@ -120,7 +119,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
                 });
             }
         }
-    [AllowAnonymous]
+        
     [HttpPost]
     public async Task<IActionResult> CreateJob([FromBody] ApiRequest<CreateJobDto> createJobDto, [FromHeader] string authorization)
     {
@@ -182,8 +181,8 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
            Timestamp = DateTime.Now.Ticks
        });
    }
-    [AllowAnonymous]
-    [HttpGet("user")]
+    
+   [HttpGet("user")]
     public async Task<IActionResult> GetJobsCreatedByUserAsync([FromHeader] string authorization , int pageIndex = 1, int pageSize = 10, string sortBy = null, bool isDescending = false)
     {
         string accessToken = string.Empty;
@@ -209,11 +208,11 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
 
             if (result == null || result.Items == null || result.Items.Count == 0)
             {
-                return NotFound(new ApiResponse<string>
+                return Ok(new ApiResponse<string>
                 {
                     Data = null,
                     Message = "No jobs applied by the user found.",
-                    Status = 404,
+                    Status = 204,
                     Timestamp = DateTime.Now.Ticks
                 });
             }
@@ -237,7 +236,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             });
         }
     }
-    [AllowAnonymous]
+    
     [HttpGet("applied")]
     public async Task<IActionResult> GetJobsAppliedByUserAsync([FromHeader] string authorization, int pageIndex = 1, int pageSize = 10, string sortBy = null, bool isDescending = false)
     {
