@@ -17,7 +17,9 @@ using System.Net;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace JobLink_Backend.Controllers;
-public class JobController(IJobService jobService, IMapper mapper) : BaseController
+
+[AllowAnonymous]
+public class JobController(IJobService jobService, IMapper mapper, INotificationService notificationService) : BaseController
 {
     private readonly IJobService _jobService = jobService;
     private readonly IMapper _mapper = mapper;

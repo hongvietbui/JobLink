@@ -24,12 +24,14 @@ namespace JobLink_Backend.Services.ServiceImpls;
 public class UserServiceImpl(
     IUnitOfWork unitOfWork,
     IUserRepository userRepository,
+    INotificationService notification,
     IMapper mapper,
     JwtService jwtService,
     IHubContext<NotificationHub> notificationHub) : IUserService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IUserRepository _userRepository = userRepository;
+    private readonly INotificationService _notificationService = notification;
     private readonly IMapper _mapper = mapper;
     private readonly JwtService _jwtService = jwtService;
     private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
@@ -76,6 +78,7 @@ public class UserServiceImpl(
         };
 
         await SendEmailAsync(email, "Reset Password OTP", $"Your OTP is: {otp}. It only generate for 5 minutes");
+        await _notificationService.sendNotificationToUserAsync(user.Id, "Reset password", "You have reseted your password recently",DateTime.Now.ToString());
 
         OtpStore[email] = new OtpRecord { Code = otp, ExpiryTime = otpResponse.ExpiryTime };
 
@@ -91,6 +94,7 @@ public class UserServiceImpl(
 
         _unitOfWork.Repository<User>().Update(user);
         await _unitOfWork.SaveChangesAsync();
+        await _notificationService.sendNotificationToUserAsync(user.Id, "Reset Password", "You changed your password", DateTime.Now.ToString());
     }
 
 
@@ -146,7 +150,7 @@ public class UserServiceImpl(
         user.Password = PasswordHelper.HashPassword(changePassword.NewPassword);
         await _userRepository.Update(user);
         await _userRepository.SaveChangeAsync();
-
+        await _notificationService.sendNotificationToUserAsync(user.Id, "Change Password", "You changed your password", DateTime.Now.ToString());
         return true;
     }
 
@@ -372,6 +376,7 @@ public class UserServiceImpl(
         };
         await _unitOfWork.Repository<Worker>().AddAsync(worker);
         await _unitOfWork.SaveChangesAsync();
+        await _notificationService.sendNotificationToUserAsync(newUser.Id, "Create Account", "You just created your account",DateTime.Now.ToString());
 
         return _mapper.Map<UserDTO>(newUser);
     }
