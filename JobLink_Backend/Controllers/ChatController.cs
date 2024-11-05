@@ -31,7 +31,7 @@ namespace JobLink_Backend.Controllers
                 if (worker != null && jobOwner != null)
                 {
                     //Send message to specific user
-                     _chatService.SendMessageAsync(senderId, receiverId, chatDTOReq.Message);
+                     await _chatService.SendMessageAsync(senderId, receiverId, chatDTOReq.Message);
                     return Ok(new ApiResponse<string> {
                         Data = "sent successfully",
                         Timestamp = DateTime.Now.Ticks
@@ -59,7 +59,7 @@ namespace JobLink_Backend.Controllers
                 if (worker != null && jobOwner != null)
                 {
                     //Send message to specific user
-                    _chatService.SendMessageAsync(senderId, receiverId, chatDTOReq.Message);
+                    await _chatService.SendMessageAsync(senderId, receiverId, chatDTOReq.Message);
                     return Ok(new ApiResponse<string>
                     {
                         Data = "sent successfully",

@@ -18,7 +18,8 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace JobLink_Backend.Controllers;
 
-public class JobController(IJobService jobService, IMapper mapper) : BaseController
+[AllowAnonymous]
+public class JobController(IJobService jobService, IMapper mapper, INotificationService notificationService) : BaseController
 {
     private readonly IJobService _jobService = jobService;
     private readonly IMapper _mapper = mapper;
@@ -124,32 +125,29 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
     [HttpPost]
     public async Task<IActionResult> CreateJob([FromBody] ApiRequest<CreateJobDto> createJobDto, [FromHeader] string authorization)
     {
-        string accessToken = string.Empty;
-
-        if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Bearer "))
-        {
-            accessToken = authorization.Split(" ")[1];
-        }
-        else
-        {
-            return BadRequest(new ApiResponse<string>
-            {
-                Data = null,
-                Message = "Invalid authorization format.",
-                Status = 400,
-                Timestamp = DateTime.Now.Ticks
-            });
-        }
-
+        string accessToken = authorization.Split(" ")[1];
         try
         {
+            // Kiểm tra số dư trước khi tạo job
+            bool hasEnoughBalance = await _jobService.CheckUserBalanceAsync(accessToken,createJobDto.Data.Price);
+
+            if (!hasEnoughBalance)
+            {
+                return StatusCode(402, new ApiResponse<JobDTO>
+                {
+                    Data = null,
+                    Message = "Insufficient funds. Please recharge your account.",
+                    Status = 402, // HTTP 402 Payment Required
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+
             var result = await _jobService.AddJobAsync(createJobDto.Data, accessToken);
-            return CreatedAtAction(nameof(GetJobById), new { id = result.Id },
-                new ApiResp<JobDTO>(201, "Job created", result));
+            return CreatedAtAction(nameof(GetJobById), new { id = result.Id }, new ApiResp<JobDTO>(201, "Job created", result));
         }
         catch (Exception ex)
         {
-            return BadRequest(new ApiResponse<string>
+            return BadRequest(new ApiResponse<JobDTO>
             {
                 Data = null,
                 Message = ex.Message,
@@ -158,6 +156,8 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             });
         }
     }
+
+
 
     [HttpGet]
    public async Task<IActionResult> GetAll([FromQuery] JobListRequestDTO filter, [FromHeader] string authorization)
