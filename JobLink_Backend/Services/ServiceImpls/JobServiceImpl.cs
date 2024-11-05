@@ -438,7 +438,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
 		await _unitOfWork.Repository<Job>().AddAsync(newJob);
 		await _unitOfWork.SaveChangesAsync();
-		await _notificationService.sendNotificationToUserAsync(job.OwnerId, "Add Job", "You have add successfully a job", DateTime.Now.ToString());
+		await _notificationService.sendNotificationToUserAsync(jobOwner.Id, "Add Job", "You have add successfully a job", DateTime.Now.ToString());
 
 		return _mapper.Map<JobDTO>(newJob);
 	}
@@ -483,7 +483,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 		await _unitOfWork.Repository<JobWorker>().AddAsync(jobWorker);
 		await _unitOfWork.SaveChangesAsync();
 		await _notificationService.sendNotificationToUserAsync(job.OwnerId, "Assigned to Job",
-		$"You have been assigned to the job '{job.Name}'.",
+		$"Your job '{job.Name}' has been assigned.",
 		DateTime.Now.ToString());
 	}
 
@@ -631,6 +631,25 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 		_unitOfWork.Repository<User>().Update(user);
 
 		await _unitOfWork.SaveChangesAsync();
+	}
+
+	public async Task<bool> CheckUserBalanceAsync(string accessToken, decimal? price)
+	{
+		var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+		var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+		if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+		{
+			throw new Exception("User ID not found in token claims.");
+		}
+
+		var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == userId);
+		if (user == null)
+		{
+			throw new Exception("User not found.");
+		}
+
+		return user.AccountBalance >= price;
 	}
 }
 
