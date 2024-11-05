@@ -401,6 +401,28 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
             throw new Exception("User not found.");
         }
 
+        // Tính toán chi phí công việc
+        var jobCost = data.Price * 1.1m;
+
+        // Trừ tiền và tạo giao dịch nếu đủ tiền
+        user.AccountBalance -= jobCost;
+
+        var transaction = new UserTransaction
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Amount = -(jobCost ?? 0m),
+            PaymentType = PaymentType.Withdraw,
+            Status = PaymentStatus.Done,
+            TransactionDate = DateTime.UtcNow,
+            BankName = "Internal",
+            BankNumber = null,
+            UserReceive = "Company",
+            Tid = Guid.NewGuid().ToString()
+        };
+        await _unitOfWork.Repository<UserTransaction>().AddAsync(transaction);
+
+        // Kiểm tra và thêm JobOwner nếu chưa tồn tại
         var jobOwner = await _unitOfWork.Repository<JobOwner>().FirstOrDefaultAsync(jo => jo.UserId == userId);
         if (jobOwner == null)
         {
@@ -410,12 +432,10 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
                 UserId = userId,
                 Rating = 0
             };
-
             await _unitOfWork.Repository<JobOwner>().AddAsync(jobOwner);
-            await _unitOfWork.SaveChangesAsync();
         }
 
-        // Default status set to WAITING_FOR_APPLICANTS
+        // Tạo công việc mới
         var newJob = new Job
         {
             Id = Guid.NewGuid(),
@@ -425,7 +445,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
             Address = user.Address,
             Lat = user.Lat,
             Lon = user.Lon,
-            Status = JobStatus.WAITING_FOR_APPLICANTS, // Set default status
+            Status = JobStatus.WAITING_FOR_APPLICANTS,
             Duration = data.Duration ?? Duration.OneHour,
             Price = data.Price,
             Avatar = data.Avatar,
@@ -434,12 +454,14 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now
         };
-
         await _unitOfWork.Repository<Job>().AddAsync(newJob);
+
+        // Lưu các thay đổi vào database
         await _unitOfWork.SaveChangesAsync();
 
         return _mapper.Map<JobDTO>(newJob);
     }
+
 
     public async Task AssignJobAsync(Guid jobId, string accessToken)
     {
@@ -617,6 +639,26 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
         await _unitOfWork.SaveChangesAsync();
     }
+
+    public async Task<bool> CheckUserBalanceAsync(string accessToken, decimal? price)
+    {
+        var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+        var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        {
+            throw new Exception("User ID not found in token claims.");
+        }
+
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+        {
+            throw new Exception("User not found.");
+        }
+
+        return user.AccountBalance >= price;
+    }
+
 }
 
 
