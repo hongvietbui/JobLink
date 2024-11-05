@@ -618,6 +618,25 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
         await _unitOfWork.SaveChangesAsync();
     }
+
+    public async Task<bool> CheckUserBalanceAsync(string accessToken, decimal? price)
+    {
+	    var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+	    var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+	    if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+	    {
+		    throw new Exception("User ID not found in token claims.");
+	    }
+
+	    var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == userId);
+	    if (user == null)
+	    {
+		    throw new Exception("User not found.");
+	    }
+
+	    return user.AccountBalance >= price;
+    }
 }
 
 
