@@ -17,11 +17,12 @@ using Microsoft.EntityFrameworkCore.Query;
 
 namespace JobLink_Backend.Services.ServiceImpls;
 
-public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService jwtService) : IJobService
+public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService jwtService, INotificationService notificationService) : IJobService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IMapper _mapper = mapper;
     private readonly JwtService _jwtService = jwtService;
+    private readonly INotificationService _notificationService = notificationService;
 
     public async Task<JobDTO?> GetJobByIdAsync(Guid jobId)
     {
@@ -312,7 +313,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
         var jobIds = jobWorkers.Select(jw => jw.JobId).ToList();
 
-        Expression<Func<Job, bool>> filter = j => jobIds.Contains(j.Id) && j.Status == JobStatus.PENDING_APPROVAL;
+        Expression<Func<Job, bool>> filter = j => jobIds.Contains(j.Id);
 
         IQueryable<Job> query = _unitOfWork.Repository<Job>()
             .GetAll(filter)
@@ -502,6 +503,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         };
         await _unitOfWork.Repository<JobWorker>().AddAsync(jobWorker);
         await _unitOfWork.SaveChangesAsync();
+        await _notificationService.sendNotificationToUserAsync(job.OwnerId, "New job application", "You have a new job application", DateTime.Now.ToString());
     }
 
     public async Task AcceptWorkerAsync(Guid jobId, Guid workerId, string accessToken)
