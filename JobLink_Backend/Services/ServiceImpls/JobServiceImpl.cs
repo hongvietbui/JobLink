@@ -438,7 +438,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 
 		await _unitOfWork.Repository<Job>().AddAsync(newJob);
 		await _unitOfWork.SaveChangesAsync();
-		await _notificationService.sendNotificationToUserAsync(userId, "Add Job", "You have add successfully a job", DateTime.Now.ToString());
+		await _notificationService.sendNotificationToUserAsync(job.OwnerId, "Add Job", "You have add successfully a job", DateTime.Now.ToString());
 
 		return _mapper.Map<JobDTO>(newJob);
 	}
@@ -482,7 +482,7 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 		};
 		await _unitOfWork.Repository<JobWorker>().AddAsync(jobWorker);
 		await _unitOfWork.SaveChangesAsync();
-		await _notificationService.sendNotificationToUserAsync(worker.Id, "Assigned to Job",
+		await _notificationService.sendNotificationToUserAsync(job.OwnerId, "Assigned to Job",
 		$"You have been assigned to the job '{job.Name}'.",
 		DateTime.Now.ToString());
 	}
