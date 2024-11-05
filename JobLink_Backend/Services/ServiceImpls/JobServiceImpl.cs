@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Security.Claims;
 using AutoMapper;
+using Azure.Core;
 using JobLink_Backend.DTOs.All;
 using JobLink_Backend.DTOs.All.Job;
 using JobLink_Backend.DTOs.Request.Jobs;
@@ -63,19 +64,26 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 		return null;
 	}
 
-	public async Task<Pagination<JobDTO>> GetJobsAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, Expression<Func<Job, bool>>? filter = null)
-	{
-		var jobRepository = _unitOfWork.Repository<Job>();
-		var userRepository = _unitOfWork.Repository<User>();
+ public async Task<Pagination<JobDTO>> GetJobsAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, Expression<Func<Job, bool>>? filter = null)
+    {
+        ////var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
+        ////var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
 
-		if (filter == null)
-		{
-			filter = job => job.Status == JobStatus.PENDING_APPROVAL;
-		}
-		else
-		{
-			filter = job => filter.Compile()(job) && job.Status == JobStatus.PENDING_APPROVAL;
-		}
+        //if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        //{
+        //    throw new Exception("User ID not found in token claims.");
+        //}
+        var jobRepository = _unitOfWork.Repository<Job>();
+        var userRepository = _unitOfWork.Repository<User>();
+
+        if (filter == null)
+        {
+            filter = job => job.Status == JobStatus.WAITING_FOR_APPLICANTS;
+        }
+        else
+        {
+            filter = job => filter.Compile()(job) && job.Status == JobStatus.WAITING_FOR_APPLICANTS;
+        }
 
 		IQueryable<Job> query = jobRepository.GetAll(filter);
 
@@ -269,7 +277,8 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
             throw new Exception("User ID not found in token claims.");
         }
 
-        Expression<Func<Job, bool>> filter = job => job.Owner.UserId == userId;
+        Expression<Func<Job, bool>> filter = job => job.Owner.UserId == userId && job.Status == JobStatus.WAITING_FOR_APPLICANTS;
+
 
         IQueryable<Job> query = _unitOfWork.Repository<Job>()
             .GetAll(filter)
@@ -309,11 +318,11 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         if (worker == null) return new Pagination<JobDTO>();
 
         var jobWorkers = await _unitOfWork.Repository<JobWorker>()
-            .FindByConditionAsync(jw => jw.WorkerId == worker.Id && jw.ApplyStatus == ApplyStatus.Accepted);
+            .FindByConditionAsync(jw => jw.WorkerId == worker.Id);
 
         var jobIds = jobWorkers.Select(jw => jw.JobId).ToList();
 
-        Expression<Func<Job, bool>> filter = j => jobIds.Contains(j.Id) && j.Status == JobStatus.PENDING_APPROVAL;
+        Expression<Func<Job, bool>> filter = j => jobIds.Contains(j.Id);
 
         IQueryable<Job> query = _unitOfWork.Repository<Job>()
             .GetAll(filter)
