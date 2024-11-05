@@ -76,7 +76,8 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
         {
             try
             {
-                Expression<Func<Job, bool>> filterExpression = null;
+       //     var accessToken = authorization.Split(" ")[1];
+            Expression<Func<Job, bool>> filterExpression = null;
 
                 if (!string.IsNullOrEmpty(filter))
                 {
