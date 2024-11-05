@@ -318,11 +318,11 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
         if (worker == null) return new Pagination<JobDTO>();
 
         var jobWorkers = await _unitOfWork.Repository<JobWorker>()
-            .FindByConditionAsync(jw => jw.WorkerId == worker.Id && jw.ApplyStatus == ApplyStatus.Accepted);
+            .FindByConditionAsync(jw => jw.WorkerId == worker.Id);
 
         var jobIds = jobWorkers.Select(jw => jw.JobId).ToList();
 
-        Expression<Func<Job, bool>> filter = j => jobIds.Contains(j.Id) && j.Status == JobStatus.PENDING_APPROVAL;
+        Expression<Func<Job, bool>> filter = j => jobIds.Contains(j.Id);
 
         IQueryable<Job> query = _unitOfWork.Repository<Job>()
             .GetAll(filter)
