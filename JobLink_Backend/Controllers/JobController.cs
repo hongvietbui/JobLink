@@ -19,7 +19,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 namespace JobLink_Backend.Controllers;
 
 [AllowAnonymous]
-public class JobController(IJobService jobService, IMapper mapper) : BaseController
+public class JobController(IJobService jobService, IMapper mapper, INotificationService notificationService) : BaseController
 {
     private readonly IJobService _jobService = jobService;
     private readonly IMapper _mapper = mapper;
