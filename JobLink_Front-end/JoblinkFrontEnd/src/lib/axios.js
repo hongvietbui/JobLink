@@ -12,7 +12,6 @@ const responseBody = (response) => {
   return response.data.data
 }
 
-
 axios.interceptors.request.use(async (config) => {
 
   const token = localStorage.getItem("token")
@@ -152,22 +151,20 @@ const VerifyOtp = {
 const ForgetPassChange = {
   changePass: (email, password) => requests.post('http://localhost:8080/api/Auth/reset-password', email, password),
 }
-
 const User = {
   changePass: (body) => requests.post('https://localhost:8081/api/user/change-password', body),
   homepage: () => requests.get('https://localhost:8081/api/user/homepage'),
   me: () => requests.get('https://localhost:8081/api/user/me'),
-
 }
 
 const Job = {
   getListJobDoneDashboard: (body) => requests.get('https://localhost:8081/api/job', convertParams(body)),
-  getStatistical : (params) => requests.get('https://localhost:8081/api/job/statistical', params)
+  getStatistical: (params) => requests.get('https://localhost:8081/api/job/statistical', params)
 }
 
 const Transaction = {
   createWithdraw: (body) => requests.post('https://localhost:8081/api/transactions', body),
- 
+
 }
 const Job1 = {
   Listjob: (pageIndex, pageSize, sortBy, isDescending, filter) => {
@@ -183,6 +180,18 @@ const Job1 = {
   }
 };
 
+const TopUpHistory = {
+  TopUp: (fromDate, toDate, pageIndex, pageSize, filter) => {
+    const params = {
+      fromDate: fromDate ? fromDate.toISOString() : undefined,
+      toDate: toDate ? toDate.toISOString() : undefined,
+      pageIndex,
+      pageSize,
+      filter
+    };
+    return requests.get('http://localhost:8080/api/Transaction/topupHistory', { params });
+  }
+}
 
 const agent = {
   CsrfToken,
@@ -192,7 +201,8 @@ const agent = {
   EmailInput,
   VerifyOtp, ForgetPassChange,
   Job,
-  Transaction
+  Transaction,
+  TopUpHistory
 }
 
 export default agent
