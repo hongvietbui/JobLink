@@ -1,8 +1,7 @@
-{
-
-    
+{ 
     "compilerOptions": {
       "baseUrl": ".",
+      "module": "ES6",
       "paths": {
         "@/*": ["./src/*"]
       }

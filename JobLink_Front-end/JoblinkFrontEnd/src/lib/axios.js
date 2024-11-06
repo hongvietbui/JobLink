@@ -8,12 +8,17 @@ import { convertParams } from './convertUrlParams'
 //axios.defaults.baseURL = (META.BASE_URL ?? 'http://localhost:3000') as string
 axios.defaults.withCredentials = true
 
-const responseBody = (response)=> {
+const responseBody = (response) => {
   return response.data.data
 }
 
 
 axios.interceptors.request.use(async (config) => {
+
+  const token = localStorage.getItem("token")
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
   if (config.method === 'post' || config.method === 'put' || config.method === 'delete') {
     const originalData = config.data || {} // preserve original body data
     config.data = {
@@ -43,13 +48,13 @@ axios.interceptors.response.use(
         }
         break
       case 401:
-        
+
         break
 
       case 403:
         break
       case 500:
-       
+
         break
       default:
         break
@@ -59,7 +64,7 @@ axios.interceptors.response.use(
 )
 
 const requests = {
-  get:(url, params) =>
+  get: (url, params) =>
     axios
       .get(url, {
         params,
@@ -96,7 +101,7 @@ const requests = {
       })
       .then(responseBody)
   },
-  postFile: async (url, data)=> {
+  postFile: async (url, data) => {
     return axios
       .post(url, data, {
         headers: {
@@ -134,38 +139,60 @@ const Account = {
   removeRefreshToken: () => requests.delFront('/_auth/remove-token'),
 }
 
-const Attendance = {
-  list: (params) =>
-    requests.get(META.BACKEND + '/api/attendance', convertParams(params)),
-  getFile: (params) =>
-    requests.get(
-      META.BACKEND + '/api/attendance/file',
-      new URLSearchParams({
-        filter: params,
-      }),
-    ),
-}
 
 const EmailTemplate = {
   list: () => requests.get(META.BACKEND + '/api/email-template'),
 }
-const EmailInput ={
-  OtpSend: (Email) => requests.post('https://localhost:8081/api/Auth/sent-otp',Email),
+const EmailInput = {
+  OtpSend: (Email) => requests.post('http://localhost:8080/api/Auth/sent-otp', Email),
 }
 const VerifyOtp = {
-  verifyCode: (email,code) => requests.post('https://localhost:8081/api/Auth/verify-otp',email,code),
+  verifyCode: (email, code) => requests.post('http://localhost:8080/api/Auth/verify-otp', email, code),
 }
 const ForgetPassChange = {
-  changePass: (email,password) => requests.post('https://localhost:8081/api/Auth/reset-password',email,password),
+  changePass: (email, password) => requests.post('http://localhost:8080/api/Auth/reset-password', email, password),
 }
+
+const User = {
+  changePass: (body) => requests.post('https://localhost:8081/api/user/change-password', body),
+  homepage: () => requests.get('https://localhost:8081/api/user/homepage'),
+  me: () => requests.get('https://localhost:8081/api/user/me'),
+
+}
+
+const Job = {
+  getListJobDoneDashboard: (body) => requests.get('https://localhost:8081/api/job', convertParams(body)),
+  getStatistical : (params) => requests.get('https://localhost:8081/api/job/statistical', params)
+}
+
+const Transaction = {
+  createWithdraw: (body) => requests.post('https://localhost:8081/api/transactions', body),
+ 
+}
+const Job1 = {
+  Listjob: (pageIndex, pageSize, sortBy, isDescending, filter) => {
+    const params = {
+      pageIndex,
+      pageSize,
+      sortBy,
+      isDescending,
+      filter,
+    };
+
+    return requests.get('http://localhost:8080/api/Job/get-jobs', { params });
+  }
+};
+
 
 const agent = {
   CsrfToken,
   Account,
-  Attendance,
+  User,
   EmailTemplate,
   EmailInput,
-  VerifyOtp,ForgetPassChange
+  VerifyOtp, ForgetPassChange,
+  Job,
+  Transaction
 }
 
 export default agent

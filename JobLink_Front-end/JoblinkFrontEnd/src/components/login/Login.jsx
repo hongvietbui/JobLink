@@ -20,8 +20,9 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
+      const  username = email
       //Call backend
-      const response = await agent.Account.loginEmail({email,password})
+      const response = await agent.Account.loginEmail({username,password})
 
       //check if backend response
       if (response.data.status === 200) {
@@ -63,7 +64,7 @@ export default function LoginPage() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
-                type="email"
+                type="text"
                 placeholder="m@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

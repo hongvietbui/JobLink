@@ -4,18 +4,22 @@ namespace JobLink_Backend.Entities;
 
 public enum JobStatus
 {
-    [StringValue("pending-approval")]
-    PendingApproval,
-    [StringValue("approved")]
-    Approved,
-    [StringValue("rejected")]
-    Rejected,
-    [StringValue("expired")]
-    Expired,
-    [StringValue("deleted")]
-    Deleted,
-    [StringValue("completed")]
-    Completed,
-    [StringValue("in-progress")]
-    InProgress
+    [StringValue("PENDING_APPROVAL")]
+    PENDING_APPROVAL,
+    [StringValue("APPROVED")]
+    APPROVED,
+    [StringValue("REJECTED")]
+    REJECTED,
+    [StringValue("EXPIRED")]
+    EXPIRED,
+    [StringValue("DELETED")]
+    DELETED,
+    [StringValue("COMPLETED")]
+    COMPLETED,
+    [StringValue("IN_PROGRESS")]
+    IN_PROGRESS,
+    [StringValue("WAITING_FOR_APPLICANTS")]
+    WAITING_FOR_APPLICANTS, // New status for jobs awaiting applicants
+    [StringValue("DONE")]
+    DONE // New status for jobs awaiting applicants
 }

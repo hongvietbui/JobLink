@@ -32,6 +32,9 @@ namespace JobLink_Backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Avatar")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -47,6 +50,12 @@ namespace JobLink_Backend.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Duration")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool?>("IsDeleted")
                         .HasColumnType("bit");
@@ -64,6 +73,12 @@ namespace JobLink_Backend.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -73,16 +88,182 @@ namespace JobLink_Backend.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("WorkerId")
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Jobs");
+                });
+
+            modelBuilder.Entity("JobLink_Backend.Entities.JobOwner", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<float?>("Rating")
+                        .HasColumnType("real");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("JobOwner");
+                });
+
+            modelBuilder.Entity("JobLink_Backend.Entities.JobWorker", b =>
+                {
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("WorkerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ApplyStatus")
+                        .HasColumnType("int");
+
+                    b.HasKey("JobId", "WorkerId");
+
+                    b.HasIndex("WorkerId");
+
+                    b.ToTable("JobWorker");
+                });
+
+            modelBuilder.Entity("JobLink_Backend.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notification");
+                });
+
+            modelBuilder.Entity("JobLink_Backend.Entities.Review", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("OwnerComment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<float?>("OwnerRating")
+                        .HasColumnType("real");
+
+                    b.Property<DateTime?>("OwnerRatingDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WorkerComment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("WorkerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<float?>("WorkerRating")
+                        .HasColumnType("real");
+
+                    b.Property<DateTime?>("WorkerRatingDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobId");
 
                     b.HasIndex("OwnerId");
 
                     b.HasIndex("WorkerId");
 
-                    b.ToTable("Jobs");
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("JobLink_Backend.Entities.Role", b =>
@@ -127,10 +308,16 @@ namespace JobLink_Backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<decimal?>("AccountBalance")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Avatar")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BankAccount")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("CreatedAt")
@@ -171,6 +358,15 @@ namespace JobLink_Backend.Migrations
                     b.Property<int?>("Lon")
                         .HasColumnType("int");
 
+                    b.Property<string>("NationalIdBackUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NationalIdFrontUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("NationalIdStatus")
+                        .HasColumnType("int");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -180,8 +376,14 @@ namespace JobLink_Backend.Migrations
                         .HasMaxLength(11)
                         .HasColumnType("nvarchar(11)");
 
+                    b.Property<string>("QR")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("RefreshToken")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RefreshTokenExpiryTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -201,15 +403,117 @@ namespace JobLink_Backend.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("JobLink_Backend.Entities.UserTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("BankName")
+                        .HasColumnType("nvarchar(51)");
+
+                    b.Property<string>("BankNumber")
+                        .HasColumnType("nvarchar(51)");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PaymentType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tid")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserReceive")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserTransaction");
+                });
+
+            modelBuilder.Entity("JobLink_Backend.Entities.Worker", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<float?>("Rating")
+                        .HasColumnType("real");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("Worker");
+                });
+
             modelBuilder.Entity("RoleUser", b =>
                 {
-                    b.Property<Guid>("RoleId")
+                    b.Property<Guid>("RolesId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("UsersId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("RoleId", "UsersId");
+                    b.HasKey("RolesId", "UsersId");
 
                     b.HasIndex("UsersId");
 
@@ -218,28 +522,108 @@ namespace JobLink_Backend.Migrations
 
             modelBuilder.Entity("JobLink_Backend.Entities.Job", b =>
                 {
-                    b.HasOne("JobLink_Backend.Entities.User", "Owner")
+                    b.HasOne("JobLink_Backend.Entities.JobOwner", "Owner")
                         .WithMany("OwnedJobs")
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("JobLink_Backend.Entities.User", "Worker")
-                        .WithMany("WorkedJobs")
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("JobLink_Backend.Entities.JobOwner", b =>
+                {
+                    b.HasOne("JobLink_Backend.Entities.User", "User")
+                        .WithOne("JobOwner")
+                        .HasForeignKey("JobLink_Backend.Entities.JobOwner", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JobLink_Backend.Entities.JobWorker", b =>
+                {
+                    b.HasOne("JobLink_Backend.Entities.Job", "Job")
+                        .WithMany("JobWorkers")
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JobLink_Backend.Entities.Worker", "Worker")
+                        .WithMany("JobWorkers")
                         .HasForeignKey("WorkerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Job");
+
+                    b.Navigation("Worker");
+                });
+
+            modelBuilder.Entity("JobLink_Backend.Entities.Notification", b =>
+                {
+                    b.HasOne("JobLink_Backend.Entities.User", "User")
+                        .WithMany("Notifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JobLink_Backend.Entities.Review", b =>
+                {
+                    b.HasOne("JobLink_Backend.Entities.Job", "Job")
+                        .WithMany("Reviews")
+                        .HasForeignKey("JobId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("JobLink_Backend.Entities.JobOwner", "Owner")
+                        .WithMany("OwnerReviews")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("JobLink_Backend.Entities.Worker", "Worker")
+                        .WithMany("WorkerReviews")
+                        .HasForeignKey("WorkerId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Job");
 
                     b.Navigation("Owner");
 
                     b.Navigation("Worker");
                 });
 
+            modelBuilder.Entity("JobLink_Backend.Entities.UserTransaction", b =>
+                {
+                    b.HasOne("JobLink_Backend.Entities.User", "User")
+                        .WithMany("UserTransactions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JobLink_Backend.Entities.Worker", b =>
+                {
+                    b.HasOne("JobLink_Backend.Entities.User", "User")
+                        .WithOne("Worker")
+                        .HasForeignKey("JobLink_Backend.Entities.Worker", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("RoleUser", b =>
                 {
                     b.HasOne("JobLink_Backend.Entities.Role", null)
                         .WithMany()
-                        .HasForeignKey("RoleId")
+                        .HasForeignKey("RolesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -250,11 +634,38 @@ namespace JobLink_Backend.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("JobLink_Backend.Entities.User", b =>
+            modelBuilder.Entity("JobLink_Backend.Entities.Job", b =>
+                {
+                    b.Navigation("JobWorkers");
+
+                    b.Navigation("Reviews");
+                });
+
+            modelBuilder.Entity("JobLink_Backend.Entities.JobOwner", b =>
                 {
                     b.Navigation("OwnedJobs");
 
-                    b.Navigation("WorkedJobs");
+                    b.Navigation("OwnerReviews");
+                });
+
+            modelBuilder.Entity("JobLink_Backend.Entities.User", b =>
+                {
+                    b.Navigation("JobOwner")
+                        .IsRequired();
+
+                    b.Navigation("Notifications");
+
+                    b.Navigation("UserTransactions");
+
+                    b.Navigation("Worker")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("JobLink_Backend.Entities.Worker", b =>
+                {
+                    b.Navigation("JobWorkers");
+
+                    b.Navigation("WorkerReviews");
                 });
 #pragma warning restore 612, 618
         }
