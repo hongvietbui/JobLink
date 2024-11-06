@@ -24,16 +24,18 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
     private readonly IMapper _mapper = mapper;
     private readonly JwtService _jwtService = jwtService;
     private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
-        
+
     public async Task SaveRefreshTokenAsync(string username, string refreshToken)
     {
-        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
-        if (user == null) throw new ArgumentException("User not found");
+	    var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
+	    if (user == null) throw new ArgumentException("User not found");
+    }
 
-	public async Task SaveRefreshTokenAsync(string username, string refreshToken)
-	{
-		var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
-		if (user == null) throw new ArgumentException("User not found");
+    // public async Task SaveRefreshTokenAsync(string username, string refreshToken)
+    // {
+	   //  var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
+	   //  if (user == null) throw new ArgumentException("User not found");
+    // }
 
     public async Task<string> GetNewAccessTokenAsync(string username, string refreshToken)
     {
@@ -50,12 +52,13 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         return _jwtService.GenerateAccessToken(clams);
     }
 
-    public async Task<OtpReponse> SendResetPasswordOtpAsync(string email)
-    {
-        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Email == email);
-        if (user == null) throw new ArgumentException("User not found");
+    // public async Task<OtpReponse> SendResetPasswordOtpAsync(string email)
+    // {
+	   //  var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Email == email);
+	   //  if (user == null) throw new ArgumentException("User not found");
+    // }
 
-	public async Task<OtpReponse> SendResetPasswordOtpAsync(string email)
+    public async Task<OtpReponse> SendResetPasswordOtpAsync(string email)
 	{
 		var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Email == email);
 		if (user == null) throw new ArgumentException("User not found");
@@ -169,39 +172,39 @@ public class UserServiceImpl(IUnitOfWork unitOfWork, IUserRepository userReposit
         }
     }
 
-    public async Task<UserDTO> RegisterAsync(RegisterRequest request)
-    {
-        var roleList = new List<Role>();
-        roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "JobOwner"));
-        roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "Worker"));
-        
-        //check if the role 
-        var newUser = new User
-        {
-            Id = Guid.NewGuid(),
-            Username = request.Username,
-            Password = PasswordHelper.HashPassword(request.Password),
-            Email = request.Email,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            PhoneNumber = request.PhoneNumber,
-            DateOfBirth = DateOnly.FromDateTime(request.DateOfBirth.Value),
-            Address = request.Address,
-            Roles = roleList,
-            Status = UserStatus.PendingVerification
-        };
+ //    public async Task<UserDTO> RegisterAsync(RegisterRequest request)
+ //    {
+ //        var roleList = new List<Role>();
+ //        roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "JobOwner"));
+ //        roleList.Add(await _unitOfWork.Repository<Role>().FirstOrDefaultAsync(r => r.Name == "Worker"));
+ //        
+ //        //check if the role 
+ //        var newUser = new User
+ //        {
+ //            Id = Guid.NewGuid(),
+ //            Username = request.Username,
+ //            Password = PasswordHelper.HashPassword(request.Password),
+ //            Email = request.Email,
+ //            FirstName = request.FirstName,
+ //            LastName = request.LastName,
+ //            PhoneNumber = request.PhoneNumber,
+ //            DateOfBirth = DateOnly.FromDateTime(request.DateOfBirth.Value),
+ //            Address = request.Address,
+ //            Roles = roleList,
+ //            Status = UserStatus.PendingVerification
+ //        };
+ //
+	// 	_unitOfWork.Repository<User>().Update(user);
+	// 	await _unitOfWork.SaveChangesAsync();
+ //
+	// 	return true;
+	// }
 
-		_unitOfWork.Repository<User>().Update(user);
-		await _unitOfWork.SaveChangesAsync();
-
-		return true;
-	}
-
-	public async Task<User> LoginAsync(string username, string password)
-	{
-		var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == username && u.Password == password, u => u.Roles);
-		return user;
-	}
+	// public async Task<User> LoginAsync(string username, string password)
+	// {
+	// 	var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == username && u.Password == password, u => u.Roles);
+	// 	return user;
+	// }
 
 	public async Task<UserDTO> RegisterAsync(RegisterRequest request)
 	{
