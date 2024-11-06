@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, CreditCard, MapPin, Percent, ChevronRight } from "lucide-react"
 
-export default function Component() {
+export default function CreateJob() {
   return (
     <div className="container mx-auto max-w-7xl p-6">
       <div className="flex items-center gap-4 mb-6">

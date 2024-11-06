@@ -160,7 +160,7 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
 
 
     [HttpGet]
-   public async Task<IActionResult> GetAll([FromQuery] JobListRequestDTO filter, [FromHeader] string authorization)
+   public async Task<IActionResult> GetAll([FromQuery] JobListRequestDto filter, [FromHeader] string authorization)
    {
        var accessToken = authorization.Split(" ")[1];
 
