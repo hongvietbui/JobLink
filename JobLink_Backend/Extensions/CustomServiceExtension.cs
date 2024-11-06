@@ -19,7 +19,6 @@ public static class CustomServiceExtension
         services.AddScoped<IWorkerRepository, WorkerRepositoryImpl>();
         services.AddScoped<IJobOwnerRepository, JobOwnerRepositoryImpl>();
         
-        services.AddSignalR();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         //services

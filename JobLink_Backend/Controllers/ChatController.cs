@@ -5,6 +5,8 @@ using JobLink_Backend.Services.IServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Runtime.ConstrainedExecution;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace JobLink_Backend.Controllers
 { 
@@ -25,13 +27,18 @@ namespace JobLink_Backend.Controllers
                 var senderId = Guid.Parse(chatDTOReq.SenderId);
                 var receiverId = Guid.Parse(chatDTOReq.ReceiverId);
 
-                var worker = _workerService.GetWorkerBySenderIdAsync(senderId);
-                var jobOwner = _jobOwnerService.GetJobOwnerBySenderIdAsync(receiverId);
+                var worker = await _workerService.GetWorkerBySenderIdAsync(senderId);
+                var jobOwner = await _jobOwnerService.GetJobOwnerBySenderIdAsync(receiverId);
 
                 if (worker != null && jobOwner != null)
                 {
+                    //convert chatDTOReq to json with camelCase
+                    var messageJson = JsonConvert.SerializeObject(chatDTOReq, new JsonSerializerSettings
+                    {
+                        ContractResolver = new CamelCasePropertyNamesContractResolver()
+                    });
                     //Send message to specific user
-                     await _chatService.SendMessageAsync(senderId, receiverId, chatDTOReq.Message);
+                     await _chatService.SendMessageAsync(worker.UserId, jobOwner.UserId, messageJson);
                     return Ok(new ApiResponse<string> {
                         Data = "sent successfully",
                         Timestamp = DateTime.Now.Ticks
@@ -53,13 +60,19 @@ namespace JobLink_Backend.Controllers
                 var senderId = Guid.Parse(chatDTOReq.SenderId);
                 var receiverId = Guid.Parse(chatDTOReq.ReceiverId);
 
-                var worker = _workerService.GetWorkerBySenderIdAsync(receiverId);
-                var jobOwner = _jobOwnerService.GetJobOwnerBySenderIdAsync(senderId);
+                var worker = await _workerService.GetWorkerBySenderIdAsync(receiverId);
+                var jobOwner = await _jobOwnerService.GetJobOwnerBySenderIdAsync(senderId);
 
                 if (worker != null && jobOwner != null)
                 {
+                    //convert chatDTOReq to json with camelCase
+                    var messageJson = JsonConvert.SerializeObject(chatDTOReq, new JsonSerializerSettings
+                    {
+                        ContractResolver = new CamelCasePropertyNamesContractResolver()
+                    });
+                    
                     //Send message to specific user
-                    await _chatService.SendMessageAsync(senderId, receiverId, chatDTOReq.Message);
+                    await _chatService.SendMessageAsync(jobOwner.UserId, worker.UserId, messageJson);
                     return Ok(new ApiResponse<string>
                     {
                         Data = "sent successfully",
