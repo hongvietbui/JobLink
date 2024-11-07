@@ -295,13 +295,13 @@ public class JobServiceImpl(
             throw new Exception("User ID not found in token claims.");
         }
 
-        Expression<Func<Job, bool>> filter = job =>
-            job.Owner.UserId == userId && job.Status == JobStatus.WAITING_FOR_APPLICANTS;
-
+        // Expression<Func<Job, bool>> filter = job => job.Owner.UserId == userId && job.Status == JobStatus.WAITING_FOR_APPLICANTS;
+        Expression<Func<Job, bool>> filter = job => job.Owner.UserId == userId;
 
         IQueryable<Job> query = _unitOfWork.Repository<Job>()
             .GetAll(filter)
-            .Include(j => j.JobWorkers);
+            .Include(j => j.JobWorkers)
+            .Include(j => j.Owner);
 
         if (!string.IsNullOrEmpty(sortBy))
         {
@@ -510,6 +510,9 @@ public class JobServiceImpl(
             ApplyStatus = ApplyStatus.Pending
         };
         await _unitOfWork.Repository<JobWorker>().AddAsync(jobWorker);
+
+        var jobOwner = await _unitOfWork.Repository<JobOwner>().GetByIdAsync(job.OwnerId);
+        await _notificationService.sendNotificationToUserAsync(jobOwner.UserId, "New job application", $"You have a new application for the job {job.Name}.", DateTime.Now.Ticks.ToString());
         await _unitOfWork.SaveChangesAsync();
     }
 
@@ -548,6 +551,9 @@ public class JobServiceImpl(
         job.Status = JobStatus.IN_PROGRESS;
         _unitOfWork.Repository<Job>().Update(job);
         _unitOfWork.Repository<JobWorker>().UpdateRange(jobWorkerList);
+
+        var worker = await _unitOfWork.Repository<Worker>().GetByIdAsync(workerId);
+        await _notificationService.sendNotificationToUserAsync(worker.UserId, "Job accepted", $"You have been accepted for the job {job.Name}.", DateTime.Now.Ticks.ToString());
         await _unitOfWork.SaveChangesAsync();
     }
 
@@ -588,7 +594,7 @@ public class JobServiceImpl(
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task CompleteJobAsync(Guid jobId, Guid workerId, string accessToken)
+    public async Task CompleteJobAsync(Guid jobId, string accessToken)
     {
         var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
         var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
@@ -612,16 +618,15 @@ public class JobServiceImpl(
         }
 
         // Fetch the JobWorker entity
-        var jobWorker = await _unitOfWork.Repository<JobWorker>()
-            .FirstOrDefaultAsync(jw => jw.JobId == jobId && jw.WorkerId == workerId);
-        if (jobWorker == null || jobWorker.ApplyStatus != ApplyStatus.Accepted)
+        var jobWorker = await _unitOfWork.Repository<JobWorker>().FirstOrDefaultAsync(jw => jw.JobId == jobId && jw.ApplyStatus == ApplyStatus.Accepted);
+        if (jobWorker == null)
         {
             throw new Exception("Worker not found or not accepted for this job.");
         }
 
         // Fetch the Worker entity along with its User
         var worker = await _unitOfWork.Repository<Worker>()
-            .FirstOrDefaultAsync(w => w.Id == workerId);
+           .FirstOrDefaultAsync(w => w.Id == jobWorker.WorkerId);
 
         if (worker == null)
         {
@@ -641,12 +646,17 @@ public class JobServiceImpl(
         _unitOfWork.Repository<JobWorker>().Update(jobWorker);
 
         // Update Job status to Done
-        job.Status = JobStatus.DONE;
+        job.Status = JobStatus.COMPLETED;
         _unitOfWork.Repository<Job>().Update(job);
 
         // Add job payment to worker's user's account balance
         user.AccountBalance = (user.AccountBalance ?? 0) + job.Price;
         _unitOfWork.Repository<User>().Update(user);
+
+
+        var jobOwner = await _unitOfWork.Repository<JobOwner>().GetByIdAsync(job.OwnerId);
+        await _notificationService.sendNotificationToUserAsync(worker.UserId, "Job completed", $"You have completed the job. Thank you for choosing our service!", DateTime.Now.Ticks.ToString());
+        await _notificationService.sendNotificationToUserAsync(jobOwner.UserId, "Job completed", $"You have completed the job {job.Name} and received {job.Price} VND. Thank you for choosing our service!", DateTime.Now.Ticks.ToString());
 
         await _unitOfWork.SaveChangesAsync();
     }

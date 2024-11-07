@@ -27,8 +27,8 @@ namespace JobLink_Backend.Controllers
                 var senderId = Guid.Parse(chatDTOReq.SenderId);
                 var receiverId = Guid.Parse(chatDTOReq.ReceiverId);
 
-                var worker = await _workerService.GetWorkerBySenderIdAsync(senderId);
-                var jobOwner = await _jobOwnerService.GetJobOwnerBySenderIdAsync(receiverId);
+                var worker = await _workerService.GetWorkerByIdAsync(senderId);
+                var jobOwner = await _jobOwnerService.GetJobOwnerByIdAsync(receiverId);
 
                 if (worker != null && jobOwner != null)
                 {
@@ -60,8 +60,8 @@ namespace JobLink_Backend.Controllers
                 var senderId = Guid.Parse(chatDTOReq.SenderId);
                 var receiverId = Guid.Parse(chatDTOReq.ReceiverId);
 
-                var worker = await _workerService.GetWorkerBySenderIdAsync(receiverId);
-                var jobOwner = await _jobOwnerService.GetJobOwnerBySenderIdAsync(senderId);
+                var worker = await _workerService.GetWorkerByIdAsync(receiverId);
+                var jobOwner = await _jobOwnerService.GetJobOwnerByIdAsync(senderId);
 
                 if (worker != null && jobOwner != null)
                 {
