@@ -110,7 +110,7 @@ function App() {
         <div className="flex items-center space-x-4">
           {/* <h1 className="text-2xl font-bold">JobLink</h1> */}
           <img
-            src="https://scontent.fhan15-2.fna.fbcdn.net/v/t39.30808-1/440879710_1311365576486302_465885895535459738_n.jpg?stp=dst-jpg_s200x200&_nc_cat=100&ccb=1-7&_nc_sid=0ecb9b&_nc_eui2=AeFwMNEk_sQdV-RfB0sm4YE1ZNm2NsCaeAlk2bY2wJp4CbaqoySVisau52pRC-dwipFqTIGn9kjUzVvfdl1wv1yx&_nc_ohc=mZB2f4hrYGgQ7kNvgFJw4mD&_nc_ht=scontent.fhan15-2.fna&_nc_gid=AkFV3U5emRflPx-gK0O2G45&oh=00_AYBznXGNXxFUG8qrm-JTmPZ-8elENMeftPiZGKc071saRg&oe=671D5ECF"
+            src="https://scontent.fhan15-2.fna.fbcdn.net/v/t39.30808-1/440879710_1311365576486302_465885895535459738_n.jpg?stp=dst-jpg_s200x200&_nc_cat=100&ccb=1-7&_nc_sid=0ecb9b&_nc_eui2=AeFwMNEk_sQdV-RfB0sm4YE1ZNm2NsCaeAlk2bY2wJp4CbaqoySVisau52pRC-dwipFqTIGn9kjUzVvfdl1wv1yx&_nc_ohc=4s-9EEj9JyAQ7kNvgHAVDyJ&_nc_zt=24&_nc_ht=scontent.fhan15-2.fna&_nc_gid=AUFduflDam84OFI79XzsrF4&oh=00_AYAV84dfUb_5Uk3TQcVI9LEt7Wxva0uQPn5KAd-LaOHPsQ&oe=6732AF0F"
             className="w-10 h-10 rounded-full animate-spin"
           />
           <nav className="hidden md:flex space-x-4">
