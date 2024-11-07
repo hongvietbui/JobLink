@@ -1,284 +1,100 @@
-// import {
-//   CopyIcon,
-//   CornerDownLeft,
-//   Mic,
-//   Paperclip,
-//   RefreshCcw,
-//   Send,
-//   Volume2,
-// } from "lucide-react";
-// import { useEffect, useRef, useState } from "react";
-// import { GitHubLogoIcon } from "@radix-ui/react-icons";
-// import Markdown from "react-markdown";
-// import remarkGfm from "remark-gfm";
-// import { ChatMessageList } from "../ui/chat/chat-message-list";
-// import { ChatBubble, ChatBubbleAction, ChatBubbleAvatar, ChatBubbleMessage } from "../ui/chat/chat-bubble";
-// import CodeDisplayBlock from "../ui/chat/code-display-block";
-// import { ChatInput } from "../ui/chat/chat-input";
-// import { Button } from "../ui/button";
+import { useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
+import { Separator } from "../ui/separator"
+import { Input } from "../ui/input"
+import { Button } from "../ui/button"
+import { ScrollArea } from "../ui/scroll-area"
 
-// const ChatAiIcons = [
-//   {
-//     icon: CopyIcon,
-//     label: "Copy",
-//   },
-//   {
-//     icon: RefreshCcw,
-//     label: "Refresh",
-//   },
-//   {
-//     icon: Volume2,
-//     label: "Volume",
-//   },
-// ];
-
-// export default function Chat() {
-//   const [isGenerating, setIsGenerating] = useState(false);
-//   const {
-//     messages,
-//     setMessages,
-//     input,
-//     handleInputChange,
-//     handleSubmit,
-//     isLoading,
-//     reload,
-//   } = useChat({
-//     onResponse(response) {
-//       if (response) {
-//         console.log(response);
-//         setIsGenerating(false);
-//       }
-//     },
-//     onError(error) {
-//       if (error) {
-//         setIsGenerating(false);
-//       }
-//     },
-//   });
-
-//   const messagesRef = useRef < HTMLDivElement > null;
-//   const formRef = useRef < HTMLFormElement > null;
-
-//   useEffect(() => {
-//     if (messagesRef.current) {
-//       messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-//     }
-//   }, [messages]);
-
-//   const onSubmit = async (e) => {
-//     e.preventDefault();
-//     setIsGenerating(true);
-//     handleSubmit(e);
-//   };
-
-//   const onKeyDown = (e) => {
-//     if (e.key === "Enter" && !e.shiftKey) {
-//       e.preventDefault();
-//       if (isGenerating || isLoading || !input) return;
-//       setIsGenerating(true);
-//       onSubmit(e);
-//     }
-//   };
-
-//   const handleActionClick = async (action, messageIndex) => {
-//     console.log("Action clicked:", action, "Message index:", messageIndex);
-//     if (action === "Refresh") {
-//       setIsGenerating(true);
-//       try {
-//         await reload();
-//       } catch (error) {
-//         console.error("Error reloading:", error);
-//       } finally {
-//         setIsGenerating(false);
-//       }
-//     }
-
-//     if (action === "Copy") {
-//       const message = messages[messageIndex];
-//       if (message && message.role === "assistant") {
-//         navigator.clipboard.writeText(message.content);
-//       }
-//     }
-//   };
-
-//   return (
-//     <main className="flex h-screen w-full max-w-3xl flex-col items-center mx-auto py-6">
-//       <ChatMessageList ref={messagesRef}>
-//         {/* Initial Message */}
-//         {messages.length === 0 && (
-//           <div className="w-full bg-background shadow-sm border rounded-lg p-8 flex flex-col gap-2">
-//             <h1 className="font-bold">Welcome to this example app.</h1>
-//             <p className="text-muted-foreground text-sm">
-//               This is a simple Next.JS example application created using{" "}
-//               <a
-//                 href="https://github.com/jakobhoeg/shadcn-chat"
-//                 className="font-bold inline-flex flex-1 justify-center gap-1 leading-4 hover:underline"
-//               >
-//                 shadcn-chat
-//                 <svg
-//                   aria-hidden="true"
-//                   height="7"
-//                   viewBox="0 0 6 6"
-//                   width="7"
-//                   className="opacity-70"
-//                 >
-//                   <path
-//                     d="M1.25215 5.54731L0.622742 4.9179L3.78169 1.75597H1.3834L1.38936 0.890915H5.27615V4.78069H4.40513L4.41109 2.38538L1.25215 5.54731Z"
-//                     fill="currentColor"
-//                   ></path>
-//                 </svg>
-//               </a>{" "}
-//               components. It uses{" "}
-//               <a
-//                 href="https://sdk.vercel.ai/"
-//                 className="font-bold inline-flex flex-1 justify-center gap-1 leading-4 hover:underline"
-//               >
-//                 Vercel AI SDK
-//                 <svg
-//                   aria-hidden="true"
-//                   height="7"
-//                   viewBox="0 0 6 6"
-//                   width="7"
-//                   className="opacity-70"
-//                 >
-//                   <path
-//                     d="M1.25215 5.54731L0.622742 4.9179L3.78169 1.75597H1.3834L1.38936 0.890915H5.27615V4.78069H4.40513L4.41109 2.38538L1.25215 5.54731Z"
-//                     fill="currentColor"
-//                   ></path>
-//                 </svg>
-//               </a>{" "}
-//               for the AI integration. Build chat interfaces like this at
-//               lightspeed with shadcn-chat.
-//             </p>
-//             <p className="text-muted-foreground text-sm">
-//               Make sure to also checkout the shadcn-chat support component at
-//               the bottom right corner.
-//             </p>
-//           </div>
-//         )}
-
-//         {/* Messages */}
-//         {messages &&
-//           messages.map((message, index) => (
-//             <ChatBubble
-//               key={index}
-//               variant={message.role == "user" ? "sent" : "received"}
-//             >
-//               <ChatBubbleAvatar
-//                 src=""
-//                 fallback={message.role == "user" ? "👨🏽" : "🤖"}
-//               />
-//               <ChatBubbleMessage>
-//                 {message.content.split("```").map((part, index) => {
-//                   if (index % 2 === 0) {
-//                     return (
-//                       <Markdown key={index} remarkPlugins={[remarkGfm]}>
-//                         {part}
-//                       </Markdown>
-//                     );
-//                   } else {
-//                     return (
-//                       <pre className="whitespace-pre-wrap pt-2" key={index}>
-//                         <CodeDisplayBlock code={part} lang="" />
-//                       </pre>
-//                     );
-//                   }
-//                 })}
-
-//                 {message.role === "assistant" &&
-//                   messages.length - 1 === index && (
-//                     <div className="flex items-center mt-1.5 gap-1">
-//                       {!isGenerating && (
-//                         <>
-//                           {ChatAiIcons.map((icon, iconIndex) => {
-//                             const Icon = icon.icon;
-//                             return (
-//                               <ChatBubbleAction
-//                                 variant="outline"
-//                                 className="size-5"
-//                                 key={iconIndex}
-//                                 icon={<Icon className="size-3" />}
-//                                 onClick={() =>
-//                                   handleActionClick(icon.label, index)
-//                                 }
-//                               />
-//                             );
-//                           })}
-//                         </>
-//                       )}
-//                     </div>
-//                   )}
-//               </ChatBubbleMessage>
-//             </ChatBubble>
-//           ))}
-
-//         {/* Loading */}
-//         {isGenerating && (
-//           <ChatBubble variant="received">
-//             <ChatBubbleAvatar src="" fallback="🤖" />
-//             <ChatBubbleMessage isLoading />
-//           </ChatBubble>
-//         )}
-//       </ChatMessageList>
-//       <div className="w-full px-4">
-//         <form
-//           ref={formRef}
-//           onSubmit={onSubmit}
-//           className="relative rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
-//         >
-//           <ChatInput
-//             value={input}
-//             onKeyDown={onKeyDown}
-//             onChange={handleInputChange}
-//             placeholder="Type your message here..."
-//             className="min-h-12 resize-none rounded-lg bg-background border-0 p-3 shadow-none focus-visible:ring-0"
-//           />
-//           <div className="flex items-center p-3 pt-0">
-//             <Button variant="ghost" size="icon">
-//               <Paperclip className="size-4" />
-//               <span className="sr-only">Attach file</span>
-//             </Button>
-
-//             <Button variant="ghost" size="icon">
-//               <Mic className="size-4" />
-//               <span className="sr-only">Use Microphone</span>
-//             </Button>
-
-//             <Button
-//               disabled={!input || isLoading}
-//               type="submit"
-//               size="sm"
-//               className="ml-auto gap-1.5"
-//             >
-//               Send Message
-//               <CornerDownLeft className="size-3.5" />
-//             </Button>
-//           </div>
-//         </form>
-//       </div>
-//       <div className="pt-4 flex gap-2 items-center">
-//         <GitHubLogoIcon className="size-4" />
-//         <p className="text-xs">
-//           <a
-//             href="https://github.com/jakobhoeg/shadcn-chat"
-//             className="font-bold inline-flex flex-1 justify-center gap-1 leading-4 hover:underline"
-//           >
-//             shadcn-chat
-//             <svg
-//               aria-hidden="true"
-//               height="7"
-//               viewBox="0 0 6 6"
-//               width="7"
-//               className="opacity-70"
-//             >
-//               <path
-//                 d="M1.25215 5.54731L0.622742 4.9179L3.78169 1.75597H1.3834L1.38936 0.890915H5.27615V4.78069H4.40513L4.41109 2.38538L1.25215 5.54731Z"
-//                 fill="currentColor"
-//               ></path>
-//             </svg>
-//           </a>
-//         </p>
-//       </div>
-//     </main>
-//   );
-// }
+const conversations = [
+    { id: 1, name: "Alice Smith", lastMessage: "Hey, how are you?", time: "10:30 AM" },
+    { id: 2, name: "Bob Johnson", lastMessage: "Can we meet tomorrow?", time: "Yesterday" },
+    { id: 3, name: "Carol Williams", lastMessage: "Thanks for your help!", time: "2 days ago" },
+    { id: 4, name: "David Brown", lastMessage: "See you later!", time: "1 week ago" },
+  ]
+  
+  const messages = [
+    { id: 1, sender: "Alice", content: "Hi there! How's it going?", time: "10:30 AM" },
+    { id: 2, sender: "You", content: "Hey Alice! I'm doing well, thanks. How about you?", time: "10:31 AM" },
+    { id: 3, sender: "Alice", content: "I'm good too! Just wanted to check in.", time: "10:32 AM" },
+    { id: 4, sender: "You", content: "That's nice of you. Anything exciting happening?", time: "10:33 AM" },
+    { id: 5, sender: "Alice", content: "Not much, just working on some projects. How about you?", time: "10:34 AM" },
+  ]
+  
+  export default function ChatInterface() {
+    const [newMessage, setNewMessage] = useState("")
+  
+    const handleSendMessage = (e) => {
+      e.preventDefault()
+      if (newMessage.trim()) {
+        // Here you would typically send the message to your backend
+        console.log("Sending message:", newMessage)
+        setNewMessage("")
+      }
+    }
+  
+    return (
+      <div className="flex h-screen bg-gray-100">
+        {/* Conversation List */}
+        <Card className="w-1/4 h-full rounded-none">
+          <CardHeader>
+            <CardTitle>Conversations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[calc(100vh-120px)]">
+              {conversations.map((conversation) => (
+                <div key={conversation.id} className="flex items-center space-x-4 mb-4 cursor-pointer hover:bg-gray-100 p-2 rounded">
+                  <Avatar>
+                    <AvatarImage src={`/placeholder.svg?height=40&width=40&text=${conversation.name.charAt(0)}`} />
+                    <AvatarFallback>{conversation.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{conversation.name}</p>
+                    <p className="text-sm text-gray-500 truncate">{conversation.lastMessage}</p>
+                  </div>
+                  <span className="text-xs text-gray-400">{conversation.time}</span>
+                </div>
+              ))}
+            </ScrollArea>
+          </CardContent>
+        </Card>
+  
+        {/* Chat Window */}
+        <Card className="flex-1 h-full rounded-none">
+          <CardHeader className="flex flex-row items-center">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src="/placeholder.svg?height=40&width=40&text=A" />
+              <AvatarFallback>A</AvatarFallback>
+            </Avatar>
+            <div className="ml-4">
+              <CardTitle>Alice Smith</CardTitle>
+              <p className="text-sm text-gray-500">Online</p>
+            </div>
+          </CardHeader>
+          <CardContent className="h-[calc(100vh-200px)] flex flex-col">
+            <ScrollArea className="flex-1 pr-4">
+              {messages.map((message) => (
+                <div key={message.id} className={`flex mb-4 ${message.sender === "You" ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[70%] p-3 rounded-lg ${message.sender === "You" ? "bg-blue-500 text-white" : "bg-gray-200"}`}>
+                    <p>{message.content}</p>
+                    <p className={`text-xs mt-1 ${message.sender === "You" ? "text-blue-100" : "text-gray-500"}`}>{message.time}</p>
+                  </div>
+                </div>
+              ))}
+            </ScrollArea>
+            <Separator className="my-4" />
+            <form onSubmit={handleSendMessage} className="flex space-x-2">
+              <Input
+                type="text"
+                placeholder="Type a message..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                className="flex-1"
+              />
+              <Button type="submit">Send</Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
