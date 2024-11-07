@@ -154,19 +154,19 @@ const ForgetPassChange = {
 }
 
 const User = {
-  changePass: (body) => requests.post('https://localhost:8081/api/user/change-password', body),
-  homepage: () => requests.get('https://localhost:8081/api/user/homepage'),
-  me: () => requests.get('https://localhost:8081/api/user/me'),
+  changePass: (body) => requests.post('http://localhost:8080/api/user/change-password', body),
+  homepage: () => requests.get('http://localhost:8080/api/user/homepage'),
+  me: () => requests.get('http://localhost:8080/api/user/me'),
 
 }
 
 const Job = {
-  getListJobDoneDashboard: (body) => requests.get('https://localhost:8081/api/job', convertParams(body)),
-  getStatistical : (params) => requests.get('https://localhost:8081/api/job/statistical', params)
+  getListJobDoneDashboard: (body) => requests.get('http://localhost:8080/api/job', convertParams(body)),
+  getStatistical : (params) => requests.get('http://localhost:8080/api/job/stats', params)
 }
 
 const Transaction = {
-  createWithdraw: (body) => requests.post('https://localhost:8081/api/transactions', body),
+  createWithdraw: (body) => requests.post('http://localhost:8080/api/transactions', body),
  
 }
 const ListJobAvaible = {

@@ -19,11 +19,12 @@ using Microsoft.AspNetCore.Http.HttpResults;
 namespace JobLink_Backend.Controllers;
 
 [AllowAnonymous]
-
-public class JobController(IJobService jobService, IMapper mapper, INotificationService notificationService) : BaseController
+public class JobController(IJobService jobService, IMapper mapper, INotificationService notificationService, IUserService userService) : BaseController
 {
     private readonly IJobService _jobService = jobService;
     private readonly IMapper _mapper = mapper;
+    private readonly INotificationService _notificationService = notificationService;
+    private readonly IUserService _userService = userService;
     
     [HttpGet("id")]
     public async Task<IActionResult> GetJobById([FromQuery] Guid jobId)
@@ -161,7 +162,7 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
 
 
     [HttpGet]
-   public async Task<IActionResult> GetAll([FromQuery] JobListRequestDTO filter, [FromHeader] string authorization)
+   public async Task<IActionResult> GetAll([FromQuery] JobListRequestDto filter, [FromHeader] string authorization)
    {
        var accessToken = authorization.Split(" ")[1];
 
@@ -456,10 +457,11 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
         try
         {
             var jobIdGuid = Guid.Parse(jobId);
-            var workerIdGuid = Guid.Parse(workerId);
+            var userId = Guid.Parse(workerId);
+            var worker = await _userService.GetWorkerByUserIdAsync(userId);
             
             var accessToken = authorization.Split(" ")[1];
-            await _jobService.AcceptWorkerAsync(jobIdGuid, workerIdGuid, accessToken);
+            await _jobService.AcceptWorkerAsync(jobIdGuid, worker.Id, accessToken);
             return Ok(new ApiResponse<string>
             {
                 Data = null,
@@ -480,16 +482,15 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
         }
     }
     
-    [HttpPatch("complete/{jobId}/{workerId}")]
-    public async Task<IActionResult> CompleteJob([FromHeader] string authorization, string jobId, string workerId)
+    [HttpPatch("complete/{jobId}")]
+    public async Task<IActionResult> CompleteJob([FromHeader] string authorization, string jobId)
     {
         try
         {
             var jobIdGuid = Guid.Parse(jobId);
-            var workerIdGuid = Guid.Parse(workerId);
 
             var accessToken = authorization.Split(" ")[1];
-            await _jobService.CompleteJobAsync(jobIdGuid, workerIdGuid, accessToken);
+            await _jobService.CompleteJobAsync(jobIdGuid, accessToken);
 
             return Ok(new ApiResponse<string>
             {

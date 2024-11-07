@@ -73,6 +73,10 @@ public class TransactionServiceImpl(IUnitOfWork unitOfWork, ITransactionReposito
         {
             if (userDictionary.TryGetValue(transaction.UserId, out var user))
             {
+                if(user.AccountBalance == null)
+                {
+                    user.AccountBalance = 0;
+                }
                 user.AccountBalance += transaction.Amount;
                 _unitOfWork.Repository<User>().Update(user);
             }

@@ -118,11 +118,11 @@ public class TransactionController(ITransactionService transactionsService, IVie
 
             if (transactions == null || !transactions.Any())
             {
-                return NotFound(new ApiResponse<List<TransactionResponse>>
+                return Ok(new ApiResponse<List<TransactionResponse>>
                 {
                     Data = null,
                     Message = "No transactions found for this user.",
-                    Status = 404,
+                    Status = 204,
                     Timestamp = DateTime.Now.Ticks
                 });
             }

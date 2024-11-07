@@ -41,6 +41,7 @@ public class User : BaseEntity<Guid>
     public ICollection<Role> Roles { get; set; }
     public ICollection<Notification> Notifications { get; set; }
     public ICollection<UserTransaction> UserTransactions { get; set; }
+    public ICollection<SupportRequest> UserSystemRequest { get; set; }
     
     public JobOwner JobOwner { get; set; }
     public Worker Worker { get; set; }

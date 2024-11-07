@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ArrowLeft, MapPin, Search } from "lucide-react"
 
-export default function Component() {
+export default function CreateLocation() {
   return (
     <div className="container mx-auto max-w-3xl p-6">
       <Card className="border-none shadow-none">
