@@ -137,7 +137,7 @@ const Account = {
   addRefreshToken: (values) => requests.postFront('/_auth/add-token', values),
   getRefreshToken: () => requests.get('/_auth/get-refresh-token'),
   removeRefreshToken: () => requests.delFront('/_auth/remove-token'),
-  register: (userData) => requests.post('http://localhost:8080/api/Auth/register')
+  register: (userData) => requests.post('http://localhost:8080/api/Auth/register', userData)
 }
 
 
