@@ -9,6 +9,7 @@ import UserProfile from './components/user-profile/UserProfileDetail';
 import CreateLocation from './components/job/CreateLocation';
 import CreateJob from './components/job/CreateJob';
 import ConfirmJob from './components/job/ConfirmationScreen';
+import JobDashboard from './components/ManageUserJob/JobManage';
 function App() {
   const footerLinks = [
     {
@@ -116,6 +117,7 @@ function App() {
         <Route path="/createLocation" element={<CreateLocation />} />
         <Route path="/createJob" element={<CreateJob />} />
         <Route path="/confirmJob" element={<ConfirmJob />} />
+        <Route path="/JobManage" element={<JobDashboard />} />
       </Routes>
     </Router>
   );

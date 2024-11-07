@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 namespace JobLink_Backend.Controllers;
 
 [AllowAnonymous]
+
 public class JobController(IJobService jobService, IMapper mapper, INotificationService notificationService) : BaseController
 {
     private readonly IJobService _jobService = jobService;
@@ -71,7 +72,7 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
             Timestamp = DateTime.Now.Ticks
         });
     }
-    
+   
     [HttpGet("all")]
         public async Task<IActionResult> GetJobsAsync(int pageIndex = 1, int pageSize = 10, string sortBy = null, bool isDescending = false, string filter = null)
         {
@@ -212,7 +213,7 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
                 return Ok(new ApiResponse<string>
                 {
                     Data = null,
-                    Message = "No jobs applied by the user found.",
+                    Message = "No jobs create by user found.",
                     Status = 204,
                     Timestamp = DateTime.Now.Ticks
                 });
@@ -221,7 +222,7 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
             return Ok(new ApiResponse<Pagination<JobDTO>>
             {
                 Data = result,
-                Message = "Jobs applied by the user retrieved successfully!",
+                Message = "Jobs created by the user retrieved successfully!",
                 Status = 200,
                 Timestamp = DateTime.Now.Ticks
             });

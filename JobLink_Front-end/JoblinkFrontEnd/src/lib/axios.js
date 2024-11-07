@@ -169,19 +169,27 @@ const Transaction = {
   createWithdraw: (body) => requests.post('https://localhost:8081/api/transactions', body),
  
 }
-const Job1 = {
+const ListJobAvaible = {
   Listjob: (pageIndex, pageSize, sortBy, isDescending, filter) => {
-    const params = {
+    const queryString = new URLSearchParams({
       pageIndex,
       pageSize,
       sortBy,
       isDescending,
-      filter,
-    };
+      filter
+    }).toString();
 
-    return requests.get('http://localhost:8080/api/Job/get-jobs', { params });
+    const url = `http://localhost:8080/api/Job/all?${queryString}`;
+    console.log("Request URL:", url);
+
+    return requests.get(url);
   }
 };
+
+
+
+
+
 
 
 const agent = {
@@ -192,7 +200,7 @@ const agent = {
   EmailInput,
   VerifyOtp, ForgetPassChange,
   Job,
-  Transaction
+  Transaction,ListJobAvaible
 }
 
 export default agent

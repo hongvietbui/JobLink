@@ -64,67 +64,43 @@ public class JobServiceImpl(IUnitOfWork unitOfWork, IMapper mapper, JwtService j
 		return null;
 	}
 
- public async Task<Pagination<JobDTO>> GetJobsAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, Expression<Func<Job, bool>>? filter = null)
+    public async Task<Pagination<JobDTO>> GetJobsAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, Expression<Func<Job, bool>>? additionalFilter = null)
     {
-        ////var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken).Claims;
-        ////var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-
-        //if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
-        //{
-        //    throw new Exception("User ID not found in token claims.");
-        //}
         var jobRepository = _unitOfWork.Repository<Job>();
-        var userRepository = _unitOfWork.Repository<User>();
 
-        if (filter == null)
+        IQueryable<Job> query = jobRepository.GetAll()
+            .Where(job => job.Status == JobStatus.WAITING_FOR_APPLICANTS);
+
+        if (additionalFilter != null)
         {
-            filter = job => job.Status == JobStatus.WAITING_FOR_APPLICANTS;
-        }
-        else
-        {
-            filter = job => filter.Compile()(job) && job.Status == JobStatus.WAITING_FOR_APPLICANTS;
+            query = query.Where(additionalFilter);
         }
 
-		IQueryable<Job> query = jobRepository.GetAll(filter);
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            query = ApplySorting(query, sortBy, isDescending);
+        }
 
-		if (!string.IsNullOrEmpty(sortBy))
-		{
-			query = ApplySorting(query, sortBy, isDescending);
-		}
+        var totalItems = await query.CountAsync();
 
-		var totalItems = await jobRepository.CountAsync(filter);
+        var paginatedJobs = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
 
-		var paginatedJobs = await query.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+        var viewJobDtos = _mapper.Map<List<JobDTO>>(paginatedJobs);
 
-		// var viewJobDtos = paginatedJobs.Select(job => new JobDTO
-		// {
-		//     Id = job.Id,
-		//     Name = job.Name,
-		//     Description = job.Description,
-		//     Price = job.Price,
-		//     OwnerId = job.OwnerId,
-		//     Address = job.Address,
-		//     Lat = job.Lat,
-		//     Lon = job.Lon,
-		//     Status = job.Status.GetStringValue(),
-		//     Duration = job.Duration,
-		//     Avatar = job.Avatar
-		// }).ToList();
-
-		var viewJobDtos = _mapper.Map<List<JobDTO>>(paginatedJobs);
-
-		return new Pagination<JobDTO>
-		{
-			Items = viewJobDtos,
-			TotalItems = totalItems,
-			PageIndex = pageIndex,
-			PageSize = pageSize
-		};
-	}
+        return new Pagination<JobDTO>
+        {
+            Items = viewJobDtos,
+            TotalItems = totalItems,
+            PageIndex = pageIndex,
+            PageSize = pageSize
+        };
+    }
 
 
 
-	private IQueryable<Job> ApplySorting(IQueryable<Job> query, string sortBy, bool isDescending)
+
+
+    private IQueryable<Job> ApplySorting(IQueryable<Job> query, string sortBy, bool isDescending)
 	{
 		if (typeof(Job).GetProperty(sortBy) == null)
 		{
