@@ -8,5 +8,5 @@ public class SupportRequestCreateDto
     public String Descrtiption { get; set; }
     public SupportPriority Priority { get; set; }
     public SupportCategory Category { get; set; }
-    public Fil Type { get; set; }
+    public IFormFile Attachment  { get; set; }
 }
