@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, MapPin, Phone } from "lucide-react"
 
-export default function Component() {
+export default function ConfirmJob() {
   return (
     <div className="container mx-auto max-w-3xl p-6">
       <div className="flex items-center gap-4 mb-6">

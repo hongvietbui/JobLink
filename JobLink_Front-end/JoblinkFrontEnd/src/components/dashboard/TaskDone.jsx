@@ -31,6 +31,7 @@ import {
 import { Badge } from "../ui/badge";
 import { useEffect, useState } from "react";
 import agent from "@//lib/axios";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 const statusIcons = {
   Todo: <AlertCircle className="h-4 w-4 text-gray-500" />,
@@ -46,15 +47,18 @@ const priorityIcons = {
   High: <ArrowUp className="h-4 w-4 text-red-500" />,
 };
 
-const TaskStatus = {
-  0: "Pending-approval",
-  1: "Approved",
-  2: "Rejected",
-  3: "Expired",
-  4: "Deleted",
-  5: "Completed",
-  6: "In progress",
+const TaskStatusEnum = {
+  PENDING_APPROVAL: "Pending-approval",
+  APPROVED: "Approved",
+  REJECTED: "Rejected",
+  EXPIRED: "Expired",
+  DELETED: "Deleted",
+  COMPLETED: "Completed",
+  IN_PROGRESS: "In progress",
+  WAITING_FOR_APPLICANTS: "Waiting for applicants",
+  DONE: "Done",
 };
+
 export default function TaskDone() {
   const [searchTerm, setSearchTerm] = useState("");
   const [status, setStatus] = useState("");
@@ -70,7 +74,7 @@ export default function TaskDone() {
 
   const fetchTasks = (page) => {
     const params = {
-      search: searchTerm,
+      query: searchTerm,
       status: status,
       isOwner: owner === "all" ? "" : owner === "owner",
       pageNumber: page,
@@ -99,7 +103,7 @@ export default function TaskDone() {
   };
 
   const handleRowsPerPageChange = (event) => {
-    console.log(event)
+    console.log(event);
     setRowsPerPage(parseInt(event, 10));
     setCurrentPage(1); // Quay lại trang đầu khi thay đổi số dòng trên mỗi trang
   };
@@ -152,37 +156,63 @@ export default function TaskDone() {
             <TableHead className="w-[40px]"></TableHead>
           </TableRow>
         </TableHeader>
+
         <TableBody>
           {tasks.map((task) => (
-            <TableRow key={task.id}>
-              <TableCell>
+            <TableRow key={task.id} className="border-b">
+              <TableCell className="py-4 px-6">
                 <div>
-                  <div className="font-medium">{task.name}</div>
-                  <Badge variant="outline" className="mr-2">
-                    {task.description}
-                  </Badge>
-                  {task.title}
+                  <div className="font-semibold text-lg">{task.name}</div>
+                  <Tooltip title={task.description} arrow>
+                    <TooltipTrigger>
+                      <Badge
+                        variant="outline"
+                        className="text-sm text-gray-600 mt-1"
+                      >
+                        {`${task.description.slice(0, 50)}...`}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs whitespace-normal">
+                      <Badge
+                        variant="outline"
+                        className="text-sm text-gray-600 mt-1"
+                      >
+                        {task.description}
+                      </Badge>
+                    </TooltipContent>
+                  </Tooltip>
+                  <div className="text-sm text-gray-500 mt-1">{task.title}</div>
                 </div>
               </TableCell>
-              <TableCell>
-                <div className="flex items-center">
-                  {TaskStatus[task.status]}
-                </div>
+              <TableCell className="py-4 px-6">
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    task.status === "APPROVED"
+                      ? "bg-green-100 text-green-800"
+                      : task.status === "REJECTED"
+                      ? "bg-red-100 text-red-800"
+                      : task.status === "IN_PROGRESS"
+                      ? "bg-blue-100 text-blue-800"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {TaskStatusEnum[task.status]}
+                </span>
               </TableCell>
-              <TableCell>
-                <div className="flex items-center">
+              <TableCell className="py-4 px-6 text-right">
+                <div className="flex items-center justify-end">
                   {priorityIcons[task.price]}
-                  <span className="ml-2">{task.price}</span>
+                  <span className="ml-2 font-semibold text-gray-800">
+                    ${task.price}
+                  </span>
                 </div>
               </TableCell>
-              <TableCell>
-                <div className="flex items-center">
-                  {task.address}
-                </div>
+              <TableCell className="py-4 px-6 text-gray-600">
+                <div className="flex items-center">{task.address}</div>
               </TableCell>
-              <TableCell>
+              <TableCell className="py-4 px-6 text-right">
                 <Button variant="ghost" size="icon">
-                  <MoreHorizontal className="h-4 w-4" />
+                  <MoreHorizontal className="h-5 w-5 text-gray-500 hover:text-gray-700" />
                 </Button>
               </TableCell>
             </TableRow>
@@ -193,7 +223,10 @@ export default function TaskDone() {
       <div className="flex items-center justify-between mt-4">
         <div className="flex items-center space-x-2">
           <span>Rows per page:</span>
-          <Select value={rowsPerPage} onValueChange={(e) => handleRowsPerPageChange(e)}>
+          <Select
+            value={rowsPerPage}
+            onValueChange={(e) => handleRowsPerPageChange(e)}
+          >
             <SelectTrigger className="w-[70px]">
               <SelectValue placeholder="10" />
             </SelectTrigger>

@@ -2,11 +2,9 @@ using JobLink_Backend.Entities;
 
 namespace JobLink_Backend.DTOs.Request.Jobs;
 
-public class JobListRequestDTO
+public class JobListRequestDto : PagingFilterBase
 {
-    public string? Filter { get; set; }
+    public string? Query { get; set; }
     public bool? IsOwner { get; set; }
     public JobStatus? Status { get; set; }
-    public int PageNumber { get; set; }
-    public int PageSize { get; set; }
 }
