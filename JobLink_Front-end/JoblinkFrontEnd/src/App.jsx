@@ -10,6 +10,7 @@ import CreateLocation from './components/job/CreateLocation';
 import CreateJob from './components/job/CreateJob';
 import ConfirmJob from './components/job/ConfirmationScreen';
 import TransactionHistory from './components/TopUpHistory/TopUpHistory';
+import NationalIdUpload from './components/NationalID/NationalIdUpload';
 function App() {
   const footerLinks = [
     {
@@ -118,6 +119,7 @@ function App() {
         <Route path="/createJob" element={<CreateJob />} />
         <Route path="/confirmJob" element={<ConfirmJob />} />
         <Route path="/TopUpHistory" element={<TransactionHistory />} />
+        <Route path="/IDUpload" element={<NationalIdUpload />} />
       </Routes>
     </Router>
   );
