@@ -406,10 +406,15 @@ public class UserServiceImpl(
         }).ToList();
     }
 
-    public async Task<User> GetUserByWorkerId(Guid workerId)
+    public async Task<User> GetUserByWorkerIdAsync(Guid workerId)
     {
         var worker = await _unitOfWork.Repository<Worker>().FirstOrDefaultAsync(w => w.Id == workerId);
         return await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == worker.UserId, include: u => u.Include(u => u.Roles));
+    }
+
+    public async Task<Worker> GetWorkerByUserIdAsync(Guid userId)
+    {
+        return await _unitOfWork.Repository<Worker>().FirstOrDefaultAsync(w => w.UserId == userId);
     }
 
     public async Task<User> GetUserByJobOwnerId(Guid jobOwnerId)

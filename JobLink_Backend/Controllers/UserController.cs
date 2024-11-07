@@ -13,11 +13,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace JobLink_Backend.Controllers
 {
-    public class UserController(IUserService userService, JwtService jwtService, IMapper mapper) : BaseController
+    public class UserController(IUserService userService, JwtService jwtService, IMapper mapper, IWorkerService workerService, IJobOwnerService jobOwnerService) : BaseController
     {
         private readonly IUserService _userService = userService;
         private readonly JwtService _jwtService = jwtService;
         private readonly IMapper _mapper = mapper;
+        private readonly IWorkerService _workerService = workerService;
+        private readonly IJobOwnerService _jobOwnerService = jobOwnerService;
 
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromHeader] string authorization, [FromBody] ApiRequest<ChangePassworDTO> changePassword)
@@ -237,7 +239,7 @@ namespace JobLink_Backend.Controllers
         {
             try
             {
-                var user = await _userService.GetUserByWorkerId(workerId);
+                var user = await _userService.GetUserByWorkerIdAsync(workerId);
                 var userDTO = _mapper.Map<UserDTO>(user);
                 return Ok(new ApiResponse<UserDTO>
                 {
@@ -250,7 +252,61 @@ namespace JobLink_Backend.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ApiResponse<UserDTO>
+                {
+                    Data = null,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("worker/id/{userId}")]
+        public async Task<IActionResult> GetWorkerIdByUserId(string userId)
+        {
+            try
+            {
+                var workerId = await workerService.getWorkerIdByUserIdAsync(Guid.Parse(userId));
+                return Ok(new ApiResponse<string>
+                {
+                    Data = workerId,
+                    Message = "Get worker id successfully!",
+                    Status = 200,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>
+                {
+                    Data = "",
+                    Message = ex.Message,
+                    Status = 400,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+        }
+        
+        [HttpGet("owner/id/{userId}")]
+        public async Task<IActionResult> GetOwnerByUserId(string userId)
+        {
+            try
+            {
+                var ownerId = await jobOwnerService.GetJobOwnerIdByUserIdAsync(Guid.Parse(userId));
+                return Ok(new ApiResponse<string>
+                {
+                    Data = ownerId,
+                    Message = "Get worker id successfully!",
+                    Status = 200,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>
+                {
+                    Data = "",
+                    Message = ex.Message,
+                    Status = 400,
+                    Timestamp = DateTime.Now.Ticks
+                });
             }
         }
     }
