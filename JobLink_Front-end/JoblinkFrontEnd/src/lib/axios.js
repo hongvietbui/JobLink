@@ -193,6 +193,15 @@ const TopUpHistory = {
   }
 }
 
+const NationalId = {
+  uploadNationalId: async (frontImage, backImage) => {
+    const formData = new FormData();
+      formData.append("nationalIdFront", frontImage); 
+      formData.append("nationalIdBack", backImage);
+      return request.postFile('http://localhost:8080/api/User/nationalId/upload', formData);
+  }
+}
+
 const agent = {
   CsrfToken,
   Account,
@@ -202,7 +211,8 @@ const agent = {
   VerifyOtp, ForgetPassChange,
   Job,
   Transaction,
-  TopUpHistory
+  TopUpHistory,
+  NationalId
 }
 
 export default agent

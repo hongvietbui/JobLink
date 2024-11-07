@@ -1,59 +1,50 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-// import { useToast } from "@/components/ui/use-toast"
-import { Upload, X, Image as ImageIcon } from "lucide-react"
-import agent from "@/lib/axios"
-
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Upload, X, Image as ImageIcon } from "lucide-react";
+import agent from "@/lib/axios";
 
 export default function IDCardUpload() {
-  const [frontImage, setFrontImage] = useState(null)
-  const [backImage, setBackImage] = useState(null)
-//   const { toast } = useToast()
+  const [frontImage, setFrontImage] = useState(null);
+  const [backImage, setBackImage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleFileChange = (event, side) => {
-    const file = event.target.files[0]
-    if (file) {
-      if (file.type.startsWith('image/')) {
-        side === 'front' ? setFrontImage(file) : setBackImage(file)
-      } else {
-        // toast({
-        //   title: "Invalid file type",
-        //   description: "Please upload an image file.",
-        //   variant: "destructive",
-        // })
-      }
+    const file = event.target.files[0];
+    if (file && file.type.startsWith("image/")) {
+      side === "front" ? setFrontImage(file) : setBackImage(file);
+    } else {
+      alert("Please upload a valid image file.");
     }
-  }
+  };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!frontImage || !backImage) {
-    //   toast({
-    //     title: "Missing images",
-    //     description: "Please upload both front and back sides of your ID card.",
-    //     variant: "destructive",
-    //   })
-      return
+      alert("Please upload both front and back sides of your ID card.");
+      return;
     }
 
-    // Here you would typically send the images to your server
-    // For this example, we'll just show a success message
-    // toast({
-    //   title: "Upload successful",
-    //   description: "Your ID card images have been uploaded.",
-    // })
-  }
+    setLoading(true);
+    try {
+      const response = await agent.NationalId.uploadNationalId(frontImage, backImage);
+      alert("Upload successful!");
+      console.log("Upload response:", response);
+      setFrontImage(null);
+      setBackImage(null);
+    } catch (error) {
+      console.error("Upload failed:", error);
+      alert("Failed to upload. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCancel = () => {
-    setFrontImage(null)
-    setBackImage(null)
-    // toast({
-    //   title: "Upload cancelled",
-    //   description: "Your ID card upload has been cancelled.",
-    // })
-  }
+    setFrontImage(null);
+    setBackImage(null);
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
@@ -91,7 +82,7 @@ export default function IDCardUpload() {
                       id="front-id"
                       type="file"
                       accept="image/*"
-                      onChange={(e) => handleFileChange(e, 'front')}
+                      onChange={(e) => handleFileChange(e, "front")}
                       className="hidden"
                     />
                   </label>
@@ -125,7 +116,7 @@ export default function IDCardUpload() {
                       id="back-id"
                       type="file"
                       accept="image/*"
-                      onChange={(e) => handleFileChange(e, 'back')}
+                      onChange={(e) => handleFileChange(e, "back")}
                       className="hidden"
                     />
                   </label>
@@ -138,11 +129,11 @@ export default function IDCardUpload() {
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button onClick={handleUpload} disabled={!frontImage || !backImage}>
-            <Upload className="mr-2 h-4 w-4" /> Upload
+          <Button onClick={handleUpload} disabled={!frontImage || !backImage || loading}>
+            {loading ? "Uploading..." : <><Upload className="mr-2 h-4 w-4" /> Upload</>}
           </Button>
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
