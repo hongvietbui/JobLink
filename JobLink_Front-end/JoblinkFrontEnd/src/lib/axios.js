@@ -49,13 +49,13 @@ axios.interceptors.response.use(
         }
         break
       case 401:
-
+        
         break
 
       case 403:
         break
       case 500:
-
+       
         break
       default:
         break
@@ -138,7 +138,7 @@ const CsrfToken = {
 const Account = {
   login: (values) =>
     requests.post(META.BACKEND + '/api/Auth/signin-google', values),
-  loginEmail: (username, password) =>
+  loginUsername: (username, password) =>
     requests.post('http://localhost:8080/api/Auth/login', username, password),
   logout: (values) =>
     requests.postFront(META.BACKEND + '/api/Auth/logout', values),
@@ -150,6 +150,17 @@ const Account = {
   register: (userData) => requests.post('http://localhost:8080/api/Auth/register', userData)
 }
 
+const Attendance = {
+  list: (params) =>
+    requests.get(META.BACKEND + '/api/attendance', convertParams(params)),
+  getFile: (params) =>
+    requests.get(
+      META.BACKEND + '/api/attendance/file',
+      new URLSearchParams({
+        filter: params,
+      }),
+    ),
+}
 
 const EmailTemplate = {
   list: () => requests.get(META.BACKEND + '/api/email-template'),
@@ -208,6 +219,7 @@ const agent = {
   CsrfToken,
   Account,
   User,
+	Attendance,
   EmailTemplate,
   EmailInput,
   VerifyOtp, 
