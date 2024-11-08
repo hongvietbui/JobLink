@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using JobLink_Backend.DTOs.All;
-using JobLink_Backend.DTOs.All.Job;
 using JobLink_Backend.DTOs.Request;
 using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.DTOs.Response.Transactions;
@@ -382,6 +381,32 @@ namespace JobLink_Backend.Controllers
                 return BadRequest(new ApiResponse<string>
                 {
                     Data = "",
+                    Message = ex.Message,
+                    Status = 400,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+        }
+        
+        [HttpGet("owner/{ownerId}")]
+        public async Task<IActionResult> GetUserByOwnerId(string ownerId)
+        {
+            try
+            {
+                var user = await _userService.GetUserByJobOwnerId(Guid.Parse(ownerId));
+                var userDTO = _mapper.Map<UserDTO>(user);
+                return Ok(new ApiResponse<UserDTO>
+                {
+                    Data = userDTO,
+                    Message = "Get worker id successfully!",
+                    Status = 200,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<UserDTO>
+                {
+                    Data = null,
                     Message = ex.Message,
                     Status = 400,
                     Timestamp = DateTime.Now.Ticks

@@ -26,5 +26,11 @@ namespace JobLink_Backend.Services.ServiceImpls
                 .FirstOrDefaultAsync(filter: j => j.Id == jobId, include: u => u.Include(jo => jo.Owner));
             return job.Owner;
         }
+        public async Task<string> GetUserIdByJobOwnerIdAsync(Guid jobOwnerId)
+        {
+            var jobOwner = await _unitOfWork.Repository<JobOwner>().GetByIdAsync(jobOwnerId);
+
+            return jobOwner.UserId.ToString();
+        }
     }
 }
