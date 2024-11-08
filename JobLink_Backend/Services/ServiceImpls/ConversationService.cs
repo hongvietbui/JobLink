@@ -42,4 +42,9 @@ public class ConversationService(IUnitOfWork unitOfWork, IMapper mapper) : IConv
             .ToList();
         return listMessage;
     }
+
+    // public async Task<Conversation> GetConversationOwnerAsync(Guid conversationId)
+    // {
+    //     var user = await _unitOfWork.Repository<Conversation>().FirstOrDefaultAsync(filter: i => i.Id == conversationId, include: f => f.User)
+    // }
 }

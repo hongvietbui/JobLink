@@ -32,7 +32,7 @@ const RoutesConfig = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/listJob" element={<JobList />} />
-        <Route path="/userProfile" element={<UserProfile />} />
+        <Route path="/profile" element={<UserProfile />} />
         <Route path="/createLocation" element={<CreateLocation />} />
         <Route path="/createJob" element={<CreateJob />} />
         <Route path="/confirmJob" element={<ConfirmJob />} />

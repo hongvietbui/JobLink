@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from "react-router-dom";
+import useAuthStore from '@/stores/useAuthStore';
 
 export default function JobList() {
   const navigate = useNavigate();
@@ -186,11 +187,13 @@ export default function JobList() {
                   </div>
                 </CardContent>
                 <CardContent className="pt-0 mt-auto">
+                  
                   <div className="flex justify-between items-center">
                     <Badge variant={job.type === 'Full-time' ? 'default' : job.type === 'Part-time' ? 'secondary' : 'outline'}>
                       {job.type || 'Type not specified'}
                     </Badge>
-                    <Button onClick={() => handleApply(job)}>Apply Now</Button>
+                    <Button onClick={() => initiateChatWithApplicant(job.id)}>Chat</Button>
+                    <Button className='ml-2' onClick={() => handleApply(job)}>Apply Now</Button>
                   </div>
                 </CardContent>
               </Card>

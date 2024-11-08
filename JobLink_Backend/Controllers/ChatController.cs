@@ -126,6 +126,7 @@ namespace JobLink_Backend.Controllers
         public async Task<IActionResult> GetAllConversation(Guid conversationId)
         {
             var conversation = await _conversationService.GetAllMessagesByConversationIdAsync(conversationId);
+            // var user = await _conversationService.
             if (conversation == null)
             {
                 return NotFound("Conversation not found.");

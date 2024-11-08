@@ -48,6 +48,7 @@ import {
 } from "@/components/ui/dialog";
 import agent from "../../lib/axios";
 import { useNavigate } from "react-router-dom";
+import useAuthStore from "@/stores/useAuthStore";
 
 async function fetchJobs({
   isCreatedJobs,
@@ -349,7 +350,7 @@ function ApplicantsList({ jobId, jobStatus, onAccept }) {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
+                  className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 transition-colors duration-200"
                   onClick={() => initiateChat(applicant.workerId)}
                   disabled={actionLoading === applicant.workerId}
                 >
@@ -357,7 +358,7 @@ function ApplicantsList({ jobId, jobStatus, onAccept }) {
                     "Processing..."
                   ) : (
                     <>
-                      <X className="w-4 h-4 mr-2" /> Chat
+                      <MessageCircle className="w-4 h-4 mr-2" /> Chat
                     </>
                   )}
                 </Button>
@@ -490,7 +491,7 @@ function JobList({ isCreatedJobs }) {
   const [pageSize] = useState(5);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState(null);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const loadJobs = async () => {
       try {
@@ -531,6 +532,30 @@ function JobList({ isCreatedJobs }) {
     }
   };
 
+  const [workerId, setWorkerId] = useState(null);
+  const { id } = useAuthStore();
+  useEffect(() => {
+    const fetchWorkerId = async () => {
+      try {
+        const workerId = await agent.User.getWorkerId(id);
+        setWorkerId(workerId); // Cập nhật state với giá trị workerId từ API
+      } catch (error) {
+        console.error("Error fetching workerId:", error);
+      }
+    };
+
+    fetchWorkerId();
+  }, []);
+  const initiateChatWithApplicant = async (jobId) => {
+    try {
+      console.log(workerId);
+      const response = await agent.Chat.getOrCreate(jobId, workerId);
+      const conversationId = response.id;
+      navigate(`/chat/${conversationId}`);
+    } catch (e) {
+      console.log(e);
+    }
+  };
   return (
     <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
       <Card className="mb-8 shadow-lg">
@@ -656,6 +681,7 @@ function JobList({ isCreatedJobs }) {
                   >
                     {job.type || "Type not specified"}
                   </Badge>
+                  
                   {isCreatedJobs ? (
                     <Dialog>
                       <DialogTrigger asChild>
@@ -684,6 +710,9 @@ function JobList({ isCreatedJobs }) {
                     </Dialog>
                   ) : (
                     <>
+                    <Button onClick={() => initiateChatWithApplicant(job.id)}>
+                    Chat
+                  </Button>
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button
