@@ -309,7 +309,7 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
                 Timestamp = DateTime.Now.Ticks
             });
 
-        return Ok(new ApiResponse<List<UserDTO>>
+        return Ok(new ApiResponse<List<UserWithWorkerIdDTO>>
         {
             Data = applicants,
             Message = "Applicants retrieved successfully!",
@@ -457,11 +457,10 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
         try
         {
             var jobIdGuid = Guid.Parse(jobId);
-            var userId = Guid.Parse(workerId);
-            var worker = await _userService.GetWorkerByUserIdAsync(userId);
+            var WorkerId = Guid.Parse(workerId);
             
             var accessToken = authorization.Split(" ")[1];
-            await _jobService.AcceptWorkerAsync(jobIdGuid, worker.Id, accessToken);
+            await _jobService.AcceptWorkerAsync(jobIdGuid, WorkerId, accessToken);
             return Ok(new ApiResponse<string>
             {
                 Data = null,

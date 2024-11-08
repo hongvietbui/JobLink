@@ -11,17 +11,16 @@ export default function JobList() {
   const [jobs, setJobs] = useState([]);
   const [filter, setFilter] = useState('');
   const [sortBy, setSortBy] = useState('');
-  const [isDescending, setIsDescending] = useState(false); // Boolean for isDescending
-  const [pageIndex, setPageIndex] = useState(1); // Default to page 1
+  const [isDescending, setIsDescending] = useState(false); 
+  const [pageIndex, setPageIndex] = useState(1); 
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize] = useState(6);
-  const [isLoading, setIsLoading] = useState(false); // Add loading state
+  const [isLoading, setIsLoading] = useState(false); 
 
-  // Fetch jobs when filter, sort, or pageIndex changes
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        setIsLoading(true); // Start loading
+        setIsLoading(true); 
         const response = await agent.ListJobAvaible.Listjob(
           pageIndex,
           pageSize,
@@ -35,17 +34,17 @@ export default function JobList() {
 
         if (response && response.items) {
           console.log("Jobs in response:", response.items);
-          setJobs(response.items);  // Check if this updates `jobs`
+          setJobs(response.items); 
           setTotalPages(Math.ceil(response.totalItems / pageSize));
-          console.log("Updated jobs state:", jobs);  // Log to confirm jobs are updated
+          console.log("Updated jobs state:", jobs); 
         } else {
           setJobs([]);
         }
       } catch (error) {
         console.error('Failed to fetch jobs:', error.message);
-        setJobs([]); // Reset jobs on error
+        setJobs([]); 
       } finally {
-        setIsLoading(false); // End loading
+        setIsLoading(false); 
       }
     };
 
