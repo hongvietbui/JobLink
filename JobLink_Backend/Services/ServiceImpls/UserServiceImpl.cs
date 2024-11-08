@@ -40,6 +40,7 @@ public class UserServiceImpl(
     private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
     private readonly IHubContext<NotificationHub> _notificationsHub = notificationHub;
 
+
     public async Task SaveRefreshTokenAsync(string username, string refreshToken)
     {
         var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(x => x.Username == username);
