@@ -173,7 +173,8 @@ const User = {
 
 const Job = {
   getListJobDoneDashboard: (body) => requests.get('http://localhost:8080/api/job', convertParams(body)),
-  getStatistical: (params) => requests.get('http://localhost:8080/api/job/stats', params)
+  getStatistical : (params) => requests.get('http://localhost:8080/api/job/stats', params),
+  createJob: (jobData) => requests.post('http://localhost:8080/api/Job', jobData),
 }
 
 const Transaction = {

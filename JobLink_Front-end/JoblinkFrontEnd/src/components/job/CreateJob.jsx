@@ -1,15 +1,39 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, CreditCard, MapPin, Percent, ChevronRight } from "lucide-react"
+import { useState } from "react";
+import agent from "@/lib/axios"; // Đảm bảo đường dẫn đúng đến file axios.js
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, CreditCard, MapPin, Percent, ChevronRight } from "lucide-react";
 
 export default function CreateJob() {
+  const [jobData, setJobData] = useState({
+    name: "",
+    description: "",
+    duration: 2, // mặc định là 2 giờ
+    price: 0,
+    avatar: "string",
+    startTime: new Date().toISOString(),
+    endTime: new Date().toISOString(),
+  });
+
+  // Hàm gửi request đến API
+  const handleCreateJob = async () => {
+    try {
+      const response = await agent.Job.createJob(jobData);
+      alert("Job created successfully!");
+      console.log("Response:", response);
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred while creating the job.");
+    }
+  };
+
   return (
     <div className="container mx-auto max-w-7xl p-6">
       <div className="flex items-center gap-4 mb-6">
@@ -17,10 +41,10 @@ export default function CreateJob() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-semibold">Xác nhận và thanh toán</h1>
+          <h1 className="text-2xl font-semibold">Confirm and Pay</h1>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4 text-red-500" />
-            <span>8V2W+HJV, Tân Hưng, Sóc Sơn, Hà...</span>
+            <span>8V2W+HJV, Tan Hung, Soc Son, Ha...</span>
           </div>
         </div>
       </div>
@@ -30,23 +54,23 @@ export default function CreateJob() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Chọn lịch làm việc</CardTitle>
+              <CardTitle>Select Work Schedule</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <Tabs defaultValue="cn" className="w-full">
                 <TabsList className="grid grid-cols-7 h-14">
-                  <TabsTrigger value="cn">CN</TabsTrigger>
-                  <TabsTrigger value="t2">T2</TabsTrigger>
-                  <TabsTrigger value="t3">T3</TabsTrigger>
-                  <TabsTrigger value="t4">T4</TabsTrigger>
-                  <TabsTrigger value="t5">T5</TabsTrigger>
-                  <TabsTrigger value="t6">T6</TabsTrigger>
-                  <TabsTrigger value="t7">T7</TabsTrigger>
+                  <TabsTrigger value="cn">Sun</TabsTrigger>
+                  <TabsTrigger value="t2">Mon</TabsTrigger>
+                  <TabsTrigger value="t3">Tue</TabsTrigger>
+                  <TabsTrigger value="t4">Wed</TabsTrigger>
+                  <TabsTrigger value="t5">Thu</TabsTrigger>
+                  <TabsTrigger value="t6">Fri</TabsTrigger>
+                  <TabsTrigger value="t7">Sat</TabsTrigger>
                 </TabsList>
               </Tabs>
 
               <div>
-                <Label>Chọn giờ bắt đầu</Label>
+                <Label>Select Start Time</Label>
                 <div className="flex items-center gap-2 mt-2">
                   <Input value="08" className="w-16 text-center" />
                   <span>:</span>
@@ -55,12 +79,16 @@ export default function CreateJob() {
               </div>
 
               <div>
-                <Label>Thời lượng</Label>
-                <RadioGroup defaultValue="2" className="grid gap-2 mt-2">
+                <Label>Duration</Label>
+                <RadioGroup
+                  value={jobData.duration.toString()}
+                  onChange={(e) => setJobData({ ...jobData, duration: parseInt(e.target.value) })}
+                  className="grid gap-2 mt-2"
+                >
                   {[
-                    { value: "2", hours: "2 giờ", desc: "Tối đa 55m² hoặc 2 phòng" },
-                    { value: "3", hours: "3 giờ", desc: "Tối đa 85m² hoặc 3 phòng" },
-                    { value: "4", hours: "4 giờ", desc: "Tối đa 105m² hoặc 4 phòng" },
+                    { value: "2", hours: "2 hours", desc: "Up to 55m² or 2 rooms" },
+                    { value: "3", hours: "3 hours", desc: "Up to 85m² or 3 rooms" },
+                    { value: "4", hours: "4 hours", desc: "Up to 105m² or 4 rooms" },
                   ].map((option) => (
                     <Label
                       key={option.value}
@@ -82,10 +110,15 @@ export default function CreateJob() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Ghi chú cho Tasker</CardTitle>
+              <CardTitle>Notes for Tasker</CardTitle>
             </CardHeader>
             <CardContent>
-              <Textarea placeholder="Nhập ghi chú của bạn..." className="min-h-[100px]" />
+              <Textarea
+                value={jobData.description}
+                onChange={(e) => setJobData({ ...jobData, description: e.target.value })}
+                placeholder="Enter your notes..."
+                className="min-h-[100px]"
+              />
             </CardContent>
           </Card>
         </div>
@@ -94,14 +127,14 @@ export default function CreateJob() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Phương thức thanh toán</CardTitle>
+              <CardTitle>Payment Method</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button variant="outline" className="w-full justify-between" asChild>
                 <Label className="cursor-pointer">
                   <div className="flex items-center gap-3">
                     <CreditCard className="h-5 w-5" />
-                    <span>Chọn trong danh sách</span>
+                    <span>Select from list</span>
                   </div>
                   <ChevronRight className="h-5 w-5" />
                 </Label>
@@ -111,7 +144,7 @@ export default function CreateJob() {
                 <Label className="cursor-pointer">
                   <div className="flex items-center gap-3">
                     <Percent className="h-5 w-5" />
-                    <span>Khuyến mãi</span>
+                    <span>Promotion</span>
                   </div>
                   <ChevronRight className="h-5 w-5" />
                 </Label>
@@ -122,14 +155,13 @@ export default function CreateJob() {
           <Card>
             <CardContent className="pt-6">
               <div className="space-y-4">
-                <h3 className="font-semibold">Quy định hủy gói đã thanh toán - hoàn tiền:</h3>
+                <h3 className="font-semibold">Refund Policy for Paid Packages:</h3>
                 <div className="space-y-2 text-sm">
-                  <p>bTaskee hỗ trợ 1 trong 2 hình thức hoàn tiền bên dưới</p>
+                  <p>bTaskee supports one of the two refund methods below</p>
                   <ol className="list-decimal pl-4 space-y-2">
-                    <li>Hoàn tiền qua bPay: bTaskee hoàn lại tổng số tiền của những buổi chưa sử dụng.</li>
+                    <li>Refund via bPay: bTaskee refunds the full amount for unused sessions.</li>
                     <li>
-                      Hoàn tiền qua chuyển khoản ngân hàng: bTaskee hoàn lại tổng số tiền của những buổi chưa sử dụng trừ
-                      đi 20% giá trị của gói ban đầu.
+                      Refund via bank transfer: bTaskee refunds the full amount for unused sessions, minus 20% of the original package price.
                     </li>
                   </ol>
                 </div>
@@ -139,15 +171,15 @@ export default function CreateJob() {
 
           <div className="sticky bottom-0 bg-background p-4 border-t">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-lg font-semibold">Tổng cộng</span>
+              <span className="text-lg font-semibold">Total</span>
               <span className="text-2xl font-bold">1,025,000 VND</span>
             </div>
-            <Button className="w-full" size="lg">
-              Đặt gói
+            <Button className="w-full" size="lg" onClick={handleCreateJob}>
+              Book Package
             </Button>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
