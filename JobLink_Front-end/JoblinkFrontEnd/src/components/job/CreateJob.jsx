@@ -1,37 +1,102 @@
 "use client";
 
-import { useState } from "react";
-import agent from "@/lib/axios"; // Đảm bảo đường dẫn đúng đến file axios.js
+import { useState, useEffect } from "react";
+import agent from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
 import { ArrowLeft, CreditCard, MapPin, Percent, ChevronRight } from "lucide-react";
 
 export default function CreateJob() {
-  const [jobData, setJobData] = useState({
+  // Lấy dữ liệu từ localStorage khi tải trang, và chuyển đổi lại thành Date nếu cần
+  const getInitialData = () => {
+    const savedData = localStorage.getItem("jobData");
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      return {
+        ...parsedData,
+        startTime: new Date(parsedData.startTime), // Chuyển đổi về Date
+        endTime: parsedData.endTime ? new Date(parsedData.endTime) : "", // Chuyển đổi về Date nếu có giá trị
+      };
+    }
+    return {
+      name: "",
+      description: "",
+      duration: 2,
+      price: 0,
+      avatar: "string",
+      startTime: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000),
+      endTime: "",
+    };
+  };
+
+  const [jobData, setJobData] = useState(getInitialData);
+  const [errors, setErrors] = useState({
     name: "",
     description: "",
-    duration: 2, // mặc định là 2 giờ
-    price: 0,
-    avatar: "string",
-    startTime: new Date().toISOString(),
-    endTime: new Date().toISOString(),
+    price: "",
+    startTime: "",
   });
 
-  // Hàm gửi request đến API
+  useEffect(() => {
+    // Cập nhật endTime mỗi khi startTime hoặc duration thay đổi
+    const end = new Date(jobData.startTime);
+    end.setHours(end.getHours() + jobData.duration);
+    setJobData((prevData) => ({
+      ...prevData,
+      endTime: end,
+    }));
+
+    // Lưu vào localStorage
+    localStorage.setItem("jobData", JSON.stringify(jobData));
+  }, [jobData.startTime, jobData.duration]);
+
+  const calculateTotalPrice = () => jobData.price * 1.1;
+
+  const validateFields = () => {
+    const newErrors = {
+      name: jobData.name ? "" : "Job name is required.",
+      description: jobData.description.length >= 10 ? "" : "Description must be at least 10 characters.",
+      price: jobData.price > 0 ? "" : "Price must be greater than 0.",
+      startTime: jobData.startTime ? "" : "Start time is required.",
+    };
+
+    setErrors(newErrors);
+    return !Object.values(newErrors).some((error) => error);
+  };
+
   const handleCreateJob = async () => {
+    if (!validateFields()) return;
+
+    const payload = {
+      ...jobData,
+      startTime: new Date(jobData.startTime.getTime() - jobData.startTime.getTimezoneOffset() * 60000).toISOString(),
+      endTime: new Date(jobData.endTime.getTime() - jobData.endTime.getTimezoneOffset() * 60000).toISOString(),
+    };
+
     try {
-      const response = await agent.Job.createJob(jobData);
+      const response = await agent.Job.createJob(payload);
       alert("Job created successfully!");
       console.log("Response:", response);
+      localStorage.removeItem("jobData"); // Xóa dữ liệu sau khi gửi thành công
     } catch (error) {
       console.error("Error:", error);
       alert("An error occurred while creating the job.");
     }
+  };
+
+  const updateField = (field, value) => {
+    setJobData((prevData) => {
+      const updatedData = { ...prevData, [field]: value };
+      localStorage.setItem("jobData", JSON.stringify(updatedData)); // Lưu lại sau khi cập nhật
+      return updatedData;
+    });
+    setErrors((prevErrors) => ({ ...prevErrors, [field]: "" }));
   };
 
   return (
@@ -49,46 +114,100 @@ export default function CreateJob() {
         </div>
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Job Name</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Input
+            value={jobData.name}
+            onChange={(e) => updateField("name", e.target.value)}
+            placeholder="Enter job name..."
+            className="w-full"
+          />
+          {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+        </CardContent>
+      </Card>
+
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Left Column - Booking Details */}
         <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Select Work Schedule</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Tabs defaultValue="cn" className="w-full">
-                <TabsList className="grid grid-cols-7 h-14">
-                  <TabsTrigger value="cn">Sun</TabsTrigger>
-                  <TabsTrigger value="t2">Mon</TabsTrigger>
-                  <TabsTrigger value="t3">Tue</TabsTrigger>
-                  <TabsTrigger value="t4">Wed</TabsTrigger>
-                  <TabsTrigger value="t5">Thu</TabsTrigger>
-                  <TabsTrigger value="t6">Fri</TabsTrigger>
-                  <TabsTrigger value="t7">Sat</TabsTrigger>
-                </TabsList>
-              </Tabs>
+              <div>
+                <Label>Select Date</Label>
+                <Calendar
+                  onChange={(date) => {
+                    const hours = jobData.startTime.getHours();
+                    const minutes = jobData.startTime.getMinutes();
+                    const newDate = new Date(date);
+                    newDate.setHours(hours, minutes);
+                    setJobData({
+                      ...jobData,
+                      startTime: newDate,
+                    });
+                    setErrors((prevErrors) => ({ ...prevErrors, startTime: "" }));
+                  }}
+                  value={jobData.startTime}
+                  className="border border-gray-300 p-2 rounded-md w-full mt-2"
+                />
+              </div>
 
               <div>
                 <Label>Select Start Time</Label>
                 <div className="flex items-center gap-2 mt-2">
-                  <Input value="08" className="w-16 text-center" />
+                  <Input
+                    value={jobData.startTime.getHours().toString().padStart(2, "0")}
+                    onChange={(e) => {
+                      const hours = parseInt(e.target.value);
+                      const newDate = new Date(jobData.startTime);
+                      newDate.setHours(hours);
+                      setJobData({
+                        ...jobData,
+                        startTime: newDate,
+                      });
+                      setErrors((prevErrors) => ({ ...prevErrors, startTime: "" }));
+                    }}
+                    type="number"
+                    min="0"
+                    max="23"
+                    className="w-16 text-center"
+                  />
                   <span>:</span>
-                  <Input value="00" className="w-16 text-center" />
+                  <Input
+                    value={jobData.startTime.getMinutes().toString().padStart(2, "0")}
+                    onChange={(e) => {
+                      const minutes = parseInt(e.target.value);
+                      const newDate = new Date(jobData.startTime);
+                      newDate.setMinutes(minutes);
+                      setJobData({
+                        ...jobData,
+                        startTime: newDate,
+                      });
+                      setErrors((prevErrors) => ({ ...prevErrors, startTime: "" }));
+                    }}
+                    type="number"
+                    min="0"
+                    max="59"
+                    className="w-16 text-center"
+                  />
                 </div>
+                {errors.startTime && <p className="text-red-500 text-sm">{errors.startTime}</p>}
               </div>
 
               <div>
                 <Label>Duration</Label>
                 <RadioGroup
                   value={jobData.duration.toString()}
-                  onChange={(e) => setJobData({ ...jobData, duration: parseInt(e.target.value) })}
+                  onValueChange={(value) => updateField("duration", parseInt(value))}
                   className="grid gap-2 mt-2"
                 >
                   {[
-                    { value: "2", hours: "2 hours", desc: "Up to 55m² or 2 rooms" },
-                    { value: "3", hours: "3 hours", desc: "Up to 85m² or 3 rooms" },
-                    { value: "4", hours: "4 hours", desc: "Up to 105m² or 4 rooms" },
+                    { value: "2", hours: "2 hours", desc: "Ideal for small tasks or meetings" },
+                    { value: "3", hours: "3 hours", desc: "Suitable for medium-sized projects" },
+                    { value: "4", hours: "4 hours", desc: "Best for long or detailed tasks" },
                   ].map((option) => (
                     <Label
                       key={option.value}
@@ -107,7 +226,9 @@ export default function CreateJob() {
               </div>
             </CardContent>
           </Card>
+        </div>
 
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Notes for Tasker</CardTitle>
@@ -115,16 +236,14 @@ export default function CreateJob() {
             <CardContent>
               <Textarea
                 value={jobData.description}
-                onChange={(e) => setJobData({ ...jobData, description: e.target.value })}
-                placeholder="Enter your notes..."
+                onChange={(e) => updateField("description", e.target.value)}
+                placeholder="Enter additional details for the tasker..."
                 className="min-h-[100px]"
               />
+              {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
             </CardContent>
           </Card>
-        </div>
-
-        {/* Right Column - Payment Details */}
-        <div className="space-y-6">
+          
           <Card>
             <CardHeader>
               <CardTitle>Payment Method</CardTitle>
@@ -155,6 +274,14 @@ export default function CreateJob() {
           <Card>
             <CardContent className="pt-6">
               <div className="space-y-4">
+                <Label>Price</Label>
+                <Input
+                  type="number"
+                  value={jobData.price}
+                  onChange={(e) => updateField("price", parseFloat(e.target.value))}
+                  placeholder="Enter price"
+                />
+                {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
                 <h3 className="font-semibold">Refund Policy for Paid Packages:</h3>
                 <div className="space-y-2 text-sm">
                   <p>bTaskee supports one of the two refund methods below</p>
@@ -172,7 +299,7 @@ export default function CreateJob() {
           <div className="sticky bottom-0 bg-background p-4 border-t">
             <div className="flex items-center justify-between mb-4">
               <span className="text-lg font-semibold">Total</span>
-              <span className="text-2xl font-bold">1,025,000 VND</span>
+              <span className="text-2xl font-bold">{calculateTotalPrice().toFixed(2)} VND</span>
             </div>
             <Button className="w-full" size="lg" onClick={handleCreateJob}>
               Book Package
