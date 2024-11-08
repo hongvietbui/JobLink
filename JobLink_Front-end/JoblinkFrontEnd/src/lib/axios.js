@@ -184,7 +184,7 @@ const User = {
   changePass: (body) => requests.post('http://localhost:8080/api/user/change-password', body),
   homepage: () => requests.get('http://localhost:8080/api/user/homepage'),
   me: () => requests.get('http://localhost:8080/api/user/me'),
-
+  editUser: (data) => requests.put('http://localhost:8080/api/User/edit', data), 
 }
 
 const Job = {

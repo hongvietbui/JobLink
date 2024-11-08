@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using JobLink_Backend.DTOs.All;
+using JobLink_Backend.DTOs.All.Job;
 using JobLink_Backend.DTOs.Request;
 using JobLink_Backend.DTOs.Response;
 using JobLink_Backend.DTOs.Response.Transactions;
@@ -388,7 +389,7 @@ namespace JobLink_Backend.Controllers
             }
         }
         [HttpPut("edit")]
-        public async Task<IActionResult> EditUser([FromHeader] string authorization, [FromBody] UpdateUserDTO updateUserRequest)
+        public async Task<IActionResult> EditUser([FromHeader] string authorization, ApiRequest<UpdateUserDTO>  updateUserRequest)
         {
             if (string.IsNullOrWhiteSpace(authorization) || !authorization.StartsWith("Bearer "))
             {
@@ -415,7 +416,7 @@ namespace JobLink_Backend.Controllers
                 });
             }
 
-            var result = await _userService.UpdateUserAsync(user.Id, updateUserRequest);
+            var result = await _userService.UpdateUserAsync(user.Id, updateUserRequest.Data);
 
             if (result)
             {
