@@ -55,7 +55,6 @@ async function fetchJobs({ isCreatedJobs, pageIndex, pageSize, sortBy, isDescend
   return response;
 }
 
-// Fetch job details for "Jobs Applied by You"
 const fetchJobOwnerDetail = async (jobId) => {
   try {
     const response = await agent.JobandOwnerViewDetail.getJobOwner(jobId);
@@ -66,7 +65,6 @@ const fetchJobOwnerDetail = async (jobId) => {
   }
 };
 
-// Component for displaying detailed job and owner information
 function JobDetail({ jobId }) {
   const [jobDetail, setJobDetail] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -152,7 +150,6 @@ function ApplicantsList({ jobId, onAccept }) {
       await agent.acceptWorker.accept(jobId, workerId, data);
       toast.success("Applicant accepted successfully!");
 
-      // Trigger the onAccept callback to hide the job
       onAccept(jobId);
     } catch (error) {
       console.error(`Failed to accept applicant with workerId ${workerId}:`, error.message);
@@ -168,7 +165,6 @@ function ApplicantsList({ jobId, onAccept }) {
       const data = { status: 'rejected' };
       await agent.RejectWorker.reject(jobId, workerId, data);
       toast.success("Applicant rejected successfully.");
-      // Keep the applicant list visible if rejected
       setApplicants((prev) => prev.filter((applicant) => applicant.workerId !== workerId));
     } catch (error) {
       console.error(`Failed to reject applicant with workerId ${workerId}:`, error.message);
@@ -269,7 +265,7 @@ function JobList({ isCreatedJobs }) {
   const [isDescending, setIsDescending] = useState(false);
   const [pageIndex, setPageIndex] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [pageSize] = useState(5);
+  const [pageSize] = useState(6);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState(null);
 

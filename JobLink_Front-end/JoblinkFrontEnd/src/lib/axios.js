@@ -257,7 +257,14 @@ const JobandOwnerViewDetail = {
   getJobOwner: (jobId) => 
     requests.get(`http://localhost:8080/api/Job/job-owner/${jobId}`),
 };
-
+const WorkerAssign = {
+  assign: (jobId, data) => 
+    requests.patch(`http://localhost:8080/api/Job/assign/${jobId}`, data),
+};
+const owner = {
+  ownerid: (userId,data) =>
+    requests.get(`http://localhost:8080/api/User/owner/id/${userId}`,data),
+};
 const agent = {
   CsrfToken,
   Account,
@@ -275,7 +282,8 @@ const agent = {
   acceptWorker,
   RejectWorker,
   JobandOwnerViewDetail,
-  SupportRequest
+  SupportRequest,
+  WorkerAssign,owner
 }
 
 export default agent
