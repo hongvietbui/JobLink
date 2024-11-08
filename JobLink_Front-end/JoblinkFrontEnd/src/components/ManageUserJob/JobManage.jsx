@@ -239,16 +239,47 @@ function ApplicantsList({ jobId, onAccept }) {
               </DialogTrigger>
               <DialogContent className="sm:max-w-[550px]">
                 <DialogHeader>
-                  <DialogTitle className="text-2xl font-bold text-primary">
-                    Applicant Details
-                  </DialogTitle>
-                  <DialogDescription className="text-muted-foreground">
-                    Detailed information about the applicant.
-                  </DialogDescription>
+                  <DialogTitle className="text-2xl font-bold text-primary">Applicant Details</DialogTitle>
+                  <DialogDescription>Detailed information about the applicant.</DialogDescription>
                 </DialogHeader>
-                {selectedApplicant && (
-                  <ApplicantDetails applicant={selectedApplicant} />
-                )}
+                <div className="mt-6 space-y-6">
+                  <div className="flex items-center space-x-4">
+                    {applicant.user.avatar ? (
+                      <img src={applicant.user.avatar} alt={`${applicant.user.firstName} ${applicant.user.lastName}`} className="w-20 h-20 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-indigo-600 flex items-center justify-center text-2xl font-semibold text-white">
+                        {applicant.user.firstName[0]}{applicant.user.lastName[0]}
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900">{`${applicant.user.firstName} ${applicant.user.lastName}`}</h3>
+                      <p className="text-sm text-muted-foreground">{applicant.user.username}</p>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <Mail className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-sm">{applicant.user.email}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Phone className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-sm">{applicant.user.phoneNumber}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-sm">{new Date(applicant.user.dateOfBirth).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-sm">{applicant.user.address}</span>
+                    </div>
+                    <div className="flex items-center space-x-2 col-span-full">
+                      <User className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-sm">{applicant.user.status}</span>
+                    </div>
+                  </div>
+                </div>
               </DialogContent>
             </Dialog>
           </div>
@@ -265,7 +296,7 @@ function JobList({ isCreatedJobs }) {
   const [isDescending, setIsDescending] = useState(false);
   const [pageIndex, setPageIndex] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [pageSize] = useState(6);
+  const [pageSize] = useState(5);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState(null);
 
