@@ -15,4 +15,5 @@ public class Worker : BaseEntity<Guid>
 
     public ICollection<JobWorker> JobWorkers { get; set; } = new List<JobWorker>();
     public ICollection<Review> WorkerReviews { get; set; } = new List<Review>();
+    public List<Conversation> WorkerConversations { get; set; }
 }

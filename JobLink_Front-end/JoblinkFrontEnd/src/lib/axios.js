@@ -1,4 +1,4 @@
-import { META } from './env'
+import { META } from '@/utils/helper/env'
 import axios from 'axios'
 
 import { convertParams } from './convertUrlParams'
@@ -108,15 +108,7 @@ const requests = {
         },
       })
       .then(responseBody)
-  },  patch: async (url, body) => { 
-    return axios
-      .patch(url, body, {
-        headers: {
-          'Content-type': 'application/json',
-        },
-      })
-      .then(responseBody);
-  },
+  },  
   postFile: async (url, data) => {
     return axios
       .post(url, data, {
@@ -186,6 +178,7 @@ const User = {
   me: () => requests.get('http://localhost:8080/api/user/me'),
   getUserByJobOwnerId: (jobOwnerId) => requests.get('http://localhost:8080/api/user/owner/' + jobOwnerId),
   editUser: (data) => requests.put('http://localhost:8080/api/User/edit', data), 
+  getWorkerId: (userId) => requests.get(`http://localhost:8080/api/user/worker/id/${userId}`),
 }
 
 const Job = {
@@ -247,7 +240,7 @@ const NationalId = {
 }
 
 const ListJobUserCreated = {
- JobUserCreated: (pageIndex,pageSize,sortBy,isDescending) =>{
+  JobUserCreated: (pageIndex, pageSize, sortBy, isDescending) => {
     const queryString = new URLSearchParams({
       pageIndex,
       pageSize,
@@ -256,12 +249,12 @@ const ListJobUserCreated = {
     }).toString();
     const url = `http://localhost:8080/api/Job/user?${queryString}`;
     console.log("Request URL:", url);
-   
+
     return requests.get(url);
   }
 }
 const ListJobUserApplied = {
- JobUserApplied: (pageIndex,pageSize,sortBy,isDescending) =>{
+  JobUserApplied: (pageIndex, pageSize, sortBy, isDescending) => {
     const queryString = new URLSearchParams({
       pageIndex,
       pageSize,
@@ -270,7 +263,7 @@ const ListJobUserApplied = {
     }).toString();
     const url = `http://localhost:8080/api/Job/applied?${queryString}`;
     console.log("Request URL:", url);
-   
+
     return requests.get(url);
   }
 }
@@ -278,17 +271,23 @@ const AppliedWorker = {
   AppliedWorker: (jobId) => requests.get(`http://localhost:8080/api/Job/applied-workers/${jobId}`)
 };
 const acceptWorker = {
-  accept: (jobId, workerId, data) => 
+  accept: (jobId, workerId, data) =>
     requests.patch(`http://localhost:8080/api/Job/accept/${jobId}/${workerId}`, data),
 };
 const RejectWorker = {
-  reject: (jobId, workerId, data) => 
+  reject: (jobId, workerId, data) =>
     requests.patch(`http://localhost:8080/api/Job/reject/${jobId}/${workerId}`, data),
 };
 const JobandOwnerViewDetail = {
-  getJobOwner: (jobId) => 
+  getJobOwner: (jobId) =>
     requests.get(`http://localhost:8080/api/Job/job-owner/${jobId}`),
 };
+
+const Chat = {
+  getOrCreate: (jobId, workerId) => requests.get(META.BACKEND + `/api/chat/getOrCreate/${jobId}/${workerId}`),
+  getAllMessage: (conversationId) => requests.get(META.BACKEND + `/api/chat/${conversationId}`)
+}
+
 const WorkerAssign = {
   assign: (jobId, data) => 
     requests.patch(`http://localhost:8080/api/Job/assign/${jobId}`, data),
@@ -301,13 +300,14 @@ const agent = {
   CsrfToken,
   Account,
   User,
-	Attendance,
+  Attendance,
   EmailTemplate,
   EmailInput,
-  VerifyOtp, 
+  VerifyOtp,
   ForgetPassChange,
   Job,
   Transaction,
+  SupportRequest,
   TopUpHistory,
   NationalId,
   ListJobAvaible,
@@ -317,7 +317,7 @@ const agent = {
   acceptWorker,
   RejectWorker,
   JobandOwnerViewDetail,
-  SupportRequest,
+  Chat,
   WorkerAssign,owner
 }
 

@@ -137,7 +137,7 @@ export default function TaskDone() {
               <SelectValue placeholder="Tất cả" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả</SelectItem>
+              <SelectItem value="all">All</SelectItem>
               <SelectItem value="owner">Owner</SelectItem>
               <SelectItem value="worker">Worker</SelectItem>
             </SelectContent>

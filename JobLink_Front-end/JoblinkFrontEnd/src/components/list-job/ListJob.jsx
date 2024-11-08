@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from "react-router-dom";
+import useAuthStore from '@/stores/useAuthStore';
 
 export default function JobList() {
   const navigate = useNavigate();
@@ -24,8 +25,23 @@ export default function JobList() {
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize] = useState(6);
   const [isLoading, setIsLoading] = useState(false);
+  const { id } = useAuthStore();
   const [userOwnerId, setUserOwnerId] = useState(null); 
 
+  const [workerId, setWorkerId] = useState(null);
+
+  useEffect(() => {
+      const fetchWorkerId = async () => {
+          try {
+              const workerId = await agent.User.getWorkerId(id);
+              setWorkerId(workerId); // Cập nhật state với giá trị workerId từ API
+          } catch (error) {
+              console.error("Error fetching workerId:", error);
+          }
+      };
+
+      fetchWorkerId();
+  }, []);
   useEffect(() => {
     const fetchUserData = async () => {
    
@@ -118,6 +134,16 @@ export default function JobList() {
     }
   };
 
+  const initiateChatWithApplicant = async (jobId) => {
+    try {
+      console.log(workerId)
+      const response = await agent.Chat.getOrCreate(jobId, workerId);
+      const conversationId = response.id;
+      navigate(`/chat/${conversationId}`);
+    } catch (e) {
+      console.log(e);
+    }
+  };
   return (
     <div>
       <ToastContainer autoClose={3000} position="top-right" theme="light" />
@@ -161,11 +187,13 @@ export default function JobList() {
                   </div>
                 </CardContent>
                 <CardContent className="pt-0 mt-auto">
+                  
                   <div className="flex justify-between items-center">
                     <Badge variant={job.type === 'Full-time' ? 'default' : job.type === 'Part-time' ? 'secondary' : 'outline'}>
                       {job.type || 'Type not specified'}
                     </Badge>
-                    <Button onClick={() => handleApply(job)}>Apply Now</Button>
+                    <Button onClick={() => initiateChatWithApplicant(job.id)}>Chat</Button>
+                    <Button className='ml-2' onClick={() => handleApply(job)}>Apply Now</Button>
                   </div>
                 </CardContent>
               </Card>
