@@ -115,7 +115,7 @@ function JobDetail({ jobId }) {
   );
 }
 
-function ApplicantsList({ jobId, onAccept }) {
+function ApplicantsList({ jobId, jobStatus, onAccept }) {
   const [noApplicants, setNoApplicants] = useState(false);
   const [applicants, setApplicants] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -149,8 +149,7 @@ function ApplicantsList({ jobId, onAccept }) {
       const data = { status: 'accepted' };
       await agent.acceptWorker.accept(jobId, workerId, data);
       toast.success("Applicant accepted successfully!");
-
-      onAccept(jobId);
+      onAccept();
     } catch (error) {
       console.error(`Failed to accept applicant with workerId ${workerId}:`, error.message);
       toast.error("Failed to accept applicant.");
@@ -207,81 +206,149 @@ function ApplicantsList({ jobId, onAccept }) {
             </div>
           </div>
           <div className="space-x-2">
-            <Button
-              size="sm"
-              variant="outline"
-              className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
-              onClick={() => handleAccept(applicant.workerId)}
-              disabled={actionLoading === applicant.workerId}
-            >
-              {actionLoading === applicant.workerId ? 'Processing...' : <><Check className="w-4 h-4 mr-2" /> Accept</>}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
-              onClick={() => handleReject(applicant.workerId)}
-              disabled={actionLoading === applicant.workerId}
-            >
-              {actionLoading === applicant.workerId ? 'Processing...' : <><X className="w-4 h-4 mr-2" /> Reject</>}
-            </Button>
-            <Dialog>
-              <DialogTrigger asChild>
+            {jobStatus === 'IN_PROGRESS' ? (
+              <>
+<p className="px-4 py-2 bg-blue-50 text-blue-700 rounded-md text-sm font-medium flex items-center">
+  <Info className="w-4 h-4 mr-2" />
+  This job is currently in progress. An applicant is actively working on it.
+</p>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                      onClick={() => setSelectedApplicant(applicant)}
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Details
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[550px]">
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl font-bold text-primary">Applicant Details</DialogTitle>
+                      <DialogDescription>Detailed information about the applicant.</DialogDescription>
+                    </DialogHeader>
+                    <div className="mt-6 space-y-6">
+                      <div className="flex items-center space-x-4">
+                        {applicant.user.avatar ? (
+                          <img src={applicant.user.avatar} alt={`${applicant.user.firstName} ${applicant.user.lastName}`} className="w-20 h-20 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-indigo-600 flex items-center justify-center text-2xl font-semibold text-white">
+                            {applicant.user.firstName[0]}{applicant.user.lastName[0]}
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="text-xl font-semibold text-gray-900">{`${applicant.user.firstName} ${applicant.user.lastName}`}</h3>
+                          <p className="text-sm text-muted-foreground">{applicant.user.username}</p>
+                        </div>
+                      </div>
+                      <Separator />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-center space-x-2">
+                          <Mail className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">{applicant.user.email}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Phone className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">{applicant.user.phoneNumber}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">{new Date(applicant.user.dateOfBirth).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">{applicant.user.address}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 col-span-full">
+                          <User className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">{applicant.user.status}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </>
+            ) : (
+              <>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
-                  onClick={() => setSelectedApplicant(applicant)}
+                  className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                  onClick={() => handleAccept(applicant.workerId)}
+                  disabled={actionLoading === applicant.workerId}
                 >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Details
+                  {actionLoading === applicant.workerId ? 'Processing...' : <><Check className="w-4 h-4 mr-2" /> Accept</>}
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[550px]">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl font-bold text-primary">Applicant Details</DialogTitle>
-                  <DialogDescription>Detailed information about the applicant.</DialogDescription>
-                </DialogHeader>
-                <div className="mt-6 space-y-6">
-                  <div className="flex items-center space-x-4">
-                    {applicant.user.avatar ? (
-                      <img src={applicant.user.avatar} alt={`${applicant.user.firstName} ${applicant.user.lastName}`} className="w-20 h-20 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-indigo-600 flex items-center justify-center text-2xl font-semibold text-white">
-                        {applicant.user.firstName[0]}{applicant.user.lastName[0]}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
+                  onClick={() => handleReject(applicant.workerId)}
+                  disabled={actionLoading === applicant.workerId}
+                >
+                  {actionLoading === applicant.workerId ? 'Processing...' : <><X className="w-4 h-4 mr-2" /> Reject</>}
+                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                      onClick={() => setSelectedApplicant(applicant)}
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Details
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[550px]">
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl font-bold text-primary">Applicant Details</DialogTitle>
+                      <DialogDescription>Detailed information about the applicant.</DialogDescription>
+                    </DialogHeader>
+                    <div className="mt-6 space-y-6">
+                      <div className="flex items-center space-x-4">
+                        {applicant.user.avatar ? (
+                          <img src={applicant.user.avatar} alt={`${applicant.user.firstName} ${applicant.user.lastName}`} className="w-20 h-20 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-indigo-600 flex items-center justify-center text-2xl font-semibold text-white">
+                            {applicant.user.firstName[0]}{applicant.user.lastName[0]}
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="text-xl font-semibold text-gray-900">{`${applicant.user.firstName} ${applicant.user.lastName}`}</h3>
+                          <p className="text-sm text-muted-foreground">{applicant.user.username}</p>
+                        </div>
                       </div>
-                    )}
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900">{`${applicant.user.firstName} ${applicant.user.lastName}`}</h3>
-                      <p className="text-sm text-muted-foreground">{applicant.user.username}</p>
+                      <Separator />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-center space-x-2">
+                          <Mail className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">{applicant.user.email}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Phone className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">{applicant.user.phoneNumber}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">{new Date(applicant.user.dateOfBirth).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">{applicant.user.address}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 col-span-full">
+                          <User className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">{applicant.user.status}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <Separator />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center space-x-2">
-                      <Mail className="w-5 h-5 text-muted-foreground" />
-                      <span className="text-sm">{applicant.user.email}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Phone className="w-5 h-5 text-muted-foreground" />
-                      <span className="text-sm">{applicant.user.phoneNumber}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="w-5 h-5 text-muted-foreground" />
-                      <span className="text-sm">{new Date(applicant.user.dateOfBirth).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="w-5 h-5 text-muted-foreground" />
-                      <span className="text-sm">{applicant.user.address}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 col-span-full">
-                      <User className="w-5 h-5 text-muted-foreground" />
-                      <span className="text-sm">{applicant.user.status}</span>
-                    </div>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+                  </DialogContent>
+                </Dialog>
+              </>
+            )}
           </div>
         </div>
       ))}
@@ -323,8 +390,8 @@ function JobList({ isCreatedJobs }) {
     loadJobs();
   }, [pageIndex, pageSize, sortBy, isDescending, filter, isCreatedJobs]);
 
-  const handleJobAccept = (jobId) => {
-    setJobs((prevJobs) => prevJobs.filter((job) => job.id !== jobId));
+  const handleJobAccept = () => {
+    // Accept callback without hiding the job
   };
 
   const paginate = (pageNumber) => {
@@ -444,7 +511,7 @@ function JobList({ isCreatedJobs }) {
                           </DialogDescription>
                         </DialogHeader>
                         <div className="flex-grow overflow-y-auto py-4">
-                          <ApplicantsList jobId={job.id} onAccept={handleJobAccept} />
+                          <ApplicantsList jobId={job.id} jobStatus={job.status} onAccept={handleJobAccept} />
                         </div>
                       </DialogContent>
                     </Dialog>
