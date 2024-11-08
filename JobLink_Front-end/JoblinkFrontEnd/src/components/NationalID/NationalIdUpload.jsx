@@ -21,6 +21,8 @@ export default function IDCardUpload() {
   };
 
   const handleUpload = async () => {
+    const confirmed = window.confirm("Are you sure you want to upload these images?");
+    if (!confirmed) return;
     if (!frontImage || !backImage) {
       alert("Please upload both front and back sides of your ID card.");
       return;
@@ -33,6 +35,7 @@ export default function IDCardUpload() {
       console.log("Upload response:", response);
       setFrontImage(null);
       setBackImage(null);
+      window.location.href = "http://localhost:5173/dashboard";
     } catch (error) {
       console.error("Upload failed:", error);
       alert("Failed to upload. Please try again.");
@@ -42,6 +45,8 @@ export default function IDCardUpload() {
   };
 
   const handleCancel = () => {
+    const confirmed = window.confirm("Are you sure you want to cancel?");
+    if (!confirmed) return;
     setFrontImage(null);
     setBackImage(null);
   };
