@@ -60,6 +60,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
+                placeholder="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -72,10 +73,10 @@ export default function LoginPage() {
               {isLoading ? "Logging in..." : "Log in"}
             </Button>
             <div className="flex justify-between w-full text-sm">
-              <a href="/forgot-password" className="text-blue-500 hover:underline">
+              <a href="/verifyEmail" className="text-blue-500 hover:underline">
                 Forgot password?
               </a>
-              <a href="/signup" className="text-blue-500 hover:underline">
+              <a href="/auth/register" className="text-blue-500 hover:underline">
                 Sign up
               </a>
             </div>
