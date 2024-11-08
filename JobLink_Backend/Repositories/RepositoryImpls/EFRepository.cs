@@ -133,6 +133,42 @@ public class EFRepository<T> : IRepository<T> where T : class
         };
     }
 
+    public async Task<Pagination<T>> GetAllOrderAsync(Expression<Func<T, bool>> filter, int pageIndex = 1, int pageSize = 10,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null,Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+        bool disableTracking = true)
+    {
+        IQueryable<T> query = _dbSet;
+        if (disableTracking)
+        {
+            query = query.AsNoTracking();
+        }
+
+        if (include != null)
+        {
+            query = include(query);
+        }
+        
+        if (orderBy != null)
+        {
+            query = orderBy(query);
+        }
+
+        var itemCount = await query.CountAsync(filter);
+        var item = await query
+            .Where(filter)
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .AsNoTracking()
+            .ToListAsync();
+
+        return new Pagination<T>()
+        {
+            PageIndex = pageIndex,
+            PageSize = pageSize,
+            TotalItems = itemCount,
+            Items = item
+        };
+    }
 
     public async Task<bool> AnyAsync(Expression<Func<T, bool>> filter)
     {
