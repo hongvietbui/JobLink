@@ -34,7 +34,7 @@ public class SupportRequestService(
             && (!filter.Status.HasValue || t.Status == filter.Status.Value);
 
         Func<IQueryable<SupportRequest>, IOrderedQueryable<SupportRequest>> orderExpression =
-            q => q.OrderByDescending(t => t.Priority);
+            q => q.OrderBy(t => t.Priority);
 
 
         //Func<IQueryable<SupportRequest>, IIncludableQueryable<SupportRequest>> includeExpression = q => q.Include(t => t.User).Include(t => t.Job);

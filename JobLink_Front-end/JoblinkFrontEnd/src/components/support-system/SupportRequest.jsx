@@ -200,8 +200,8 @@ const SupportRequest = () => {
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
               {Object.values(SupportCategory).map((category, index) => (
-                <SelectItem key={index} value={category}>
-                  {SupportCategory[category]}
+                <SelectItem key={index} value={index}>
+                  {category}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -261,13 +261,14 @@ const SupportRequest = () => {
                     </DialogTrigger>
                     <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle>{request.title}</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-6">
-                        <div>
+                        <DialogTitle>
                           <h2 className="text-2xl font-bold mb-2">
                             {request.title}
                           </h2>
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-6">
+                        <div>
                           <p className="text-muted-foreground">
                             {request.description}
                           </p>
@@ -349,7 +350,7 @@ const SupportRequest = () => {
                               <PaperclipIcon className="mr-2 h-5 w-5" />
                               Attachment
                             </h3>
-                            <div className="relative w-full h-64 rounded-lg overflow-clip">
+                            <div className="relative w-full h-64 rounded-lg overflow-clip cursor-pointer">
                               <img
                                 src={request.attachment}
                                 alt="Attached image"
@@ -368,7 +369,7 @@ const SupportRequest = () => {
                             <img
                               src={request.attachment}
                               alt="Zoomed image"
-                              className="w-full h-full object-contain rounded-lg"
+                              className="w-full h-full object-contain rounded-lg cursor-pointer"
                             />
                             <div className="mt-4 flex justify-end">
                               <Button

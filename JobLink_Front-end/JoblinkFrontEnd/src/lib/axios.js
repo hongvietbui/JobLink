@@ -176,7 +176,7 @@ const Job = {
 }
 
 const Transaction = {
-  createWithdraw: (body) => requests.post('http://localhost:8080/api/transactions', body),
+  createWithdraw: (body) => requests.post('http://localhost:8080/api/transaction', body),
 
 }
 
