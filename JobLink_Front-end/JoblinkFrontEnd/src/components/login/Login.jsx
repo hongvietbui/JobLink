@@ -24,9 +24,14 @@ export default function LoginPage() {
       const response = await agent.Account.loginEmail({username,password})
 
       //check if backend response
+<<<<<<< Updated upstream
       if (response.data.status === 200) {
         const { accessToken } = response.data.data;
         localStorage.setItem('accessToken', accessToken)
+=======
+        const  accessToken  = response.accessToken;
+        localStorage.setItem('token', accessToken)
+>>>>>>> Stashed changes
 
         //navigate to homepage
         navigate('');
