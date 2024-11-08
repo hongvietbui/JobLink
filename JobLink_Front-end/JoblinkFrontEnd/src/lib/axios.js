@@ -2,6 +2,7 @@ import { META } from './env'
 import axios from 'axios'
 
 import { convertParams } from './convertUrlParams'
+//import { URLSearchParams } from 'url'
 
 
 
@@ -110,6 +111,14 @@ const requests = {
         },
       })
       .then(responseBody)
+  },  patch: async (url, body) => { 
+    return axios
+      .patch(url, body, {
+        headers: {
+          'Content-type': 'application/json',
+        },
+      })
+      .then(responseBody);
   },
   postFile: async (url, data) => {
     return axios
@@ -200,20 +209,65 @@ const SupportRequest = {
   updateRequestStatus: (id) => requests.patch(`http://localhost:8080/api/supports/${id}`)
 
 }
-const Job1 = {
+const ListJobAvaible = {
   Listjob: (pageIndex, pageSize, sortBy, isDescending, filter) => {
-    const params = {
+    const queryString = new URLSearchParams({
       pageIndex,
       pageSize,
       sortBy,
       isDescending,
-      filter,
-    };
+      filter
+    }).toString();
 
-    return requests.get('http://localhost:8080/api/Job/get-jobs', { params });
+    const url = `http://localhost:8080/api/Job/all?${queryString}`;
+    console.log("Request URL:", url);
+
+    return requests.get(url);
   }
 };
-
+const ListJobUserCreated = {
+ JobUserCreated: (pageIndex,pageSize,sortBy,isDescending) =>{
+    const queryString = new URLSearchParams({
+      pageIndex,
+      pageSize,
+      sortBy,
+      isDescending
+    }).toString();
+    const url = `http://localhost:8080/api/Job/user?${queryString}`;
+    console.log("Request URL:", url);
+   
+    return requests.get(url);
+  }
+}
+const ListJobUserApplied = {
+ JobUserApplied: (pageIndex,pageSize,sortBy,isDescending) =>{
+    const queryString = new URLSearchParams({
+      pageIndex,
+      pageSize,
+      sortBy,
+      isDescending
+    }).toString();
+    const url = `http://localhost:8080/api/Job/applied?${queryString}`;
+    console.log("Request URL:", url);
+   
+    return requests.get(url);
+  }
+}
+const AppliedWorker = {
+  AppliedWorker: (jobId) => requests.get(`http://localhost:8080/api/Job/applied-workers/${jobId}`)
+};
+const acceptWorker = {
+  accept: (jobId, workerId, data) => 
+    requests.patch(`http://localhost:8080/api/Job/accept/${jobId}/${workerId}`, data),
+};
+const RejectWorker = {
+  reject: (jobId, workerId, data) => 
+    requests.patch(`http://localhost:8080/api/Job/reject/${jobId}/${workerId}`, data),
+};
+const JobandOwnerViewDetail = {
+  getJobOwner: (jobId) => 
+    requests.get(`http://localhost:8080/api/Job/job-owner/${jobId}`),
+};
 
 const agent = {
   CsrfToken,
@@ -226,6 +280,13 @@ const agent = {
   ForgetPassChange,
   Job,
   Transaction,
+  ListJobAvaible,
+  ListJobUserCreated,
+  ListJobUserApplied,
+  AppliedWorker,
+  acceptWorker,
+  RejectWorker,
+  JobandOwnerViewDetail,
   SupportRequest
 }
 
