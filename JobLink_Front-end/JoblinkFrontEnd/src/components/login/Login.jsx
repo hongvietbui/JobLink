@@ -8,7 +8,7 @@ import { useToast } from "../../hooks/use-toast"  // Import the custom toast hoo
 import { useNavigate } from "react-router-dom"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
@@ -19,9 +19,8 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const  username = email
       //Call backend
-      const response = await agent.Account.loginEmail({username,password})
+      const response = await agent.Account.loginUsername({username,password})
 
       //check if backend response
       if (response.data.status === 200) {
@@ -29,7 +28,7 @@ export default function LoginPage() {
         localStorage.setItem('accessToken', accessToken)
 
         //navigate to homepage
-        navigate('');
+        navigate('/dashboard');
         toast({
           title: "Logged in successfully!",
           description: "You have been logged in.",
@@ -41,7 +40,7 @@ export default function LoginPage() {
     } catch (error) {
       toast({
         title: "Login failed",
-        description: error.message || "Invalid email or password",
+        description: error.message || "Invalid username or password",
         status: "error",
       });
 
@@ -60,13 +59,13 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
+                id="username"
                 type="text"
                 placeholder="m@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
               />
             </div>
