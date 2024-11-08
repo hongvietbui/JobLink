@@ -4,6 +4,7 @@ namespace JobLink_Backend.DTOs.Response
 {
     public class TransactionResponse
     {
+        public Guid Id { get; set; }
         public decimal Amount { get; set; }
         public PaymentType PaymentType { get; set; }
         public PaymentStatus Status { get; set; }

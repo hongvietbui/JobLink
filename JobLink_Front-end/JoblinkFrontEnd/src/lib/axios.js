@@ -13,7 +13,6 @@ const responseBody = (response) => {
   return response.data.data
 }
 
-
 axios.interceptors.request.use(async (config) => {
 
   const token = localStorage.getItem("token")
@@ -181,7 +180,6 @@ const VerifyOtp = {
 const ForgetPassChange = {
   changePass: (email, password) => requests.post('http://localhost:8080/api/Auth/reset-password', email, password),
 }
-
 const User = {
   changePass: (body) => requests.post('http://localhost:8080/api/user/change-password', body),
   homepage: () => requests.get('http://localhost:8080/api/user/homepage'),
@@ -223,6 +221,25 @@ const ListJobAvaible = {
     return requests.get(url);
   }
 };
+
+const TopUpHistory = {
+  TopUp: (fromDate, toDate) => {
+    const params = {
+      fromDate: fromDate ? fromDate.toISOString() : undefined,
+      toDate: toDate ? toDate.toISOString() : undefined,
+    };
+    return requests.get('http://localhost:8080/api/Transaction/topupHistory', { params });
+  },
+};
+
+const NationalId = {
+  uploadNationalId: async (frontImage, backImage) => {
+    const formData = new FormData();
+      formData.append("nationalIdFront", frontImage); 
+      formData.append("nationalIdBack", backImage);
+      return request.postFile('http://localhost:8080/api/User/nationalId/upload', formData);
+  }
+}
 const ListJobUserCreated = {
  JobUserCreated: (pageIndex,pageSize,sortBy,isDescending) =>{
     const queryString = new URLSearchParams({
@@ -278,6 +295,8 @@ const agent = {
   ForgetPassChange,
   Job,
   Transaction,
+  TopUpHistory,
+  NationalId,
   ListJobAvaible,
   ListJobUserCreated,
   ListJobUserApplied,

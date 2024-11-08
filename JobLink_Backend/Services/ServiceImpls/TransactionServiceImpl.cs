@@ -263,10 +263,11 @@ public class TransactionServiceImpl(
 
         return transactions.Select(t => new TransactionResponse
         {
+            Id = t.Id,
             Amount = t.Amount,
             PaymentType = t.PaymentType,
             Status = t.Status,
-            TransactionDate = t.TransactionDate
-        }).ToList();
+            TransactionDate = t.TransactionDate,
+		}).ToList();
     }
 }
