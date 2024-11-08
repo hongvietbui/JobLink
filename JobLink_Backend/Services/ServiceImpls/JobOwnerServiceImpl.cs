@@ -17,5 +17,12 @@ namespace JobLink_Backend.Services.ServiceImpls
             var jobOwners = await _unitOfWork.Repository<JobOwner>().FindByConditionAsync(jo => jo.UserId == userId);
             return jobOwners != null && jobOwners.Any() ? jobOwners.First().Id.ToString() : "";
         }
+
+        public async Task<string> GetUserIdByJobOwnerIdAsync(Guid jobOwnerId)
+        {
+            var jobOwner = await _unitOfWork.Repository<JobOwner>().GetByIdAsync(jobOwnerId);
+
+            return jobOwner.UserId.ToString();
+        }
     }
 }

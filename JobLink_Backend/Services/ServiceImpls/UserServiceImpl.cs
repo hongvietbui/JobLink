@@ -18,6 +18,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore.Query;
+using JobLink_Backend.Utilities.AmazonS3;
 
 namespace JobLink_Backend.Services.ServiceImpls;
 
@@ -27,6 +28,7 @@ public class UserServiceImpl(
     INotificationService notification,
     IMapper mapper,
     JwtService jwtService,
+    S3Uploader s3Uploader,
     IHubContext<NotificationHub> notificationHub) : IUserService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
@@ -34,8 +36,10 @@ public class UserServiceImpl(
     private readonly INotificationService _notificationService = notification;
     private readonly IMapper _mapper = mapper;
     private readonly JwtService _jwtService = jwtService;
+    private readonly S3Uploader _s3Uploader = s3Uploader;
     private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
     private readonly IHubContext<NotificationHub> _notificationsHub = notificationHub;
+
 
     public async Task SaveRefreshTokenAsync(string username, string refreshToken)
     {
@@ -422,40 +426,38 @@ public class UserServiceImpl(
         var jobOwner = await _unitOfWork.Repository<JobOwner>().FirstOrDefaultAsync(jo => jo.Id == jobOwnerId);
         return await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == jobOwner.UserId, include: u => u.Include(u => u.Roles));
     }
-    //mine
-    public async Task<List<TransactionResponse>> GetTransactionsAsync(TransactionsRequest request)
-    {
-        var fromDate = request.FromDate ?? DateTime.MinValue;
-        var toDate = request.ToDate;
-
-        var transactions = await _unitOfWork.Repository<UserTransaction>()
-        .FindByConditionAsync(t =>
-            t.UserId == request.UserId &&
-            t.TransactionDate >= fromDate &&
-            t.TransactionDate <= toDate
-        );
-
-        return transactions.Select(t => new TransactionResponse
-        {
-            Amount = t.Amount,
-            PaymentType = t.PaymentType,
-            Status = t.Status,
-            TransactionDate = t.TransactionDate
-        }).ToList();
-    }
 
     //mine
-    public async Task<bool> UploadNationalIdAsync(IdRequest idRequest)
+    public async Task<NationalIdResponse> UploadNationalIdAsync(string accessToken, IFormFile nationalIdFront, IFormFile nationalIdBack)
     {
-        var user = await _userRepository.GetById(idRequest.userId);
-        if (user == null)
-        {
-            throw new ArgumentException("User not found");
-        }
+		var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken)?.Claims;
+		var userIdClaim = claims?.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
 
-        
+		if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+		{
+			throw new Exception("User ID not found in token claims.");
+		}
 
-        return true;
+		var nationalIdFrontUrl = await _s3Uploader.UploadFileAsync(nationalIdFront);
+		var nationalIdBackUrl = await _s3Uploader.UploadFileAsync(nationalIdBack);
+
+		var user = await _userRepository.GetByIdAsync(userId);
+		if (user == null)
+		{
+			throw new Exception("User not found.");
+		}
+
+		user.NationalIdFrontUrl = nationalIdFrontUrl;
+		user.NationalIdBackUrl = nationalIdBackUrl;
+		await _userRepository.Update(user);
+        await _userRepository.SaveChangeAsync();
+
+		return new NationalIdResponse
+		{
+			userId = userId,
+			NationalIdFrontUrl = nationalIdFrontUrl,
+			NationalIdBackUrl = nationalIdBackUrl
+		};
     }
 
     //mine
@@ -516,4 +518,31 @@ public class UserServiceImpl(
         await _unitOfWork.SaveChangesAsync();
         return true;
     }
+
+    public async Task<bool> UpdateUserAsync(Guid userId, UpdateUserDTO updateUserRequest)
+    {
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+        {
+            return false; // Người dùng không tồn tại
+        }
+
+        // Chỉ cập nhật những trường có giá trị
+        if (!string.IsNullOrEmpty(updateUserRequest.FirstName)) user.FirstName = updateUserRequest.FirstName;
+        if (!string.IsNullOrEmpty(updateUserRequest.LastName)) user.LastName = updateUserRequest.LastName;
+        if (!string.IsNullOrEmpty(updateUserRequest.PhoneNumber)) user.PhoneNumber = updateUserRequest.PhoneNumber;
+        if (!string.IsNullOrEmpty(updateUserRequest.Address)) user.Address = updateUserRequest.Address;
+        if (updateUserRequest.Lat.HasValue) user.Lat = updateUserRequest.Lat.Value;
+        if (updateUserRequest.Lon.HasValue) user.Lon = updateUserRequest.Lon.Value;
+        if (!string.IsNullOrEmpty(updateUserRequest.Avatar)) user.Avatar = updateUserRequest.Avatar;
+        if (updateUserRequest.DateOfBirth.HasValue) user.DateOfBirth = updateUserRequest.DateOfBirth;
+
+        _unitOfWork.Repository<User>().Update(user);
+        await _unitOfWork.SaveChangesAsync();
+
+        return true;
+    }
+
+
 }

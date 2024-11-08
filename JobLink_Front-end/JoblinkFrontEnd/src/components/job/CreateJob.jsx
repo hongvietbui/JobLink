@@ -1,5 +1,5 @@
 "use client";
-
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import agent from "@/lib/axios";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import "react-calendar/dist/Calendar.css";
 import { ArrowLeft, CreditCard, MapPin, Percent, ChevronRight } from "lucide-react";
 
 export default function CreateJob() {
+  const navigate = useNavigate(); 
   // Lấy dữ liệu từ localStorage khi tải trang, và chuyển đổi lại thành Date nếu cần
   const getInitialData = () => {
     const savedData = localStorage.getItem("jobData");
@@ -76,19 +77,29 @@ export default function CreateJob() {
     const payload = {
       ...jobData,
       startTime: new Date(jobData.startTime.getTime() - jobData.startTime.getTimezoneOffset() * 60000).toISOString(),
-      endTime: new Date(jobData.endTime.getTime() - jobData.endTime.getTimezoneOffset() * 60000).toISOString(),
+      endTime: new Date(jobData.endTime.getTime() - jobData.endTime.getTimezoneOffset() * 60000).toISOString()
     };
 
     try {
       const response = await agent.Job.createJob(payload);
       alert("Job created successfully!");
-      console.log("Response:", response);
-      localStorage.removeItem("jobData"); // Xóa dữ liệu sau khi gửi thành công
     } catch (error) {
-      console.error("Error:", error);
-      alert("An error occurred while creating the job.");
+      const { status, message } = error;
+
+      if (status == 400) {
+        alert("Invalid request. Please check your inputs.");
+      } else if (status == 402) {
+        alert("Insufficient funds. Redirecting to recharge page...");
+        navigate("/login"); // Điều hướng tới trang nạp tiền
+      } else {
+        console.error("Unexpected error:", error);
+        alert("Network or server error occurred. Please try again later.");
+      }
     }
   };
+  
+  
+  
 
   const updateField = (field, value) => {
     setJobData((prevData) => {
