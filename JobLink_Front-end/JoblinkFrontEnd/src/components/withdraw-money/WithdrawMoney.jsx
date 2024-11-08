@@ -33,7 +33,7 @@ const MoneyWithdrawal = () => {
   const [bankNumber, setbankNumber] = useState("");
   const [bankName, setbankName] = useState("");
   const [userReceive, setUserReceive] = useState("");
-  const { accountBalance, refreshUserData, email } = useAuthStore();
+  const { accountBalance, refreshUserData, email , id} = useAuthStore();
   const [isOpen, setIsOpen] = useState();
   const [loading, setLoading] = useState(false); // Loading state
   const [otp, setOtp] = useState("");
@@ -102,9 +102,10 @@ const MoneyWithdrawal = () => {
       userReceive,
       transactionDate: new Date(),
       paymentType: 0,
-      userId: "FF41A35A-868D-47E9-902B-F1687FA16A4A",
+      userId: id,
     };
 
+    console.log(formData)
     try {
       setLoading(true);
       await agent.Transaction.createWithdraw(formData);
