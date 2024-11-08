@@ -85,8 +85,8 @@ function App() {
         );
       })
       .catch((error) => {
-        console.error("Error:", error);
-        toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+        // console.error("Error:", error);
+        // toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
       });
   }, []);
 

@@ -24,6 +24,8 @@ public interface IRepository<T> where T : class
 
     Task<Pagination<T>> GetAllAsync(Expression<Func<T, bool>> filter, int pageIndex = 1, int pageSize = 10,
         Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, bool disableTracking = true);
+    Task<Pagination<T>> GetAllOrderAsync(Expression<Func<T, bool>> filter, int pageIndex = 1, int pageSize = 10,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, bool disableTracking = true);
 
     Task<bool> AnyAsync(Expression<Func<T, bool>> filter);
     Task<bool> AnyAsync();

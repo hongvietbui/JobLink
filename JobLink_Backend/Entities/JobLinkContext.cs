@@ -98,7 +98,8 @@ public class JobLinkContext : DbContext
         modelBuilder.Entity<SupportRequest>()
             .HasOne(t => t.Job)
             .WithMany(u => u.SupportRequests)
-            .HasForeignKey(t => t.UserId)
+            .HasForeignKey(t => t.JobId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
