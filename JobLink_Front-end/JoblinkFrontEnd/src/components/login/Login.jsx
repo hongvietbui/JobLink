@@ -4,52 +4,31 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import agent from '../../lib/axios'
-import { useToast } from "../../hooks/use-toast"  // Import the custom toast hook
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
-  const { toast } = useToast()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const  username = email
       //Call backend
-      const response = await agent.Account.loginEmail({username,password})
+      const response = await agent.Account.loginUsername({username,password})
 
       //check if backend response
-<<<<<<< Updated upstream
-      if (response.data.status === 200) {
-        const { accessToken } = response.data.data;
-        localStorage.setItem('accessToken', accessToken)
-=======
         const  accessToken  = response.accessToken;
         localStorage.setItem('token', accessToken)
->>>>>>> Stashed changes
-
         //navigate to homepage
-        navigate('');
-        toast({
-          title: "Logged in successfully!",
-          description: "You have been logged in.",
-          status: "success",
-        });
-      } else {
-        throw new Error(response.data.message)
-      }
+        navigate('/dashboard');
+        toast.success("Logged in successfully!")
     } catch (error) {
-      toast({
-        title: "Login failed",
-        description: error.message || "Invalid email or password",
-        status: "error",
-      });
-
+      toast.error(error.message || "Invalid username or password");
     } finally {
       setIsLoading(false)
     }
@@ -65,13 +44,13 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
+                id="username"
                 type="text"
-                placeholder="m@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
               />
             </div>
@@ -80,6 +59,7 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
+                placeholder="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -92,10 +72,10 @@ export default function LoginPage() {
               {isLoading ? "Logging in..." : "Log in"}
             </Button>
             <div className="flex justify-between w-full text-sm">
-              <a href="/forgot-password" className="text-blue-500 hover:underline">
+              <a href="/verifyEmail" className="text-blue-500 hover:underline">
                 Forgot password?
               </a>
-              <a href="/signup" className="text-blue-500 hover:underline">
+              <a href="/auth/register" className="text-blue-500 hover:underline">
                 Sign up
               </a>
             </div>
