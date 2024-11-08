@@ -16,6 +16,7 @@ import Home from "@/components/test/test";
 import UserProfile from "@/components/user-profile/UserProfileDetail";
 import MoneyWithdrawal from "@/components/withdraw-money/WithdrawMoney";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import JobDashboard from "@/components/ManageUserJob/JobManage"
 const RoutesConfig = () => {
   return (
     <Router>
@@ -35,7 +36,8 @@ const RoutesConfig = () => {
         <Route path="/auth/register" element={<RegisterForm/>}/>
         <Route path="/chat" element={<ChatInterface/>} />
         <Route path="/support-list" element={<SupportRequest />} />
-        {/* <Route path="/chat" element={<Chat />} /> */}
+        <Route path="/JobManage" element={<JobDashboard />} />
+   
       </Routes>
 
       <AddSupportRequest/>
