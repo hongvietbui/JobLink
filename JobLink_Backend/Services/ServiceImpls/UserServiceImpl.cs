@@ -449,6 +449,7 @@ public class UserServiceImpl(
 
 		user.NationalIdFrontUrl = nationalIdFrontUrl;
 		user.NationalIdBackUrl = nationalIdBackUrl;
+        user.NationalIdStatus = 0;
 		await _userRepository.Update(user);
         await _userRepository.SaveChangeAsync();
 
@@ -469,6 +470,7 @@ public class UserServiceImpl(
         return pendingUsers.Select(user => new UserNationalIdDTO
         {
             UserId = user.Id,
+            Username = user.Username,
             NationalIdFrontUrl = user.NationalIdFrontUrl,
             NationalIdBackUrl = user.NationalIdBackUrl,
             NationalIdStatus = user.NationalIdStatus
@@ -493,24 +495,20 @@ public class UserServiceImpl(
         };
     }
 
-    //mine
     public async Task<bool> ApproveNationalIdAsync(Guid userId)
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null) throw new ArgumentException("User not found");
-
         user.NationalIdStatus = NationalIdStatus.Approved;
         _userRepository.Update(user);
-        await _unitOfWork.SaveChangesAsync();
+        await _userRepository.SaveChangeAsync();
         return true;
     }
 
-    //mine
     public async Task<bool> RejectNationalIdAsync(Guid userId)
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null) throw new ArgumentException("User not found");
-
         user.NationalIdFrontUrl = null;
         user.NationalIdBackUrl = null;
         user.NationalIdStatus = NationalIdStatus.Rejected;
