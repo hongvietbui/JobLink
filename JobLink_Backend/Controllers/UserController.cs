@@ -371,7 +371,7 @@ namespace JobLink_Backend.Controllers
                 return Ok(new ApiResponse<string>
                 {
                     Data = ownerId,
-                    Message = "Get worker id successfully!",
+                    Message = "Get owner id successfully!",
                     Status = 200,
                     Timestamp = DateTime.Now.Ticks
                 });

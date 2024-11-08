@@ -288,6 +288,14 @@ const Chat = {
   getAllMessage: (conversationId) => requests.get(META.BACKEND + `/api/chat/${conversationId}`)
 }
 
+const WorkerAssign = {
+  assign: (jobId, data) => 
+    requests.patch(`http://localhost:8080/api/Job/assign/${jobId}`, data),
+};
+const owner = {
+  ownerid: (userId,data) =>
+    requests.get(`http://localhost:8080/api/User/owner/id/${userId}`,data),
+};
 const agent = {
   CsrfToken,
   Account,
@@ -309,7 +317,8 @@ const agent = {
   acceptWorker,
   RejectWorker,
   JobandOwnerViewDetail,
-  Chat
+  Chat,
+  WorkerAssign,owner
 }
 
 export default agent
