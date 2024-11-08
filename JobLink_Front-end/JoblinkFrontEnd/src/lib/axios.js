@@ -237,9 +237,10 @@ const NationalId = {
     const formData = new FormData();
       formData.append("nationalIdFront", frontImage); 
       formData.append("nationalIdBack", backImage);
-      return request.postFile('http://localhost:8080/api/User/nationalId/upload', formData);
+      return requests.postFile('http://localhost:8080/api/User/nationalId/upload', formData);
   }
 }
+
 const ListJobUserCreated = {
  JobUserCreated: (pageIndex,pageSize,sortBy,isDescending) =>{
     const queryString = new URLSearchParams({
