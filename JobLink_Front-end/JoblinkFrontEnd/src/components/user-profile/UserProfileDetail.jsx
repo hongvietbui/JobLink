@@ -24,21 +24,21 @@ const sampleReviews = [
     rating: 5,
     comment: "Great experience working with this user!",
     date: "2 weeks ago",
-    avatar: "https://example.com/alice.jpg",
+    avatar: "https://th.bing.com/th/id/OIP.8tUunKcWtoUZspybYnZxqQHaHa?rs=1&pid=ImgDetMain",
   },
   {
     username: "John",
     rating: 4,
     comment: "Knowledgeable and helpful, highly recommend.",
     date: "1 month ago",
-    avatar: "https://example.com/john.jpg",
+    avatar: "https://i.pinimg.com/736x/ed/fe/5f/edfe5f3bedfcb3681dfa127090b6e2a8.jpg",
   },
   {
     username: "Sarah",
     rating: 5,
     comment: "Very professional and friendly!",
     date: "1 month ago",
-    avatar: "https://example.com/sarah.jpg",
+    avatar: "https://th.bing.com/th/id/OIP.-SrXtZti-Rzzsr1-vSKeCQHaHZ?w=800&h=799&rs=1&pid=ImgDetMain",
   },
 ];
 
