@@ -273,7 +273,8 @@ namespace JobLink_Backend.Controllers
                     Status = 200,
                     Timestamp = DateTime.Now.Ticks
                 });
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return BadRequest(new ApiResponse<string>
                 {
@@ -284,7 +285,7 @@ namespace JobLink_Backend.Controllers
                 });
             }
         }
-        
+
         [HttpGet("owner/id/{userId}")]
         public async Task<IActionResult> GetOwnerByUserId(string userId)
         {
@@ -298,7 +299,8 @@ namespace JobLink_Backend.Controllers
                     Status = 200,
                     Timestamp = DateTime.Now.Ticks
                 });
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return BadRequest(new ApiResponse<string>
                 {
@@ -309,5 +311,55 @@ namespace JobLink_Backend.Controllers
                 });
             }
         }
+        [HttpPut("edit")]
+        public async Task<IActionResult> EditUser([FromHeader] string authorization, [FromBody] UpdateUserDTO updateUserRequest)
+        {
+            if (string.IsNullOrWhiteSpace(authorization) || !authorization.StartsWith("Bearer "))
+            {
+                return Unauthorized(new ApiResponse<string>
+                {
+                    Data = null,
+                    Message = "Authorization header is missing or invalid.",
+                    Status = 401,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+
+            var accessToken = authorization.Split(" ")[1];
+            var user = await _userService.GetUserByAccessToken(accessToken);
+
+            if (user == null)
+            {
+                return NotFound(new ApiResponse<string>
+                {
+                    Data = null,
+                    Message = "User not found.",
+                    Status = 404,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+
+            var result = await _userService.UpdateUserAsync(user.Id, updateUserRequest);
+
+            if (result)
+            {
+                return Ok(new ApiResponse<string>
+                {
+                    Data = "User updated successfully.",
+                    Message = "User update completed.",
+                    Status = 200,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+
+            return BadRequest(new ApiResponse<string>
+            {
+                Data = null,
+                Message = "User update failed.",
+                Status = 400,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+
     }
 }
