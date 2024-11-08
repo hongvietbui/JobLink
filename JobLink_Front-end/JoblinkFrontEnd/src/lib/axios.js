@@ -19,7 +19,8 @@ axios.interceptors.request.use(async (config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
-  if (config.method === 'post' || config.method === 'put' || config.method === 'delete') {
+  if ((config.method === 'post' || config.method === 'put' || config.method === 'delete') && config.headers['Content-Type'] !== 'multipart/form-data') {
+    console.log()
     const originalData = config.data || {} // preserve original body data
     config.data = {
       data: originalData,
@@ -85,6 +86,15 @@ const requests = {
   put: async (url, body) => {
     return axios
       .put(url, body, {
+        headers: {
+          'Content-type': 'application/json',
+        },
+      })
+      .then(responseBody)
+  },
+  patch: async (url, body) => {
+    return axios
+      .patch(url, body, {
         headers: {
           'Content-type': 'application/json',
         },
@@ -169,7 +179,15 @@ const Job = {
 
 const Transaction = {
   createWithdraw: (body) => requests.post('http://localhost:8080/api/transactions', body),
- 
+
+}
+
+
+const SupportRequest = {
+  createNewRequest: (body) => requests.postFile('http://localhost:8080/api/supports', body),
+  listAllRequest: (params) => requests.get('http://localhost:8080/api/supports', convertParams(params)),
+  updateRequestStatus: (id) => requests.patch(`http://localhost:8080/api/supports/${id}`)
+
 }
 const Job1 = {
   Listjob: (pageIndex, pageSize, sortBy, isDescending, filter) => {
@@ -195,7 +213,8 @@ const agent = {
   VerifyOtp, 
   ForgetPassChange,
   Job,
-  Transaction
+  Transaction,
+  SupportRequest
 }
 
 export default agent

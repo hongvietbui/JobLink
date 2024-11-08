@@ -18,11 +18,46 @@ import {
 } from "../ui/select";
 import { useState } from "react";
 import { Label } from "../ui/label";
+import agent from "@/lib/axios";
+import { toast } from "react-toastify";
+
+const SupportCategory = {
+  0: "Lỗi giao diện người dùng (UI/UX)",
+  1: "Lỗi chức năng",
+  2: "Lỗi về bảo mật",
+  3: "Lỗi về hiệu suất",
+  4: "Lỗi job",
+  5: "Lỗi thanh toán",
+  6: "Đề xuất cải tiến hoặc góp ý",
+  7: "Lỗi khác",
+};
+
 const AddSupportRequest = () => {
   const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
   const [newRequest, setNewRequest] = useState({});
   const [selectedImage, setSelectedImage] = useState(null);
   const [enlargedImage, setEnlargedImage] = useState(null);
+
+  const createSupportRequest = async () => {
+    console.log(newRequest)
+    const formData = new FormData();
+    formData.append("title", newRequest.title);
+    formData.append("description", newRequest.description);
+    formData.append("priority", newRequest.priority);
+    formData.append("category", newRequest.category);
+    formData.append("Attachment", selectedImage);
+
+    formData.append("JobId", '');
+    console.log(formData);
+    try {
+      await agent.SupportRequest.createNewRequest(formData);
+      toast.success("Create new request ticket successfully");
+    } catch (error) {
+      console.error("Error creating request:", error);
+      toast.error("Create new request ticket failed!");
+    }
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
     if (
@@ -40,6 +75,7 @@ const AddSupportRequest = () => {
       //     user: 'current.user@example.com', // This should be the logged-in user
       //     image: selectedImage ? URL.createObjectURL(selectedImage) : undefined
       //   }
+      createSupportRequest();
       setNewRequest({});
       setSelectedImage(null);
       setIsNewRequestOpen(false);
@@ -104,9 +140,9 @@ const AddSupportRequest = () => {
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
+                  <SelectItem value="2">Low</SelectItem>
+                  <SelectItem value="1">Medium</SelectItem>
+                  <SelectItem value="0">High</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -121,10 +157,11 @@ const AddSupportRequest = () => {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Hardware">Hardware</SelectItem>
-                  <SelectItem value="Software">Software</SelectItem>
-                  <SelectItem value="Network">Network</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
+                  {Object.entries(SupportCategory).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>
+                      {label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -175,7 +212,6 @@ const AddSupportRequest = () => {
                             alt="Enlarged"
                             className="max-w-full max-h-[90vh] object-contain"
                           />
-                       
                         </div>
                       </div>
                     </DialogContent>
@@ -196,8 +232,6 @@ const AddSupportRequest = () => {
           </form>
         </DialogContent>
       </Dialog>
-
-    
     </>
   );
 };
