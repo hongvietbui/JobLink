@@ -3,6 +3,7 @@ import ChatInterface from "@/components/chat/chat";
 import Dashboard from "@/components/dashboard/Dashboard";
 import ChangePasswordPage from "@/components/forgot-pass/ChangePassForgot";
 import VerifyEmailPage from "@/components/forgot-pass/VerifyGmail";
+import JobDetailsPage from "@/components/job-details/JobDetailsPage";
 import ConfirmJob from "@/components/job/ConfirmationScreen";
 import CreateJob from "@/components/job/CreateJob";
 import CreateLocation from "@/components/job/CreateLocation";
@@ -39,6 +40,7 @@ const RoutesConfig = () => {
         <Route path="/auth/register" element={<RegisterForm />} />
         <Route path="/chat" element={<ChatInterface />} />
         <Route path="/support-list" element={<SupportRequest />} />
+        <Route path="/job/details/:jobId" element={<JobDetailsPage />} />
         <Route path="/UploadId" element={<NationalIdUpload />} />
         <Route path="/ManageUserId" element={<IDCardManagement />} />
         <Route path="/TransactionHistory" element={<TopUpHistory/>}/>

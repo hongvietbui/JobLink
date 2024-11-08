@@ -184,12 +184,17 @@ const User = {
   changePass: (body) => requests.post('http://localhost:8080/api/user/change-password', body),
   homepage: () => requests.get('http://localhost:8080/api/user/homepage'),
   me: () => requests.get('http://localhost:8080/api/user/me'),
+  getUserByJobOwnerId: (jobOwnerId) => requests.get('http://localhost:8080/api/user/owner/' + jobOwnerId),
   editUser: (data) => requests.put('http://localhost:8080/api/User/edit', data), 
 }
 
 const Job = {
   getListJobDoneDashboard: (body) => requests.get('http://localhost:8080/api/job', convertParams(body)),
   getStatistical : (params) => requests.get('http://localhost:8080/api/job/stats', params),
+  assignJob: (jobId) => requests.patch('http://localhost:8080/api/job/assign/' + jobId),
+  getById: (jobId) => requests.get('http://localhost:8080/api/job/id?jobId=' + jobId),
+  getJobAndOwnerByJobId: (jobId) => requests.get('http://localhost:8080/api/job/job-owner/' + jobId),
+  getUserRoleByJobId: (jobId) => requests.get('http://localhost:8080/api/job?jobId=' + jobId),
   createJob: (jobData) => requests.post('http://localhost:8080/api/Job', jobData),
 }
 

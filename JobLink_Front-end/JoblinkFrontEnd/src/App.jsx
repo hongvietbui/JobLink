@@ -90,6 +90,10 @@ function App() {
       });
   }, []);
 
+  function handleRegisterBtn() {
+      window.location.href = "/auth/register";
+  }
+
   // const handleSetAuthData = () => {
   //   setAuthData(
   //     "ff41a35a-868d-47e9-902b-f1687fa16a4a", // id
@@ -135,7 +139,7 @@ function App() {
             type="search"
           />
           <Button variant="ghost"><a href="/auth/login">Login</a></Button>
-          <Button>Sign up</Button>
+          <Button onClick={handleRegisterBtn}>Sign up</Button>
           <Button
             onClick={() => {
               const value = prompt("Nhập giá trị text:");
