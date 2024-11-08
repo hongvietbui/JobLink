@@ -15,6 +15,9 @@ import SupportRequest from "@/components/support-system/SupportRequest";
 import Home from "@/components/test/test";
 import UserProfile from "@/components/user-profile/UserProfileDetail";
 import MoneyWithdrawal from "@/components/withdraw-money/WithdrawMoney";
+import NationalIdUpload from "@/components/NationalID/NationalIdUpload"
+import IDCardManagement from "@/components/NationalID/ManageUserID";
+import TopUpHistory from "@/components/TopUpHistory/TopUpHistory";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 const RoutesConfig = () => {
   return (
@@ -32,13 +35,16 @@ const RoutesConfig = () => {
         <Route path="/createLocation" element={<CreateLocation />} />
         <Route path="/createJob" element={<CreateJob />} />
         <Route path="/confirmJob" element={<ConfirmJob />} />
-        <Route path="/auth/register" element={<RegisterForm/>}/>
-        <Route path="/chat" element={<ChatInterface/>} />
+        <Route path="/auth/register" element={<RegisterForm />} />
+        <Route path="/chat" element={<ChatInterface />} />
         <Route path="/support-list" element={<SupportRequest />} />
+        <Route path="/UploadId" element={<NationalIdUpload />} />
+        <Route path="/ManageUserId" element={<IDCardManagement />} />
+        <Route path="/TransactionHistory" element={<TopUpHistory/>}/>
         {/* <Route path="/chat" element={<Chat />} /> */}
       </Routes>
 
-      <AddSupportRequest/>
+      <AddSupportRequest />
     </Router>
   );
 };

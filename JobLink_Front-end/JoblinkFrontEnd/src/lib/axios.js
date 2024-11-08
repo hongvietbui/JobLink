@@ -183,17 +183,14 @@ const Job1 = {
 };
 
 const TopUpHistory = {
-  TopUp: (fromDate, toDate, pageIndex, pageSize, filter) => {
+  TopUp: (fromDate, toDate) => {
     const params = {
       fromDate: fromDate ? fromDate.toISOString() : undefined,
       toDate: toDate ? toDate.toISOString() : undefined,
-      pageIndex,
-      pageSize,
-      filter
     };
     return requests.get('http://localhost:8080/api/Transaction/topupHistory', { params });
-  }
-}
+  },
+};
 
 const NationalId = {
   uploadNationalId: async (frontImage, backImage) => {
