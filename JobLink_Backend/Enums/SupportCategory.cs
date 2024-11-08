@@ -4,27 +4,27 @@ namespace JobLink_Backend.Entities;
 
 public enum SupportCategory
 {
-    [Description("Lỗi giao diện người dùng (UI/UX)")]
+    [Description("User Interface/User Experience (UI/UX) Error")]
     UIUXError,
 
-    [Description("Lỗi chức năng")]
+    [Description("Functional Error")]
     FunctionalError,
 
-    [Description("Lỗi về bảo mật")]
+    [Description("Security Issue")]
     SecurityIssue,
 
-    [Description("Lỗi về hiệu suất")]
+    [Description("Performance Issue")]
     PerformanceIssue,
 
-    [Description("Lỗi job")]
+    [Description("Job Error")]
     JobError,
     
-    [Description("Lỗi thanh toán")]
+    [Description("Payment Error")]
     PaymentError,
 
-    [Description("Đề xuất cải tiến hoặc góp ý")]
+    [Description("Improvement Suggestions or Feedback")]
     ImprovementSuggestion,
 
-    [Description("Lỗi khác")]
+    [Description("Other Errors")]
     Other
 }
