@@ -31,37 +31,35 @@ axios.interceptors.request.use(async (config) => {
 })
 
 axios.interceptors.response.use(
-  (response) => {
-    return response
-  },
+  (response) => response,
   async (error) => {
-    const { data, status } = error.response
+    const { data, status } = error.response || {};
     switch (status) {
+      case 402:
+        return Promise.reject({ status, message: data?.message || 'Insufficient funds' });
       case 400:
         if (data.errors) {
-          const modelStateErrors = []
+          const modelStateErrors = [];
           for (const key in data.errors) {
             if (data.errors[key]) {
-              modelStateErrors.push(data.errors[key])
+              modelStateErrors.push(data.errors[key]);
             }
           }
-          throw modelStateErrors.flat()
+          return Promise.reject({ status, message: modelStateErrors.flat().join(', ') });
         }
-        break
+        break;
       case 401:
-
-        break
-
+        return Promise.reject({ status, message: data?.message || 'Unauthorized access' });
       case 403:
-        break
+        return Promise.reject({ status, message: data?.message || 'Forbidden access' });
       case 500:
-
-        break
+        return Promise.reject({ status, message: data?.message || 'Server error' });
       default:
-        break
+        return Promise.reject({ status, message: data?.message || 'Unexpected error' });
     }
-    return Promise.reject(error.response)
-  },
+
+    return Promise.reject({ message: 'Network error', status: null });
+  }
 )
 
 const requests = {
