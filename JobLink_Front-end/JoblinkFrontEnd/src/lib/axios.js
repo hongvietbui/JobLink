@@ -91,6 +91,15 @@ const requests = {
       })
       .then(responseBody)
   },
+  patch: async (url, body) => {
+    return axios
+      .patch(url, body, {
+        headers: {
+          'Content-type': 'application/json',
+        },
+      })
+      .then(responseBody)
+  },
   del: async (url, params) => {
     return axios
       .delete(url, {
@@ -158,12 +167,16 @@ const User = {
   changePass: (body) => requests.post('http://localhost:8080/api/user/change-password', body),
   homepage: () => requests.get('http://localhost:8080/api/user/homepage'),
   me: () => requests.get('http://localhost:8080/api/user/me'),
-
+  getUserByJobOwnerId: (jobOwnerId) => requests.get('http://localhost:8080/api/user/owner/' + jobOwnerId),
 }
 
 const Job = {
   getListJobDoneDashboard: (body) => requests.get('http://localhost:8080/api/job', convertParams(body)),
-  getStatistical : (params) => requests.get('http://localhost:8080/api/job/stats', params)
+  getStatistical : (params) => requests.get('http://localhost:8080/api/job/stats', params),
+  assignJob: (jobId) => requests.patch('http://localhost:8080/api/job/assign/' + jobId),
+  getById: (jobId) => requests.get('http://localhost:8080/api/job/id?jobId=' + jobId),
+  getJobAndOwnerByJobId: (jobId) => requests.get('http://localhost:8080/api/job/job-owner/' + jobId),
+  getUserRoleByJobId: (jobId) => requests.get('http://localhost:8080/api/job?jobId=' + jobId),
 }
 
 const Transaction = {
