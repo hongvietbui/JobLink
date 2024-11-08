@@ -1,4 +1,4 @@
-import { META } from './env'
+import { META } from '@/utils/helper/env'
 import axios from 'axios'
 
 import { convertParams } from './convertUrlParams'
@@ -177,11 +177,12 @@ const User = {
   homepage: () => requests.get('http://localhost:8080/api/user/homepage'),
   me: () => requests.get('http://localhost:8080/api/user/me'),
   editUser: (data) => requests.put('http://localhost:8080/api/User/edit', data), 
+  getWorkerId: (userId) => requests.get(`http://localhost:8080/api/user/worker/id/${userId}`),
 }
 
 const Job = {
   getListJobDoneDashboard: (body) => requests.get('http://localhost:8080/api/job', convertParams(body)),
-  getStatistical : (params) => requests.get('http://localhost:8080/api/job/stats', params),
+  getStatistical: (params) => requests.get('http://localhost:8080/api/job/stats', params),
   createJob: (jobData) => requests.post('http://localhost:8080/api/Job', jobData),
 }
 
@@ -234,7 +235,7 @@ const NationalId = {
 }
 
 const ListJobUserCreated = {
- JobUserCreated: (pageIndex,pageSize,sortBy,isDescending) =>{
+  JobUserCreated: (pageIndex, pageSize, sortBy, isDescending) => {
     const queryString = new URLSearchParams({
       pageIndex,
       pageSize,
@@ -243,12 +244,12 @@ const ListJobUserCreated = {
     }).toString();
     const url = `http://localhost:8080/api/Job/user?${queryString}`;
     console.log("Request URL:", url);
-   
+
     return requests.get(url);
   }
 }
 const ListJobUserApplied = {
- JobUserApplied: (pageIndex,pageSize,sortBy,isDescending) =>{
+  JobUserApplied: (pageIndex, pageSize, sortBy, isDescending) => {
     const queryString = new URLSearchParams({
       pageIndex,
       pageSize,
@@ -257,7 +258,7 @@ const ListJobUserApplied = {
     }).toString();
     const url = `http://localhost:8080/api/Job/applied?${queryString}`;
     console.log("Request URL:", url);
-   
+
     return requests.get(url);
   }
 }
@@ -265,26 +266,31 @@ const AppliedWorker = {
   AppliedWorker: (jobId) => requests.get(`http://localhost:8080/api/Job/applied-workers/${jobId}`)
 };
 const acceptWorker = {
-  accept: (jobId, workerId, data) => 
+  accept: (jobId, workerId, data) =>
     requests.patch(`http://localhost:8080/api/Job/accept/${jobId}/${workerId}`, data),
 };
 const RejectWorker = {
-  reject: (jobId, workerId, data) => 
+  reject: (jobId, workerId, data) =>
     requests.patch(`http://localhost:8080/api/Job/reject/${jobId}/${workerId}`, data),
 };
 const JobandOwnerViewDetail = {
-  getJobOwner: (jobId) => 
+  getJobOwner: (jobId) =>
     requests.get(`http://localhost:8080/api/Job/job-owner/${jobId}`),
 };
+
+const Chat = {
+  getOrCreate: (jobId, workerId) => requests.get(META.BACKEND + `/api/chat/getOrCreate/${jobId}/${workerId}`),
+  getAllMessage: (conversationId) => requests.get(META.BACKEND + `/api/chat/${conversationId}`)
+}
 
 const agent = {
   CsrfToken,
   Account,
   User,
-	Attendance,
+  Attendance,
   EmailTemplate,
   EmailInput,
-  VerifyOtp, 
+  VerifyOtp,
   ForgetPassChange,
   Job,
   Transaction,
@@ -297,7 +303,8 @@ const agent = {
   AppliedWorker,
   acceptWorker,
   RejectWorker,
-  JobandOwnerViewDetail
+  JobandOwnerViewDetail,
+  Chat
 }
 
 export default agent

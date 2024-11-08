@@ -1,26 +1,64 @@
-import { useState, useEffect } from 'react';
-import agent from '../../lib/axios';
-import { Search, MapPin, Calendar, DollarSign, Briefcase, CheckCircle, XCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect } from "react";
+import agent from "../../lib/axios";
+import {
+  Search,
+  MapPin,
+  Calendar,
+  DollarSign,
+  Briefcase,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import useAuthStore from "@/stores/useAuthStore";
 
 export default function JobList() {
   const [jobs, setJobs] = useState([]);
-  const [filter, setFilter] = useState('');
-  const [sortBy, setSortBy] = useState('');
-  const [isDescending, setIsDescending] = useState(false); 
-  const [pageIndex, setPageIndex] = useState(1); 
+  const [filter, setFilter] = useState("");
+  const [sortBy, setSortBy] = useState("");
+  const [isDescending, setIsDescending] = useState(false);
+  const [pageIndex, setPageIndex] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize] = useState(6);
-  const [isLoading, setIsLoading] = useState(false); 
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { id } = useAuthStore();
 
+  const [workerId, setWorkerId] = useState(null);
+
+  useEffect(() => {
+      const fetchWorkerId = async () => {
+          try {
+              const workerId = await agent.User.getWorkerId(id);
+              setWorkerId(workerId); // Cập nhật state với giá trị workerId từ API
+          } catch (error) {
+              console.error("Error fetching workerId:", error);
+          }
+      };
+
+      fetchWorkerId();
+  }, []);
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        setIsLoading(true); 
+        setIsLoading(true);
         const response = await agent.ListJobAvaible.Listjob(
           pageIndex,
           pageSize,
@@ -29,22 +67,28 @@ export default function JobList() {
           filter
         );
 
-        console.log("Parameters sent to API:", { pageIndex, pageSize, sortBy, isDescending, filter });
-        console.log('Full API response:', response);
+        console.log("Parameters sent to API:", {
+          pageIndex,
+          pageSize,
+          sortBy,
+          isDescending,
+          filter,
+        });
+        console.log("Full API response:", response);
 
         if (response && response.items) {
           console.log("Jobs in response:", response.items);
-          setJobs(response.items); 
+          setJobs(response.items);
           setTotalPages(Math.ceil(response.totalItems / pageSize));
-          console.log("Updated jobs state:", jobs); 
+          console.log("Updated jobs state:", jobs);
         } else {
           setJobs([]);
         }
       } catch (error) {
-        console.error('Failed to fetch jobs:', error.message);
-        setJobs([]); 
+        console.error("Failed to fetch jobs:", error.message);
+        setJobs([]);
       } finally {
-        setIsLoading(false); 
+        setIsLoading(false);
       }
     };
 
@@ -56,12 +100,22 @@ export default function JobList() {
   const currentJobs = jobs.slice(indexOfFirstJob, indexOfLastJob);
 
   const paginate = (pageNumber) => {
-    console.log('Paginate function triggered with pageNumber:', pageNumber);
+    console.log("Paginate function triggered with pageNumber:", pageNumber);
     if (pageNumber > 0 && pageNumber <= totalPages) {
       setPageIndex(pageNumber); // Ensure we only paginate within available pages
     }
   };
 
+  const initiateChatWithApplicant = async (jobId) => {
+    try {
+      console.log(workerId)
+      const response = await agent.Chat.getOrCreate(jobId, workerId);
+      const conversationId = response.id;
+      navigate(`/chat/${conversationId}`);
+    } catch (e) {
+      console.log(e);
+    }
+  };
   return (
     <div className="container mx-auto py-10">
       <Card className="mb-6">
@@ -87,7 +141,9 @@ export default function JobList() {
                 <SelectItem value="Price">Salary</SelectItem>
               </SelectContent>
             </Select>
-            <Select onValueChange={(value) => setIsDescending(value === 'true')}>
+            <Select
+              onValueChange={(value) => setIsDescending(value === "true")}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Sort order" />
               </SelectTrigger>
@@ -101,35 +157,47 @@ export default function JobList() {
       </Card>
 
       {isLoading ? (
-  <div className="text-center py-4">Loading jobs...</div>
-) : jobs.length === 0 ? (
-  <div className="text-center py-4">No jobs available</div>
-) : (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {jobs.map((job) => (
-
+        <div className="text-center py-4">Loading jobs...</div>
+      ) : jobs.length === 0 ? (
+        <div className="text-center py-4">No jobs available</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {jobs.map((job) => (
             <Card key={job.id} className="flex flex-col">
               <CardHeader>
                 <CardTitle>{job.name}</CardTitle>
-                <CardDescription>{job.company || 'Company not specified'}</CardDescription>
+                <CardDescription>
+                  {job.company || "Company not specified"}
+                </CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">
                 <p className="text-sm text-gray-500 mb-4">{job.description}</p>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center">
                     <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                    <span className="text-sm">{job.address || 'Address not specified'}</span>
+                    <span className="text-sm">
+                      {job.address || "Address not specified"}
+                    </span>
                   </div>
                   <div className="flex items-center">
                     <DollarSign className="w-4 h-4 mr-2 text-gray-500" />
-                    <span className="text-sm">{job.price ? `$${job.price.toLocaleString()} per year` : 'Salary not provided'}</span>
+                    <span className="text-sm">
+                      {job.price
+                        ? `$${job.price.toLocaleString()} per year`
+                        : "Salary not provided"}
+                    </span>
                   </div>
                   <div className="flex items-center">
                     <Calendar className="w-4 h-4 mr-2 text-gray-500" />
-                    <span className="text-sm">Posted on {job.duration ? new Date(job.duration).toLocaleDateString() : 'Date not available'}</span>
+                    <span className="text-sm">
+                      Posted on{" "}
+                      {job.duration
+                        ? new Date(job.duration).toLocaleDateString()
+                        : "Date not available"}
+                    </span>
                   </div>
                   <div className="flex items-center">
-                    {job.status === 'WAITING_FOR_APPLICANTS' ? (
+                    {job.status === "WAITING_FOR_APPLICANTS" ? (
                       <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
                     ) : (
                       <XCircle className="w-4 h-4 mr-2 text-yellow-500" />
@@ -140,9 +208,22 @@ export default function JobList() {
               </CardContent>
               <CardContent className="pt-0 mt-auto">
                 <div className="flex justify-between items-center">
-                  <Badge variant={job.type === 'Full-time' ? 'default' : job.type === 'Part-time' ? 'secondary' : 'outline'}>
-                    {job.type || 'Type not specified'}
+                  <Badge
+                    variant={
+                      job.type === "Full-time"
+                        ? "default"
+                        : job.type === "Part-time"
+                        ? "secondary"
+                        : "outline"
+                    }
+                  >
+                    {job.type || "Type not specified"}
                   </Badge>
+                  <Button
+                    onClick={() => initiateChatWithApplicant(job.id)}
+                  >
+                    Chat
+                  </Button>
                   <Button>Apply Now</Button>
                 </div>
               </CardContent>
@@ -157,7 +238,9 @@ export default function JobList() {
             <li key={number}>
               <button
                 onClick={() => paginate(number)}
-                className={`px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 ${number === pageIndex ? 'bg-gray-200' : ''}`}
+                className={`px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 ${
+                  number === pageIndex ? "bg-gray-200" : ""
+                }`}
               >
                 {number}
               </button>

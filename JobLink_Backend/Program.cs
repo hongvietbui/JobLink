@@ -75,5 +75,5 @@ app.MapControllers();
 app.MapHub<TransferHub>("/hub/transfer");
 app.MapHub<NotificationHub>("/hub/notification");
 app.MapHub<ChatHub>("/hub/chat");
-
+app.MapHub<ConversationHub>("/hub/conversation");
 app.Run();
