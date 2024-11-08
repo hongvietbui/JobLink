@@ -4,6 +4,7 @@ namespace JobLink_Backend.Services.IServices
 {
     public interface IWorkerService
     {
-        Task<Worker> GetWorkerBySenderIdAsync(Guid senderId);
+        Task<Worker> GetWorkerByIdAsync(Guid senderId);
+        Task<string> getWorkerIdByUserIdAsync(Guid userId);
     }
 }
