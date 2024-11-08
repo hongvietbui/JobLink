@@ -73,7 +73,7 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
             Timestamp = DateTime.Now.Ticks
         });
     }
-    
+   
     [HttpGet("all")]
         public async Task<IActionResult> GetJobsAsync(int pageIndex = 1, int pageSize = 10, string sortBy = null, bool isDescending = false, string filter = null)
         {
@@ -214,7 +214,7 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
                 return Ok(new ApiResponse<string>
                 {
                     Data = null,
-                    Message = "No jobs applied by the user found.",
+                    Message = "No jobs create by user found.",
                     Status = 204,
                     Timestamp = DateTime.Now.Ticks
                 });
@@ -223,7 +223,7 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
             return Ok(new ApiResponse<Pagination<JobDTO>>
             {
                 Data = result,
-                Message = "Jobs applied by the user retrieved successfully!",
+                Message = "Jobs created by the user retrieved successfully!",
                 Status = 200,
                 Timestamp = DateTime.Now.Ticks
             });
@@ -309,7 +309,7 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
                 Timestamp = DateTime.Now.Ticks
             });
 
-        return Ok(new ApiResponse<List<UserDTO>>
+        return Ok(new ApiResponse<List<UserWithWorkerIdDTO>>
         {
             Data = applicants,
             Message = "Applicants retrieved successfully!",
@@ -457,11 +457,10 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
         try
         {
             var jobIdGuid = Guid.Parse(jobId);
-            var userId = Guid.Parse(workerId);
-            var worker = await _userService.GetWorkerByUserIdAsync(userId);
+            var WorkerId = Guid.Parse(workerId);
             
             var accessToken = authorization.Split(" ")[1];
-            await _jobService.AcceptWorkerAsync(jobIdGuid, worker.Id, accessToken);
+            await _jobService.AcceptWorkerAsync(jobIdGuid, WorkerId, accessToken);
             return Ok(new ApiResponse<string>
             {
                 Data = null,

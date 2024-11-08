@@ -16,7 +16,7 @@ public interface IJobService
     Task<Pagination<JobDTO>> GetJobsAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, Expression<Func<Job, bool>>? filter = null );
     Task<Pagination<JobDTO>> GetJobsCreatedByUserAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, string accessToken);
     Task<Pagination<JobDTO>> GetJobsAppliedByUserAsync(int pageIndex, int pageSize, string sortBy, bool isDescending, string accessToken);
-    Task<List<UserDTO>> GetApplicantsByJobIdAsync(Guid jobId);
+    Task<List<UserWithWorkerIdDTO>> GetApplicantsByJobIdAsync(Guid jobId);
     Task<Pagination<JobDTO>> GetAllJobsDashboardAsync(JobListRequestDto filter, string accessToken);
     Task<List<JobStatisticalResponseDto>> GetJobStatisticalAsync(JobStatisticalDto filter, string accessToken);
 
@@ -30,4 +30,6 @@ public interface IJobService
     Task RejectWorkerAsync(Guid jobId, Guid workerId, string accessToken);
     Task CompleteJobAsync(Guid jobIdGuid, string accessToken);
     Task<bool> CheckUserBalanceAsync(string accessToken, decimal? price);
+    
+    
 }

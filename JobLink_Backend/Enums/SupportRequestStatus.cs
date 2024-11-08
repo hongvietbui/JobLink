@@ -6,8 +6,6 @@ public enum SupportRequestStatus
 {
     [StringValue("Open")]
     Open,
-    [StringValue("Done")]
-    Done,
-    [StringValue("In-progress")]
-    InProgress,
+    [StringValue("Close")]
+    Close
 }

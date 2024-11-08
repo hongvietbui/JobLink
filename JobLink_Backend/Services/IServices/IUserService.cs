@@ -27,11 +27,11 @@ namespace JobLink_Backend.Services.IServices
         //mine
         Task AddNotificationAsync(string username, string message);
         Task<List<NotificationResponse>> GetUserNotificationsAsync(string username);
-        Task<List<TransactionResponse>> GetTransactionsAsync(TransactionsRequest request);
-        Task<bool> UploadNationalIdAsync(IdRequest idRequest);
+        Task<NationalIdResponse> UploadNationalIdAsync(string accessToken, IFormFile nationalIdFront, IFormFile nationalIdBack);
         Task<List<UserNationalIdDTO>> GetPendingNationalIdsAsync();
         Task<UserNationalIdDTO> GetNationalIdDetailAsync(Guid userId);
         Task<bool> ApproveNationalIdAsync(Guid userId);
         Task<bool> RejectNationalIdAsync(Guid userId);
+        Task<bool> UpdateUserAsync(Guid id, UpdateUserDTO data);
     }
 }

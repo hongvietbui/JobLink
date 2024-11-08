@@ -85,8 +85,8 @@ function App() {
         );
       })
       .catch((error) => {
-        console.error("Error:", error);
-        toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+        // console.error("Error:", error);
+        // toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
       });
   }, []);
 
@@ -138,7 +138,7 @@ function App() {
             placeholder="Search"
             type="search"
           />
-          <Button variant="ghost">Log in</Button>
+          <Button variant="ghost"><a href="/auth/login">Login</a></Button>
           <Button onClick={handleRegisterBtn}>Sign up</Button>
           <Button
             onClick={() => {
