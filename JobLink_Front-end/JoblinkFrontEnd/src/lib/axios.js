@@ -13,7 +13,6 @@ const responseBody = (response) => {
   return response.data.data
 }
 
-
 axios.interceptors.request.use(async (config) => {
 
   const token = localStorage.getItem("token")
@@ -32,37 +31,35 @@ axios.interceptors.request.use(async (config) => {
 })
 
 axios.interceptors.response.use(
-  (response) => {
-    return response
-  },
+  (response) => response,
   async (error) => {
-    const { data, status } = error.response
+    const { data, status } = error.response || {};
     switch (status) {
+      case 402:
+        return Promise.reject({ status, message: data?.message || 'Insufficient funds' });
       case 400:
         if (data.errors) {
-          const modelStateErrors = []
+          const modelStateErrors = [];
           for (const key in data.errors) {
             if (data.errors[key]) {
-              modelStateErrors.push(data.errors[key])
+              modelStateErrors.push(data.errors[key]);
             }
           }
-          throw modelStateErrors.flat()
+          return Promise.reject({ status, message: modelStateErrors.flat().join(', ') });
         }
-        break
+        break;
       case 401:
-        
-        break
-
+        return Promise.reject({ status, message: data?.message || 'Unauthorized access' });
       case 403:
-        break
+        return Promise.reject({ status, message: data?.message || 'Forbidden access' });
       case 500:
-       
-        break
+        return Promise.reject({ status, message: data?.message || 'Server error' });
       default:
-        break
+        return Promise.reject({ status, message: data?.message || 'Unexpected error' });
     }
-    return Promise.reject(error.response)
-  },
+
+    return Promise.reject({ message: 'Network error', status: null });
+  }
 )
 
 const requests = {
@@ -111,15 +108,7 @@ const requests = {
         },
       })
       .then(responseBody)
-  },  patch: async (url, body) => { 
-    return axios
-      .patch(url, body, {
-        headers: {
-          'Content-type': 'application/json',
-        },
-      })
-      .then(responseBody);
-  },
+  },  
   postFile: async (url, data) => {
     return axios
       .post(url, data, {
@@ -183,12 +172,11 @@ const VerifyOtp = {
 const ForgetPassChange = {
   changePass: (email, password) => requests.post('http://localhost:8080/api/Auth/reset-password', email, password),
 }
-
 const User = {
   changePass: (body) => requests.post('http://localhost:8080/api/user/change-password', body),
   homepage: () => requests.get('http://localhost:8080/api/user/homepage'),
   me: () => requests.get('http://localhost:8080/api/user/me'),
-
+  editUser: (data) => requests.put('http://localhost:8080/api/User/edit', data), 
 }
 
 const Job = {
@@ -225,6 +213,26 @@ const ListJobAvaible = {
     return requests.get(url);
   }
 };
+
+const TopUpHistory = {
+  TopUp: (fromDate, toDate) => {
+    const params = {
+      fromDate: fromDate ? fromDate.toISOString() : undefined,
+      toDate: toDate ? toDate.toISOString() : undefined,
+    };
+    return requests.get('http://localhost:8080/api/Transaction/topupHistory', { params });
+  },
+};
+
+const NationalId = {
+  uploadNationalId: async (frontImage, backImage) => {
+    const formData = new FormData();
+      formData.append("nationalIdFront", frontImage); 
+      formData.append("nationalIdBack", backImage);
+      return requests.postFile('http://localhost:8080/api/User/nationalId/upload', formData);
+  }
+}
+
 const ListJobUserCreated = {
  JobUserCreated: (pageIndex,pageSize,sortBy,isDescending) =>{
     const queryString = new URLSearchParams({
@@ -281,6 +289,8 @@ const agent = {
   Job,
   Transaction,
   SupportRequest,
+  TopUpHistory,
+  NationalId,
   ListJobAvaible,
   ListJobUserCreated,
   ListJobUserApplied,
