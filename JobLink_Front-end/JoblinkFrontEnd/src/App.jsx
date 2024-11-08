@@ -134,7 +134,7 @@ function App() {
             placeholder="Search"
             type="search"
           />
-          <Button variant="ghost">Log in</Button>
+          <Button variant="ghost"><a href="/Login">Login</a></Button>
           <Button>Sign up</Button>
           <Button
             onClick={() => {

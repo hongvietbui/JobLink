@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import agent from '../../lib/axios'
-import { useToast } from "../../hooks/use-toast"  // Import the custom toast hook
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom"
 
 export default function LoginPage() {
@@ -12,7 +12,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
-  const { toast } = useToast()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -23,27 +22,14 @@ export default function LoginPage() {
       const response = await agent.Account.loginUsername({username,password})
 
       //check if backend response
-      if (response.data.status === 200) {
-        const { accessToken } = response.data.data;
+        const { accessToken } = response.accessToken;
         localStorage.setItem('accessToken', accessToken)
 
         //navigate to homepage
         navigate('/dashboard');
-        toast({
-          title: "Logged in successfully!",
-          description: "You have been logged in.",
-          status: "success",
-        });
-      } else {
-        throw new Error(response.data.message)
-      }
+        toast.success("Logged in successfully!")
     } catch (error) {
-      toast({
-        title: "Login failed",
-        description: error.message || "Invalid username or password",
-        status: "error",
-      });
-
+      toast.error(error.message || "Invalid username or password");
     } finally {
       setIsLoading(false)
     }
