@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label"
 import agent from '../../lib/axios'
 import { useToast } from "../../hooks/use-toast"  // Import the custom toast hook
 import { useNavigate } from "react-router-dom"
-import axios from "axios"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")

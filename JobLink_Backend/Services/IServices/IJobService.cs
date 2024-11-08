@@ -30,4 +30,6 @@ public interface IJobService
     Task RejectWorkerAsync(Guid jobId, Guid workerId, string accessToken);
     Task CompleteJobAsync(Guid jobIdGuid, string accessToken);
     Task<bool> CheckUserBalanceAsync(string accessToken, decimal? price);
+    
+    
 }

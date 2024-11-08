@@ -20,7 +20,8 @@ axios.interceptors.request.use(async (config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
-  if (config.method === 'post' || config.method === 'put' || config.method === 'delete') {
+  if ((config.method === 'post' || config.method === 'put' || config.method === 'delete') && config.headers['Content-Type'] !== 'multipart/form-data') {
+    console.log()
     const originalData = config.data || {} // preserve original body data
     config.data = {
       data: originalData,
@@ -92,6 +93,15 @@ const requests = {
       })
       .then(responseBody)
   },
+  patch: async (url, body) => {
+    return axios
+      .patch(url, body, {
+        headers: {
+          'Content-type': 'application/json',
+        },
+      })
+      .then(responseBody)
+  },
   del: async (url, params) => {
     return axios
       .delete(url, {
@@ -146,6 +156,7 @@ const Account = {
   addRefreshToken: (values) => requests.postFront('/_auth/add-token', values),
   getRefreshToken: () => requests.get('/_auth/get-refresh-token'),
   removeRefreshToken: () => requests.delFront('/_auth/remove-token'),
+  register: (userData) => requests.post('http://localhost:8080/api/Auth/register', userData)
 }
 
 
@@ -171,12 +182,21 @@ const User = {
 
 const Job = {
   getListJobDoneDashboard: (body) => requests.get('http://localhost:8080/api/job', convertParams(body)),
-  getStatistical : (params) => requests.get('http://localhost:8080/api/job/stats', params)
+  getStatistical : (params) => requests.get('http://localhost:8080/api/job/stats', params),
+  createJob: (jobData) => requests.post('http://localhost:8080/api/Job', jobData),
 }
 
 const Transaction = {
-  createWithdraw: (body) => requests.post('http://localhost:8080/api/transactions', body),
- 
+  createWithdraw: (body) => requests.post('http://localhost:8080/api/transaction', body),
+
+}
+
+
+const SupportRequest = {
+  createNewRequest: (body) => requests.postFile('http://localhost:8080/api/supports', body),
+  listAllRequest: (params) => requests.get('http://localhost:8080/api/supports', convertParams(params)),
+  updateRequestStatus: (id) => requests.patch(`http://localhost:8080/api/supports/${id}`)
+
 }
 const ListJobAvaible = {
   Listjob: (pageIndex, pageSize, sortBy, isDescending, filter) => {
@@ -244,7 +264,8 @@ const agent = {
   User,
   EmailTemplate,
   EmailInput,
-  VerifyOtp, ForgetPassChange,
+  VerifyOtp, 
+  ForgetPassChange,
   Job,
   Transaction,
   ListJobAvaible,
@@ -253,7 +274,8 @@ const agent = {
   AppliedWorker,
   acceptWorker,
   RejectWorker,
-  JobandOwnerViewDetail
+  JobandOwnerViewDetail,
+  SupportRequest
 }
 
 export default agent
