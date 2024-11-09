@@ -308,6 +308,10 @@ const owner = {
   ownerid: (userId,data) =>
     requests.get(`http://localhost:8080/api/User/owner/id/${userId}`,data),
 };
+const CompleteJob = {
+  complete: (jobId, data) => 
+    requests.patch(`http://localhost:8080/api/Job/complete/${jobId}`, data),
+};
 const agent = {
   CsrfToken,
   Account,
@@ -331,7 +335,7 @@ const agent = {
   JobandOwnerViewDetail,
   Chat,
   WorkerAssign,
-  owner
+  owner,CompleteJob
 }
 
 export default agent
