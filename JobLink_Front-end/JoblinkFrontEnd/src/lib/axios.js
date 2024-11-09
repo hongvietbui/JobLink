@@ -329,8 +329,6 @@ const agent = {
   acceptWorker,
   RejectWorker,
   JobandOwnerViewDetail,
-  SupportRequest,
-  Transaction,
   Chat,
   WorkerAssign,
   owner

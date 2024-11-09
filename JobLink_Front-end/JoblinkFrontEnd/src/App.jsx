@@ -99,7 +99,7 @@ function App() {
     // Kiểm tra token trong localStorage khi component được mount
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
-  });
+  },[]);
 
   
   const handleLogout = () => {
