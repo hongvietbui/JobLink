@@ -259,6 +259,7 @@ function ApplicantsList({ jobId, jobStatus, onAccept }) {
           <div className="space-x-2">
             {jobStatus === "IN_PROGRESS" ? (
               <>
+              
                 <p className="px-4 py-2 bg-blue-50 text-blue-700 rounded-md text-sm font-medium flex items-center">
                   <Info className="w-4 h-4 mr-2" />
                   This job is currently in progress. An applicant is actively
@@ -344,6 +345,21 @@ function ApplicantsList({ jobId, jobStatus, onAccept }) {
                     </div>
                   </DialogContent>
                 </Dialog>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 transition-colors duration-200"
+                  onClick={() => initiateChat(applicant.workerId)}
+                  disabled={actionLoading === applicant.workerId}
+                >
+                  {actionLoading === applicant.workerId ? (
+                    "Processing..."
+                  ) : (
+                    <>
+                      <MessageCircle className="w-4 h-4 mr-2" /> Chat
+                    </>
+                  )}
+                </Button>
               </>
             ) : (
               <>
