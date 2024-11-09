@@ -12,4 +12,6 @@ public class JobOwner : BaseEntity<Guid>
     public User User { get; set; }
     public ICollection<Job> OwnedJobs { get; set; } = new List<Job>();
     public ICollection<Review> OwnerReviews { get; set; } = new List<Review>();
+    
+    public List<Conversation> OwnerConversations{ get; set; }
 }

@@ -13,7 +13,9 @@ public class JobLinkContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Review> Reviews { get; set; }
     public DbSet<SupportRequest> SupportRequests { get; set; }
-
+    public DbSet<Conversation> Conversations { get; set; }
+    public DbSet<Message> Messages { get; set; }
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Job>()
@@ -101,5 +103,27 @@ public class JobLinkContext : DbContext
             .HasForeignKey(t => t.JobId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Conversation>()
+            .HasOne(c => c.JobOwner)
+            .WithMany(u => u.OwnerConversations)
+            .HasForeignKey(c => c.JobOwnerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Conversation>()
+            .HasOne(c => c.Worker)
+            .WithMany(u => u.WorkerConversations)
+            .HasForeignKey(c => c.WorkerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Message>()
+            .HasOne(m => m.Sender)
+            .WithMany()
+            .HasForeignKey(m => m.SenderId);
+
+        modelBuilder.Entity<Message>()
+            .HasOne(m => m.Conversation)
+            .WithMany(c => c.Messages)
+            .HasForeignKey(m => m.ConversationId);
     }
 }

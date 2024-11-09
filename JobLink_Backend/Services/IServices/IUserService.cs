@@ -32,5 +32,6 @@ namespace JobLink_Backend.Services.IServices
         Task<UserNationalIdDTO> GetNationalIdDetailAsync(Guid userId);
         Task<bool> ApproveNationalIdAsync(Guid userId);
         Task<bool> RejectNationalIdAsync(Guid userId);
+        Task<bool> UpdateUserAsync(Guid id, UpdateUserDTO data);
     }
 }

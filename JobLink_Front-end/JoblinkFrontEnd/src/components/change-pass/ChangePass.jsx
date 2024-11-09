@@ -3,11 +3,15 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useState } from "react";
+import useAuthStore from "@/stores/useAuthStore";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const ChangePass = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
+  const { id } = useAuthStore();
+  const navigate = useNavigate()
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -16,16 +20,17 @@ const ChangePass = () => {
       return;
     }
     const data = {
-        userId: '5bce0c9a-f670-4c38-acdc-d842784f4ee3',
-        currentPassword: password,
-        newPassword: confirmPassword
-    }
+      userId: id,
+      currentPassword: password,
+      newPassword: confirmPassword,
+    };
 
     try {
-      console.log()
-     await agent.User.changePass(data)
+      console.log();
+      await agent.User.changePass(data);
 
-      alert("Password reset successfully!");
+      toast.success("Password reset successfully!");
+      navigate('/profile')
     } catch (error) {
       console.error("Error:", error);
       alert("There was an error resetting your password.");

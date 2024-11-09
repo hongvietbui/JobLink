@@ -21,9 +21,11 @@ export default function LoginPage() {
       //Call backend
       const response = await agent.Account.loginUsername({username,password})
 
+      console.log(response)
       //check if backend response
         const  accessToken  = response.accessToken;
         localStorage.setItem('token', accessToken)
+
         //navigate to homepage
         navigate('/dashboard');
         toast.success("Logged in successfully!")

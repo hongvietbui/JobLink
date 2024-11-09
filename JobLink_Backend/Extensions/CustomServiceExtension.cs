@@ -30,7 +30,7 @@ public static class CustomServiceExtension
         services.AddScoped<IWorkerService, WorkerServiceImpl>();
         services.AddScoped<IJobOwnerService, JobOwnerServiceImpl>();
         services.AddScoped<ISupportRequestService, SupportRequestService>();
-        
+        services.AddScoped<IConversationService, ConversationService>();
         services.AddScoped<IVietQrService, VietQRServiceImpl>();
         services.AddScoped<S3Uploader>();
         services.AddScoped<ITransactionService, TransactionServiceImpl>();

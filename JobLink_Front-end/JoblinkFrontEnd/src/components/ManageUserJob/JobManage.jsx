@@ -1,6 +1,6 @@
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Search,
   MapPin,
@@ -15,28 +15,29 @@ import {
   FileText,
   Mail,
   Phone,
-  User
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+  MessageCircle,
+  User,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-  CardFooter
-} from '@/components/ui/card';
+  CardFooter,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -45,17 +46,35 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import agent from '../../lib/axios';
+import agent from "../../lib/axios";
+import { useNavigate } from "react-router-dom";
+import useAuthStore from "@/stores/useAuthStore";
 
-async function fetchJobs({ isCreatedJobs, pageIndex, pageSize, sortBy, isDescending, filter }) {
+async function fetchJobs({
+  isCreatedJobs,
+  pageIndex,
+  pageSize,
+  sortBy,
+  isDescending,
+  filter,
+}) {
   const response = isCreatedJobs
-    ? await agent.ListJobUserCreated.JobUserCreated(pageIndex, pageSize, sortBy, isDescending)
-    : await agent.ListJobUserApplied.JobUserApplied(pageIndex, pageSize, sortBy, isDescending);
+    ? await agent.ListJobUserCreated.JobUserCreated(
+        pageIndex,
+        pageSize,
+        sortBy,
+        isDescending
+      )
+    : await agent.ListJobUserApplied.JobUserApplied(
+        pageIndex,
+        pageSize,
+        sortBy,
+        isDescending
+      );
 
   return response;
 }
 
-// Fetch job details for "Jobs Applied by You"
 const fetchJobOwnerDetail = async (jobId) => {
   try {
     const response = await agent.JobandOwnerViewDetail.getJobOwner(jobId);
@@ -66,7 +85,6 @@ const fetchJobOwnerDetail = async (jobId) => {
   }
 };
 
-// Component for displaying detailed job and owner information
 function JobDetail({ jobId }) {
   const [jobDetail, setJobDetail] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -93,8 +111,12 @@ function JobDetail({ jobId }) {
           className="w-20 h-20 rounded-full object-cover"
         />
         <div>
-          <h3 className="text-xl font-semibold text-gray-900">{jobDetail.jobName}</h3>
-          <p className="text-sm text-muted-foreground">Posted by: {jobDetail.firstName} {jobDetail.lastName}</p>
+          <h3 className="text-xl font-semibold text-gray-900">
+            {jobDetail.jobName}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Posted by: {jobDetail.firstName} {jobDetail.lastName}
+          </p>
         </div>
       </div>
       <p className="text-sm text-gray-600">{jobDetail.description}</p>
@@ -110,19 +132,22 @@ function JobDetail({ jobId }) {
         </div>
         <div className="flex items-center space-x-2">
           <MapPin className="w-5 h-5 text-muted-foreground" />
-          <span className="text-sm">Lat: {jobDetail.lat}, Lon: {jobDetail.lon}</span>
+          <span className="text-sm">
+            Lat: {jobDetail.lat}, Lon: {jobDetail.lon}
+          </span>
         </div>
       </div>
     </div>
   );
 }
 
-function ApplicantsList({ jobId, onAccept }) {
+function ApplicantsList({ jobId, jobStatus, onAccept }) {
   const [noApplicants, setNoApplicants] = useState(false);
   const [applicants, setApplicants] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadApplicants = async () => {
@@ -135,7 +160,7 @@ function ApplicantsList({ jobId, onAccept }) {
           setApplicants(response);
         }
       } catch (error) {
-        console.error('Failed to load applicants:', error.message);
+        console.error("Failed to load applicants:", error.message);
         setApplicants([]);
       } finally {
         setIsLoading(false);
@@ -148,14 +173,15 @@ function ApplicantsList({ jobId, onAccept }) {
   const handleAccept = async (workerId) => {
     setActionLoading(workerId);
     try {
-      const data = { status: 'accepted' };
+      const data = { status: "accepted" };
       await agent.acceptWorker.accept(jobId, workerId, data);
       toast.success("Applicant accepted successfully!");
-
-      // Trigger the onAccept callback to hide the job
-      onAccept(jobId);
+      onAccept();
     } catch (error) {
-      console.error(`Failed to accept applicant with workerId ${workerId}:`, error.message);
+      console.error(
+        `Failed to accept applicant with workerId ${workerId}:`,
+        error.message
+      );
       toast.error("Failed to accept applicant.");
     } finally {
       setActionLoading(null);
@@ -165,13 +191,17 @@ function ApplicantsList({ jobId, onAccept }) {
   const handleReject = async (workerId) => {
     setActionLoading(workerId);
     try {
-      const data = { status: 'rejected' };
+      const data = { status: "rejected" };
       await agent.RejectWorker.reject(jobId, workerId, data);
       toast.success("Applicant rejected successfully.");
-      // Keep the applicant list visible if rejected
-      setApplicants((prev) => prev.filter((applicant) => applicant.workerId !== workerId));
+      setApplicants((prev) =>
+        prev.filter((applicant) => applicant.workerId !== workerId)
+      );
     } catch (error) {
-      console.error(`Failed to reject applicant with workerId ${workerId}:`, error.message);
+      console.error(
+        `Failed to reject applicant with workerId ${workerId}:`,
+        error.message
+      );
       toast.error("Failed to reject applicant.");
     } finally {
       setActionLoading(null);
@@ -179,13 +209,29 @@ function ApplicantsList({ jobId, onAccept }) {
   };
 
   if (isLoading) {
-    return <p className="text-center text-muted-foreground">Loading applicants...</p>;
+    return (
+      <p className="text-center text-muted-foreground">Loading applicants...</p>
+    );
   }
 
   if (noApplicants) {
-    return <p className="text-center text-muted-foreground">No applicants found for this job.</p>;
+    return (
+      <p className="text-center text-muted-foreground">
+        No applicants found for this job.
+      </p>
+    );
   }
 
+  // xử lí tạo chat
+  const initiateChat = async (workerId) => {
+    try {
+      const response = await agent.Chat.getOrCreate(jobId, workerId);
+      const conversationId = response.id;
+      navigate(`/chat/${conversationId}`);
+    } catch (e) {
+      console.log(e);
+    }
+  };
   return (
     <div className="space-y-4">
       {applicants.map((applicant) => (
@@ -211,50 +257,223 @@ function ApplicantsList({ jobId, onAccept }) {
             </div>
           </div>
           <div className="space-x-2">
-            <Button
-              size="sm"
-              variant="outline"
-              className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
-              onClick={() => handleAccept(applicant.workerId)}
-              disabled={actionLoading === applicant.workerId}
-            >
-              {actionLoading === applicant.workerId ? 'Processing...' : <><Check className="w-4 h-4 mr-2" /> Accept</>}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
-              onClick={() => handleReject(applicant.workerId)}
-              disabled={actionLoading === applicant.workerId}
-            >
-              {actionLoading === applicant.workerId ? 'Processing...' : <><X className="w-4 h-4 mr-2" /> Reject</>}
-            </Button>
-            <Dialog>
-              <DialogTrigger asChild>
+            {jobStatus === "IN_PROGRESS" ? (
+              <>
+                <p className="px-4 py-2 bg-blue-50 text-blue-700 rounded-md text-sm font-medium flex items-center">
+                  <Info className="w-4 h-4 mr-2" />
+                  This job is currently in progress. An applicant is actively
+                  working on it.
+                </p>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                      onClick={() => setSelectedApplicant(applicant)}
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Details
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[550px]">
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl font-bold text-primary">
+                        Applicant Details
+                      </DialogTitle>
+                      <DialogDescription>
+                        Detailed information about the applicant.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="mt-6 space-y-6">
+                      <div className="flex items-center space-x-4">
+                        {applicant.user.avatar ? (
+                          <img
+                            src={applicant.user.avatar}
+                            alt={`${applicant.user.firstName} ${applicant.user.lastName}`}
+                            className="w-20 h-20 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-indigo-600 flex items-center justify-center text-2xl font-semibold text-white">
+                            {applicant.user.firstName[0]}
+                            {applicant.user.lastName[0]}
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="text-xl font-semibold text-gray-900">{`${applicant.user.firstName} ${applicant.user.lastName}`}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {applicant.user.username}
+                          </p>
+                        </div>
+                      </div>
+                      <Separator />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-center space-x-2">
+                          <Mail className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">
+                            {applicant.user.email}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Phone className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">
+                            {applicant.user.phoneNumber}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">
+                            {new Date(
+                              applicant.user.dateOfBirth
+                            ).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">
+                            {applicant.user.address}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2 col-span-full">
+                          <User className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">
+                            {applicant.user.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </>
+            ) : (
+              <>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
-                  onClick={() => setSelectedApplicant(applicant)}
+                  className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 transition-colors duration-200"
+                  onClick={() => initiateChat(applicant.workerId)}
+                  disabled={actionLoading === applicant.workerId}
                 >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Details
+                  {actionLoading === applicant.workerId ? (
+                    "Processing..."
+                  ) : (
+                    <>
+                      <MessageCircle className="w-4 h-4 mr-2" /> Chat
+                    </>
+                  )}
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[550px]">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl font-bold text-primary">
-                    Applicant Details
-                  </DialogTitle>
-                  <DialogDescription className="text-muted-foreground">
-                    Detailed information about the applicant.
-                  </DialogDescription>
-                </DialogHeader>
-                {selectedApplicant && (
-                  <ApplicantDetails applicant={selectedApplicant} />
-                )}
-              </DialogContent>
-            </Dialog>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                  onClick={() => handleAccept(applicant.workerId)}
+                  disabled={actionLoading === applicant.workerId}
+                >
+                  {actionLoading === applicant.workerId ? (
+                    "Processing..."
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4 mr-2" /> Accept
+                    </>
+                  )}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
+                  onClick={() => handleReject(applicant.workerId)}
+                  disabled={actionLoading === applicant.workerId}
+                >
+                  {actionLoading === applicant.workerId ? (
+                    "Processing..."
+                  ) : (
+                    <>
+                      <X className="w-4 h-4 mr-2" /> Reject
+                    </>
+                  )}
+                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                      onClick={() => setSelectedApplicant(applicant)}
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Details
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[550px]">
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl font-bold text-primary">
+                        Applicant Details
+                      </DialogTitle>
+                      <DialogDescription>
+                        Detailed information about the applicant.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="mt-6 space-y-6">
+                      <div className="flex items-center space-x-4">
+                        {applicant.user.avatar ? (
+                          <img
+                            src={applicant.user.avatar}
+                            alt={`${applicant.user.firstName} ${applicant.user.lastName}`}
+                            className="w-20 h-20 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-indigo-600 flex items-center justify-center text-2xl font-semibold text-white">
+                            {applicant.user.firstName[0]}
+                            {applicant.user.lastName[0]}
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="text-xl font-semibold text-gray-900">{`${applicant.user.firstName} ${applicant.user.lastName}`}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {applicant.user.username}
+                          </p>
+                        </div>
+                      </div>
+                      <Separator />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-center space-x-2">
+                          <Mail className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">
+                            {applicant.user.email}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Phone className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">
+                            {applicant.user.phoneNumber}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">
+                            {new Date(
+                              applicant.user.dateOfBirth
+                            ).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">
+                            {applicant.user.address}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2 col-span-full">
+                          <User className="w-5 h-5 text-muted-foreground" />
+                          <span className="text-sm">
+                            {applicant.user.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </>
+            )}
           </div>
         </div>
       ))}
@@ -264,21 +483,28 @@ function ApplicantsList({ jobId, onAccept }) {
 
 function JobList({ isCreatedJobs }) {
   const [jobs, setJobs] = useState([]);
-  const [filter, setFilter] = useState('');
-  const [sortBy, setSortBy] = useState('');
+  const [filter, setFilter] = useState("");
+  const [sortBy, setSortBy] = useState("");
   const [isDescending, setIsDescending] = useState(false);
   const [pageIndex, setPageIndex] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize] = useState(5);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState(null);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const loadJobs = async () => {
       try {
         setIsLoading(true);
-        const response = await fetchJobs({ isCreatedJobs, pageIndex, pageSize, sortBy, isDescending, filter });
-        
+        const response = await fetchJobs({
+          isCreatedJobs,
+          pageIndex,
+          pageSize,
+          sortBy,
+          isDescending,
+          filter,
+        });
+
         if (response && response.items) {
           setJobs(response.items);
           setTotalPages(response.totalPages || 1);
@@ -286,7 +512,7 @@ function JobList({ isCreatedJobs }) {
           setJobs([]);
         }
       } catch (error) {
-        console.error('Failed to fetch jobs:', error.message);
+        console.error("Failed to fetch jobs:", error.message);
         setJobs([]);
       } finally {
         setIsLoading(false);
@@ -296,8 +522,8 @@ function JobList({ isCreatedJobs }) {
     loadJobs();
   }, [pageIndex, pageSize, sortBy, isDescending, filter, isCreatedJobs]);
 
-  const handleJobAccept = (jobId) => {
-    setJobs((prevJobs) => prevJobs.filter((job) => job.id !== jobId));
+  const handleJobAccept = () => {
+    // Accept callback without hiding the job
   };
 
   const paginate = (pageNumber) => {
@@ -306,15 +532,41 @@ function JobList({ isCreatedJobs }) {
     }
   };
 
+  const [workerId, setWorkerId] = useState(null);
+  const { id } = useAuthStore();
+  useEffect(() => {
+    const fetchWorkerId = async () => {
+      try {
+        const workerId = await agent.User.getWorkerId(id);
+        setWorkerId(workerId); // Cập nhật state với giá trị workerId từ API
+      } catch (error) {
+        console.error("Error fetching workerId:", error);
+      }
+    };
+
+    fetchWorkerId();
+  }, []);
+  const initiateChatWithApplicant = async (jobId) => {
+    try {
+      console.log(workerId);
+      const response = await agent.Chat.getOrCreate(jobId, workerId);
+      const conversationId = response.id;
+      navigate(`/chat/${conversationId}`);
+    } catch (e) {
+      console.log(e);
+    }
+  };
   return (
     <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
       <Card className="mb-8 shadow-lg">
         <CardHeader className="bg-gray-50">
           <CardTitle className="text-2xl font-bold text-primary">
-            {isCreatedJobs ? 'Jobs Created by You' : 'Jobs Applied by You'}
+            {isCreatedJobs ? "Jobs Created by You" : "Jobs Applied by You"}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            {isCreatedJobs ? 'Manage your job listings' : 'Track your job applications'}
+            {isCreatedJobs
+              ? "Manage your job listings"
+              : "Track your job applications"}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
@@ -338,7 +590,9 @@ function JobList({ isCreatedJobs }) {
                 <SelectItem value="Price">Salary</SelectItem>
               </SelectContent>
             </Select>
-            <Select onValueChange={(value) => setIsDescending(value === 'true')}>
+            <Select
+              onValueChange={(value) => setIsDescending(value === "true")}
+            >
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Sort order" />
               </SelectTrigger>
@@ -365,10 +619,17 @@ function JobList({ isCreatedJobs }) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobs.map((job) => (
-            <Card key={job.id} className="flex flex-col shadow-md hover:shadow-lg transition-shadow duration-300">
+            <Card
+              key={job.id}
+              className="flex flex-col shadow-md hover:shadow-lg transition-shadow duration-300"
+            >
               <CardHeader className="bg-gray-50">
-                <CardTitle className="text-xl font-semibold text-primary">{job.name}</CardTitle>
-                <CardDescription className="text-muted-foreground">{job.company || 'Company not specified'}</CardDescription>
+                <CardTitle className="text-xl font-semibold text-primary">
+                  {job.name}
+                </CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  {job.company || "Company not specified"}
+                </CardDescription>
               </CardHeader>
               <CardContent className="flex-grow p-6">
                 <p className="text-sm text-gray-600 mb-4">{job.description}</p>
@@ -376,18 +637,29 @@ function JobList({ isCreatedJobs }) {
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center">
                     <MapPin className="w-5 h-5 mr-2 text-muted-foreground" />
-                    <span className="text-sm">{job.address || 'Address not specified'}</span>
+                    <span className="text-sm">
+                      {job.address || "Address not specified"}
+                    </span>
                   </div>
                   <div className="flex items-center">
                     <DollarSign className="w-5 h-5 mr-2 text-muted-foreground" />
-                    <span className="text-sm">{job.price ? `$${job.price.toLocaleString()} per year` : 'Salary not provided'}</span>
+                    <span className="text-sm">
+                      {job.price
+                        ? `$${job.price.toLocaleString()} per year`
+                        : "Salary not provided"}
+                    </span>
                   </div>
                   <div className="flex items-center">
                     <Calendar className="w-5 h-5 mr-2 text-muted-foreground" />
-                    <span className="text-sm">Posted on {job.duration ? new Date(job.duration).toLocaleDateString() : 'Date not available'}</span>
+                    <span className="text-sm">
+                      Posted on{" "}
+                      {job.duration
+                        ? new Date(job.duration).toLocaleDateString()
+                        : "Date not available"}
+                    </span>
                   </div>
                   <div className="flex items-center">
-                    {job.status === 'WAITING_FOR_APPLICANTS' ? (
+                    {job.status === "WAITING_FOR_APPLICANTS" ? (
                       <CheckCircle className="w-5 h-5 mr-2 text-green-500" />
                     ) : (
                       <XCircle className="w-5 h-5 mr-2 text-yellow-500" />
@@ -398,9 +670,18 @@ function JobList({ isCreatedJobs }) {
               </CardContent>
               <CardFooter className="bg-gray-50 p-4">
                 <div className="flex justify-between items-center w-full">
-                  <Badge variant={job.type === 'Full-time' ? 'default' : job.type === 'Part-time' ? 'secondary' : 'outline'}>
-                    {job.type || 'Type not specified'}
+                  <Badge
+                    variant={
+                      job.type === "Full-time"
+                        ? "default"
+                        : job.type === "Part-time"
+                        ? "secondary"
+                        : "outline"
+                    }
+                  >
+                    {job.type || "Type not specified"}
                   </Badge>
+                  
                   {isCreatedJobs ? (
                     <Dialog>
                       <DialogTrigger asChild>
@@ -411,31 +692,47 @@ function JobList({ isCreatedJobs }) {
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-[800px] w-11/12 max-h-[90vh] overflow-hidden flex flex-col">
                         <DialogHeader className="pb-4 border-b">
-                          <DialogTitle className="text-2xl font-bold text-primary">Applicants for {job.name}</DialogTitle>
+                          <DialogTitle className="text-2xl font-bold text-primary">
+                            Applicants for {job.name}
+                          </DialogTitle>
                           <DialogDescription className="text-lg text-muted-foreground">
                             Review and manage applicants for this job posting.
                           </DialogDescription>
                         </DialogHeader>
                         <div className="flex-grow overflow-y-auto py-4">
-                          <ApplicantsList jobId={job.id} onAccept={handleJobAccept} />
+                          <ApplicantsList
+                            jobId={job.id}
+                            jobStatus={job.status}
+                            onAccept={handleJobAccept}
+                          />
                         </div>
                       </DialogContent>
                     </Dialog>
                   ) : (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" onClick={() => setSelectedJobId(job.id)}>
-                          <Info className="w-4 h-4 mr-2" />
-                          Details
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[600px]">
-                        <DialogHeader>
-                          <DialogTitle className="text-xl font-semibold text-primary">Job Details</DialogTitle>
-                        </DialogHeader>
-                        {selectedJobId && <JobDetail jobId={selectedJobId} />}
-                      </DialogContent>
-                    </Dialog>
+                    <>
+                    <Button onClick={() => initiateChatWithApplicant(job.id)}>
+                    Chat
+                  </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            onClick={() => setSelectedJobId(job.id)}
+                          >
+                            <Info className="w-4 h-4 mr-2" />
+                            Details
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[600px]">
+                          <DialogHeader>
+                            <DialogTitle className="text-xl font-semibold text-primary">
+                              Job Details
+                            </DialogTitle>
+                          </DialogHeader>
+                          {selectedJobId && <JobDetail jobId={selectedJobId} />}
+                        </DialogContent>
+                      </Dialog>
+                    </>
                   )}
                 </div>
               </CardFooter>
@@ -450,7 +747,11 @@ function JobList({ isCreatedJobs }) {
             <li key={number}>
               <button
                 onClick={() => paginate(number)}
-                className={`px-4 py-2 text-sm font-medium ${number === pageIndex ? 'text-primary-foreground bg-primary' : 'text-gray-500 bg-white hover:bg-gray-50'} border border-gray-300 first:rounded-l-md last:rounded-r-md focus:z-20 focus:outline-offset-0`}
+                className={`px-4 py-2 text-sm font-medium ${
+                  number === pageIndex
+                    ? "text-primary-foreground bg-primary"
+                    : "text-gray-500 bg-white hover:bg-gray-50"
+                } border border-gray-300 first:rounded-l-md last:rounded-r-md focus:z-20 focus:outline-offset-0`}
               >
                 {number}
               </button>
@@ -469,8 +770,12 @@ export default function JobDashboard() {
 
       <Tabs defaultValue="created" className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-8">
-          <TabsTrigger value="created" className="text-lg py-3">Jobs Created by You</TabsTrigger>
-          <TabsTrigger value="applied" className="text-lg py-3">Jobs Applied by You</TabsTrigger>
+          <TabsTrigger value="created" className="text-lg py-3">
+            Jobs Created by You
+          </TabsTrigger>
+          <TabsTrigger value="applied" className="text-lg py-3">
+            Jobs Applied by You
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="created">
           <JobList isCreatedJobs={true} />

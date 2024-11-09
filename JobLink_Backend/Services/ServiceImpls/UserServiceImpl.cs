@@ -518,4 +518,31 @@ public class UserServiceImpl(
         await _unitOfWork.SaveChangesAsync();
         return true;
     }
+
+    public async Task<bool> UpdateUserAsync(Guid userId, UpdateUserDTO updateUserRequest)
+    {
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+        {
+            return false; // Người dùng không tồn tại
+        }
+
+        // Chỉ cập nhật những trường có giá trị
+        if (!string.IsNullOrEmpty(updateUserRequest.FirstName)) user.FirstName = updateUserRequest.FirstName;
+        if (!string.IsNullOrEmpty(updateUserRequest.LastName)) user.LastName = updateUserRequest.LastName;
+        if (!string.IsNullOrEmpty(updateUserRequest.PhoneNumber)) user.PhoneNumber = updateUserRequest.PhoneNumber;
+        if (!string.IsNullOrEmpty(updateUserRequest.Address)) user.Address = updateUserRequest.Address;
+        if (updateUserRequest.Lat.HasValue) user.Lat = updateUserRequest.Lat.Value;
+        if (updateUserRequest.Lon.HasValue) user.Lon = updateUserRequest.Lon.Value;
+        if (!string.IsNullOrEmpty(updateUserRequest.Avatar)) user.Avatar = updateUserRequest.Avatar;
+        if (updateUserRequest.DateOfBirth.HasValue) user.DateOfBirth = updateUserRequest.DateOfBirth;
+
+        _unitOfWork.Repository<User>().Update(user);
+        await _unitOfWork.SaveChangesAsync();
+
+        return true;
+    }
+
+
 }

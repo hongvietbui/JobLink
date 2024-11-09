@@ -346,15 +346,12 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
     [HttpGet("applied-workers")]
     public async Task<IActionResult> GetAppliedWorkersByJobId([FromQuery] Guid jobId, [FromHeader] string authorization)
     {
-        // Lấy access token từ header Authorization
         var accessToken = authorization.Split(" ")[1];
 
         try
         {
-            // Lấy danh sách JobWorkers đã apply vào job nếu user có quyền truy cập
             var appliedWorkers = await _jobService.GetJobWorkersApplyAsync(jobId, accessToken);
 
-            // Nếu không có worker nào apply, trả về thông báo không tìm thấy
             if (appliedWorkers == null || !appliedWorkers.Any())
             {
                 return Ok(new ApiResponse<List<JobWorkerDTO>>
@@ -436,6 +433,16 @@ public class JobController(IJobService jobService, IMapper mapper, INotification
                 Data = null,
                 Message = "Job assign successfully",
                 Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new ApiResponse<string>
+            {
+                Data = null,
+                Message = ex.Message,
+                Status = 401,
                 Timestamp = DateTime.Now.Ticks
             });
         }

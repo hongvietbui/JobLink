@@ -72,6 +72,10 @@ const LandingPage = () => {
     );
   };
 
+  function handleRegisterBtn(){
+    window.location.href = "/auth/register";
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -144,7 +148,7 @@ const LandingPage = () => {
               </div>
             </div>
             <div className="mt-8 space-x-4">
-              <Button size="lg">Sign up for free</Button>
+              <Button onClick={handleRegisterBtn} size="lg">Sign up for free</Button>
               <Button size="lg" variant="outline">
                 Learn how to hire
               </Button>
