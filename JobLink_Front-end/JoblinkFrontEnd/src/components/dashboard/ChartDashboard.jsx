@@ -61,7 +61,7 @@ const ChartDashBoard = () => {
       ((to - from) / (1000 * 60 * 60 * 24) > 30 ||
         from >= addDays(new Date(), 30))
     ) {
-      alert("Khoảng thời gian không được vượt quá 30 ngày.");
+      alert("The period must not exceed 30 days.");
       return;
     }
 
@@ -86,7 +86,7 @@ const ChartDashBoard = () => {
   return (
     <Card className="col-span-1 md:col-span-4">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Thống kê sử dụng</CardTitle>
+        <CardTitle>Usage statistics</CardTitle>
         <div className="flex items-center space-x-2">
           <Popover>
             <PopoverTrigger asChild>
@@ -150,7 +150,7 @@ const ChartDashBoard = () => {
           </LineChart>
         </ResponsiveContainer>
         <div className="mt-4 text-center text-sm text-gray-500">
-          Đã nạp: 0 Đã kiếm được: 0
+        Loaded: 0 Earned: 0
         </div>
       </CardContent>
     </Card>

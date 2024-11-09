@@ -1,3 +1,4 @@
+using JobLink_Backend.Hubs;
 using JobLink_Backend.Repositories.IRepositories;
 using JobLink_Backend.Repositories.RepositoryImpls;
 using JobLink_Backend.Services.IServices;
@@ -15,14 +16,21 @@ public static class CustomServiceExtension
         services.AddScoped<IRoleRepository, RoleRepositoryImpl>();
         services.AddScoped<IJobRepository, JobRepositoryImpl>();
         services.AddScoped<ITransactionRepository, TransactionRepositoryImpl>();
+        services.AddScoped<IWorkerRepository, WorkerRepositoryImpl>();
+        services.AddScoped<IJobOwnerRepository, JobOwnerRepositoryImpl>();
+        services.AddScoped<ISupportRequestRepository, SupportRequestRepositoryImpl>();
         
-        services.AddSignalR();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         //services
         services.AddScoped<IUserService, UserServiceImpl>();
         services.AddScoped<IJobService, JobServiceImpl>();
-
+        services.AddScoped<INotificationService, NotificationServiceImpl>();
+        services.AddScoped<IChatService, ChatServiceImpl>();
+        services.AddScoped<IWorkerService, WorkerServiceImpl>();
+        services.AddScoped<IJobOwnerService, JobOwnerServiceImpl>();
+        services.AddScoped<ISupportRequestService, SupportRequestService>();
+        services.AddScoped<IConversationService, ConversationService>();
         services.AddScoped<IVietQrService, VietQRServiceImpl>();
         services.AddScoped<S3Uploader>();
         services.AddScoped<ITransactionService, TransactionServiceImpl>();

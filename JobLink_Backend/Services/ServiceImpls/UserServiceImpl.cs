@@ -18,22 +18,28 @@ using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore.Query;
+using JobLink_Backend.Utilities.AmazonS3;
 
 namespace JobLink_Backend.Services.ServiceImpls;
 
 public class UserServiceImpl(
     IUnitOfWork unitOfWork,
     IUserRepository userRepository,
+    INotificationService notification,
     IMapper mapper,
     JwtService jwtService,
-    IHubContext<NotificationsHub> notificationHub) : IUserService
+    S3Uploader s3Uploader,
+    IHubContext<NotificationHub> notificationHub) : IUserService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly IUserRepository _userRepository = userRepository;
+    private readonly INotificationService _notificationService = notification;
     private readonly IMapper _mapper = mapper;
     private readonly JwtService _jwtService = jwtService;
+    private readonly S3Uploader _s3Uploader = s3Uploader;
     private static readonly ConcurrentDictionary<string, OtpRecord> OtpStore = new();
-    private readonly IHubContext<NotificationsHub> _notificationsHub = notificationHub;
+    private readonly IHubContext<NotificationHub> _notificationsHub = notificationHub;
+
 
     public async Task SaveRefreshTokenAsync(string username, string refreshToken)
     {
@@ -76,6 +82,7 @@ public class UserServiceImpl(
         };
 
         await SendEmailAsync(email, "Reset Password OTP", $"Your OTP is: {otp}. It only generate for 5 minutes");
+        await _notificationService.sendNotificationToUserAsync(user.Id, "Reset password", "You have reseted your password recently",DateTime.Now.ToString());
 
         OtpStore[email] = new OtpRecord { Code = otp, ExpiryTime = otpResponse.ExpiryTime };
 
@@ -91,6 +98,7 @@ public class UserServiceImpl(
 
         _unitOfWork.Repository<User>().Update(user);
         await _unitOfWork.SaveChangesAsync();
+        await _notificationService.sendNotificationToUserAsync(user.Id, "Reset Password", "You changed your password", DateTime.Now.ToString());
     }
 
 
@@ -146,7 +154,7 @@ public class UserServiceImpl(
         user.Password = PasswordHelper.HashPassword(changePassword.NewPassword);
         await _userRepository.Update(user);
         await _userRepository.SaveChangeAsync();
-
+        await _notificationService.sendNotificationToUserAsync(user.Id, "Change Password", "You changed your password", DateTime.Now.ToString());
         return true;
     }
 
@@ -372,17 +380,26 @@ public class UserServiceImpl(
         };
         await _unitOfWork.Repository<Worker>().AddAsync(worker);
         await _unitOfWork.SaveChangesAsync();
+        await _notificationService.sendNotificationToUserAsync(newUser.Id, "Create Account", "You just created your account",DateTime.Now.ToString());
 
         return _mapper.Map<UserDTO>(newUser);
     }
 
     //mine
-    public async Task<List<NotificationResponse>> GetUserNotificationsAsync(string username)
+    public async Task<List<NotificationResponse>> GetUserNotificationsAsync(string accessToken)
     {
-        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Username == username);
+
+        var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken)?.Claims;
+        var userIdClaim = claims?.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+        {
+            throw new Exception("User ID not found in token claims.");
+        }
+
 
         var notifications = await _unitOfWork.Repository<Notification>()
-                                         .FindByConditionAsync(n => n.UserId == user.Id);
+                                         .FindByConditionAsync(n => n.UserId == userId);
 
         return notifications.Select(n => new NotificationResponse
         {
@@ -393,10 +410,15 @@ public class UserServiceImpl(
         }).ToList();
     }
 
-    public async Task<User> GetUserByWorkerId(Guid workerId)
+    public async Task<User> GetUserByWorkerIdAsync(Guid workerId)
     {
         var worker = await _unitOfWork.Repository<Worker>().FirstOrDefaultAsync(w => w.Id == workerId);
         return await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == worker.UserId, include: u => u.Include(u => u.Roles));
+    }
+
+    public async Task<Worker> GetWorkerByUserIdAsync(Guid userId)
+    {
+        return await _unitOfWork.Repository<Worker>().FirstOrDefaultAsync(w => w.UserId == userId);
     }
 
     public async Task<User> GetUserByJobOwnerId(Guid jobOwnerId)
@@ -404,40 +426,39 @@ public class UserServiceImpl(
         var jobOwner = await _unitOfWork.Repository<JobOwner>().FirstOrDefaultAsync(jo => jo.Id == jobOwnerId);
         return await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == jobOwner.UserId, include: u => u.Include(u => u.Roles));
     }
-    //mine
-    public async Task<List<TransactionResponse>> GetTransactionsAsync(TransactionsRequest request)
-    {
-        var fromDate = request.FromDate ?? DateTime.MinValue;
-        var toDate = request.ToDate;
-
-        var transactions = await _unitOfWork.Repository<UserTransaction>()
-        .FindByConditionAsync(t =>
-            t.UserId == request.UserId &&
-            t.TransactionDate >= fromDate &&
-            t.TransactionDate <= toDate
-        );
-
-        return transactions.Select(t => new TransactionResponse
-        {
-            Amount = t.Amount,
-            PaymentType = t.PaymentType,
-            Status = t.Status,
-            TransactionDate = t.TransactionDate
-        }).ToList();
-    }
 
     //mine
-    public async Task<bool> UploadNationalIdAsync(IdRequest idRequest)
+    public async Task<NationalIdResponse> UploadNationalIdAsync(string accessToken, IFormFile nationalIdFront, IFormFile nationalIdBack)
     {
-        var user = await _userRepository.GetById(idRequest.userId);
-        if (user == null)
-        {
-            throw new ArgumentException("User not found");
-        }
+		var claims = _jwtService.GetPrincipalFromExpiredToken(accessToken)?.Claims;
+		var userIdClaim = claims?.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
 
-        
+		if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out Guid userId))
+		{
+			throw new Exception("User ID not found in token claims.");
+		}
 
-        return true;
+		var nationalIdFrontUrl = await _s3Uploader.UploadFileAsync(nationalIdFront);
+		var nationalIdBackUrl = await _s3Uploader.UploadFileAsync(nationalIdBack);
+
+		var user = await _userRepository.GetByIdAsync(userId);
+		if (user == null)
+		{
+			throw new Exception("User not found.");
+		}
+
+		user.NationalIdFrontUrl = nationalIdFrontUrl;
+		user.NationalIdBackUrl = nationalIdBackUrl;
+        user.NationalIdStatus = 0;
+		await _userRepository.Update(user);
+        await _userRepository.SaveChangeAsync();
+
+		return new NationalIdResponse
+		{
+			userId = userId,
+			NationalIdFrontUrl = nationalIdFrontUrl,
+			NationalIdBackUrl = nationalIdBackUrl
+		};
     }
 
     //mine
@@ -449,6 +470,7 @@ public class UserServiceImpl(
         return pendingUsers.Select(user => new UserNationalIdDTO
         {
             UserId = user.Id,
+            Username = user.Username,
             NationalIdFrontUrl = user.NationalIdFrontUrl,
             NationalIdBackUrl = user.NationalIdBackUrl,
             NationalIdStatus = user.NationalIdStatus
@@ -473,29 +495,54 @@ public class UserServiceImpl(
         };
     }
 
-    //mine
     public async Task<bool> ApproveNationalIdAsync(Guid userId)
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null) throw new ArgumentException("User not found");
-
         user.NationalIdStatus = NationalIdStatus.Approved;
+        user.Status = UserStatus.Active;
         _userRepository.Update(user);
-        await _unitOfWork.SaveChangesAsync();
+        await _userRepository.SaveChangeAsync();
         return true;
     }
 
-    //mine
     public async Task<bool> RejectNationalIdAsync(Guid userId)
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null) throw new ArgumentException("User not found");
-
         user.NationalIdFrontUrl = null;
         user.NationalIdBackUrl = null;
+        user.Status = UserStatus.PendingVerification;
         user.NationalIdStatus = NationalIdStatus.Rejected;
         _userRepository.Update(user);
         await _unitOfWork.SaveChangesAsync();
         return true;
     }
+
+    public async Task<bool> UpdateUserAsync(Guid userId, UpdateUserDTO updateUserRequest)
+    {
+        var user = await _unitOfWork.Repository<User>().FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+        {
+            return false; // Người dùng không tồn tại
+        }
+
+        // Chỉ cập nhật những trường có giá trị
+        if (!string.IsNullOrEmpty(updateUserRequest.FirstName)) user.FirstName = updateUserRequest.FirstName;
+        if (!string.IsNullOrEmpty(updateUserRequest.LastName)) user.LastName = updateUserRequest.LastName;
+        if (!string.IsNullOrEmpty(updateUserRequest.PhoneNumber)) user.PhoneNumber = updateUserRequest.PhoneNumber;
+        if (!string.IsNullOrEmpty(updateUserRequest.Address)) user.Address = updateUserRequest.Address;
+        if (updateUserRequest.Lat.HasValue) user.Lat = updateUserRequest.Lat.Value;
+        if (updateUserRequest.Lon.HasValue) user.Lon = updateUserRequest.Lon.Value;
+        if (!string.IsNullOrEmpty(updateUserRequest.Avatar)) user.Avatar = updateUserRequest.Avatar;
+        if (updateUserRequest.DateOfBirth.HasValue) user.DateOfBirth = updateUserRequest.DateOfBirth;
+
+        _unitOfWork.Repository<User>().Update(user);
+        await _unitOfWork.SaveChangesAsync();
+
+        return true;
+    }
+
+
 }

@@ -6,10 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace JobLink_Backend.Controllers;
 
 [AllowAnonymous]
-public class TestController(S3Uploader s3Uploader, IVietQrService vietQrService) : BaseController
+public class TestController(S3Uploader s3Uploader, IVietQrService vietQrService, INotificationService notificationService) : BaseController
 {
     private readonly S3Uploader _s3Uploader = s3Uploader;
     private readonly IVietQrService _qrService = vietQrService;
+    private readonly INotificationService _notificationService = notificationService;
     
     [HttpPost("upload")]
     public async Task<IActionResult> UploadFile([FromForm] IFormFile file)
@@ -28,5 +29,13 @@ public class TestController(S3Uploader s3Uploader, IVietQrService vietQrService)
         {
             return StatusCode(500, $"Lỗi khi upload file: {ex.Message}");
         }
+    }
+    
+    [HttpGet("notification/{title}/{message}")]
+    public async Task<IActionResult> SendNotification([FromRoute] string title, [FromRoute] string message)
+    {
+        var timestampStr = DateTime.Now.Ticks.ToString();
+        await _notificationService.sendNotificationAsync(title, message, timestampStr);
+        return Ok();
     }
 }

@@ -37,6 +37,9 @@ builder.Services.AddDbContext<JobLinkContext>(options =>
 // Add custom authentication
 builder.Services.AddCustomAuthentication();
 
+// Add signalR
+builder.Services.AddSignalR();
+
 // Add custom services
 builder.Services.AddCustomServices();
 //
@@ -68,12 +71,9 @@ app.UseAuthentication();
 app.UseAuthorization(); 
 
 // Config endpoints
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapHub<ChatHub>("/hub/chat");
-    endpoints.MapHub<TransferHub>("/hub/transfer");
-    endpoints.MapControllers(); // Đảm bảo điều này nằm trong UseEndpoints
-    //endpoints.MapHub<NotificationHub>("/NotificationHub");
-});
-
+app.MapControllers();
+app.MapHub<TransferHub>("/hub/transfer");
+app.MapHub<NotificationHub>("/hub/notification");
+app.MapHub<ChatHub>("/hub/chat");
+app.MapHub<ConversationHub>("/hub/conversation");
 app.Run();

@@ -19,10 +19,12 @@ using Microsoft.AspNetCore.Http.HttpResults;
 namespace JobLink_Backend.Controllers;
 
 [AllowAnonymous]
-public class JobController(IJobService jobService, IMapper mapper) : BaseController
+public class JobController(IJobService jobService, IMapper mapper, INotificationService notificationService, IUserService userService) : BaseController
 {
     private readonly IJobService _jobService = jobService;
     private readonly IMapper _mapper = mapper;
+    private readonly INotificationService _notificationService = notificationService;
+    private readonly IUserService _userService = userService;
     
     [HttpGet("id")]
     public async Task<IActionResult> GetJobById([FromQuery] Guid jobId)
@@ -71,13 +73,14 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             Timestamp = DateTime.Now.Ticks
         });
     }
-    [AllowAnonymous]
+   
     [HttpGet("all")]
         public async Task<IActionResult> GetJobsAsync(int pageIndex = 1, int pageSize = 10, string sortBy = null, bool isDescending = false, string filter = null)
         {
             try
             {
-                Expression<Func<Job, bool>> filterExpression = null;
+       //     var accessToken = authorization.Split(" ")[1];
+            Expression<Func<Job, bool>> filterExpression = null;
 
                 if (!string.IsNullOrEmpty(filter))
                 {
@@ -120,36 +123,33 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
                 });
             }
         }
-    [AllowAnonymous]
+        
     [HttpPost]
     public async Task<IActionResult> CreateJob([FromBody] ApiRequest<CreateJobDto> createJobDto, [FromHeader] string authorization)
     {
-        string accessToken = string.Empty;
-
-        if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Bearer "))
-        {
-            accessToken = authorization.Split(" ")[1];
-        }
-        else
-        {
-            return BadRequest(new ApiResponse<string>
-            {
-                Data = null,
-                Message = "Invalid authorization format.",
-                Status = 400,
-                Timestamp = DateTime.Now.Ticks
-            });
-        }
-
+        string accessToken = authorization.Split(" ")[1];
         try
         {
+            // Kiểm tra số dư trước khi tạo job
+            bool hasEnoughBalance = await _jobService.CheckUserBalanceAsync(accessToken,createJobDto.Data.Price);
+
+            if (!hasEnoughBalance)
+            {
+                return StatusCode(402, new ApiResponse<JobDTO>
+                {
+                    Data = null,
+                    Message = "Insufficient funds. Please recharge your account.",
+                    Status = 402, // HTTP 402 Payment Required
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+
             var result = await _jobService.AddJobAsync(createJobDto.Data, accessToken);
-            return CreatedAtAction(nameof(GetJobById), new { id = result.Id },
-                new ApiResp<JobDTO>(201, "Job created", result));
+            return CreatedAtAction(nameof(GetJobById), new { id = result.Id }, new ApiResp<JobDTO>(201, "Job created", result));
         }
         catch (Exception ex)
         {
-            return BadRequest(new ApiResponse<string>
+            return BadRequest(new ApiResponse<JobDTO>
             {
                 Data = null,
                 Message = ex.Message,
@@ -159,8 +159,10 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
         }
     }
 
+
+
     [HttpGet]
-   public async Task<IActionResult> GetAll([FromQuery] JobListRequestDTO filter, [FromHeader] string authorization)
+   public async Task<IActionResult> GetAll([FromQuery] JobListRequestDto filter, [FromHeader] string authorization)
    {
        var accessToken = authorization.Split(" ")[1];
 
@@ -182,8 +184,8 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
            Timestamp = DateTime.Now.Ticks
        });
    }
-    [AllowAnonymous]
-    [HttpGet("user")]
+    
+   [HttpGet("user")]
     public async Task<IActionResult> GetJobsCreatedByUserAsync([FromHeader] string authorization , int pageIndex = 1, int pageSize = 10, string sortBy = null, bool isDescending = false)
     {
         string accessToken = string.Empty;
@@ -209,11 +211,11 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
 
             if (result == null || result.Items == null || result.Items.Count == 0)
             {
-                return NotFound(new ApiResponse<string>
+                return Ok(new ApiResponse<string>
                 {
                     Data = null,
-                    Message = "No jobs applied by the user found.",
-                    Status = 404,
+                    Message = "No jobs create by user found.",
+                    Status = 204,
                     Timestamp = DateTime.Now.Ticks
                 });
             }
@@ -221,7 +223,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             return Ok(new ApiResponse<Pagination<JobDTO>>
             {
                 Data = result,
-                Message = "Jobs applied by the user retrieved successfully!",
+                Message = "Jobs created by the user retrieved successfully!",
                 Status = 200,
                 Timestamp = DateTime.Now.Ticks
             });
@@ -237,7 +239,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             });
         }
     }
-    [AllowAnonymous]
+    
     [HttpGet("applied")]
     public async Task<IActionResult> GetJobsAppliedByUserAsync([FromHeader] string authorization, int pageIndex = 1, int pageSize = 10, string sortBy = null, bool isDescending = false)
     {
@@ -264,11 +266,11 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
 
             if (result == null || result.Items == null || result.Items.Count == 0)
             {
-                return NotFound(new ApiResponse<string>
+                return Ok(new ApiResponse<string>
                 {
                     Data = null,
                     Message = "No jobs applied by the user found.",
-                    Status = 404,
+                    Status = 204,
                     Timestamp = DateTime.Now.Ticks
                 });
             }
@@ -287,7 +289,7 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
             {
                 Data = null,
                 Message = ex.Message,
-                Status = 500,
+                Status = 400,
                 Timestamp = DateTime.Now.Ticks
             });
         }
@@ -299,15 +301,15 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
     {
         var applicants = await _jobService.GetApplicantsByJobIdAsync(jobId);
         if (applicants == null || !applicants.Any())
-            return NotFound(new ApiResponse<UserDTO>
+            return Ok(new ApiResponse<UserDTO>
             {
                 Data = null,
                 Message = "No applicants found for this job",
-                Status = 404,
+                Status = 204,
                 Timestamp = DateTime.Now.Ticks
             });
 
-        return Ok(new ApiResponse<List<UserDTO>>
+        return Ok(new ApiResponse<List<UserWithWorkerIdDTO>>
         {
             Data = applicants,
             Message = "Applicants retrieved successfully!",
@@ -344,22 +346,19 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
     [HttpGet("applied-workers")]
     public async Task<IActionResult> GetAppliedWorkersByJobId([FromQuery] Guid jobId, [FromHeader] string authorization)
     {
-        // Lấy access token từ header Authorization
         var accessToken = authorization.Split(" ")[1];
 
         try
         {
-            // Lấy danh sách JobWorkers đã apply vào job nếu user có quyền truy cập
             var appliedWorkers = await _jobService.GetJobWorkersApplyAsync(jobId, accessToken);
 
-            // Nếu không có worker nào apply, trả về thông báo không tìm thấy
             if (appliedWorkers == null || !appliedWorkers.Any())
             {
-                return NotFound(new ApiResponse<List<JobWorkerDTO>>
+                return Ok(new ApiResponse<List<JobWorkerDTO>>
                 {
                     Data = null,
                     Message = "No applied workers found for this job",
-                    Status = 404,
+                    Status = 204,
                     Timestamp = DateTime.Now.Ticks
                 });
             }
@@ -437,6 +436,16 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
                 Timestamp = DateTime.Now.Ticks
             });
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new ApiResponse<string>
+            {
+                Data = null,
+                Message = ex.Message,
+                Status = 401,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
         catch (Exception ex)
         {
             return BadRequest(new ApiResponse<string>()
@@ -455,10 +464,10 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
         try
         {
             var jobIdGuid = Guid.Parse(jobId);
-            var workerIdGuid = Guid.Parse(workerId);
+            var WorkerId = Guid.Parse(workerId);
             
             var accessToken = authorization.Split(" ")[1];
-            await _jobService.AcceptWorkerAsync(jobIdGuid, workerIdGuid, accessToken);
+            await _jobService.AcceptWorkerAsync(jobIdGuid, WorkerId, accessToken);
             return Ok(new ApiResponse<string>
             {
                 Data = null,
@@ -479,16 +488,15 @@ public class JobController(IJobService jobService, IMapper mapper) : BaseControl
         }
     }
     
-    [HttpPatch("complete/{jobId}/{workerId}")]
-    public async Task<IActionResult> CompleteJob([FromHeader] string authorization, string jobId, string workerId)
+    [HttpPatch("complete/{jobId}")]
+    public async Task<IActionResult> CompleteJob([FromHeader] string authorization, string jobId)
     {
         try
         {
             var jobIdGuid = Guid.Parse(jobId);
-            var workerIdGuid = Guid.Parse(workerId);
 
             var accessToken = authorization.Split(" ")[1];
-            await _jobService.CompleteJobAsync(jobIdGuid, workerIdGuid, accessToken);
+            await _jobService.CompleteJobAsync(jobIdGuid, accessToken);
 
             return Ok(new ApiResponse<string>
             {

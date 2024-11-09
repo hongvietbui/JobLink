@@ -28,4 +28,5 @@ public class Job : BaseEntity<Guid>
     public JobOwner Owner { get; set; }
     public ICollection<JobWorker> JobWorkers { get; set; } = new List<JobWorker>();
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
+    public ICollection<SupportRequest> SupportRequests { get; set; }
 }

@@ -50,8 +50,9 @@ public class TransactionController(ITransactionService transactionsService, IVie
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateNewTransaction([FromBody]  ApiRequest<TransactionCreateDto> transaction,  [FromHeader] string authorization)
-    {  var accessToken = authorization.Split(" ")[1];
+    public async Task<IActionResult> CreateNewTransaction([FromBody] ApiRequest<TransactionCreateDto> transaction, [FromHeader] string authorization)
+    {
+        var accessToken = authorization.Split(" ")[1];
         await _transactionService.AddTransactionAsync(transaction.Data, accessToken);
 
         var listTransactionResponse = new ApiResponse<TransactionCreateDto>
@@ -66,7 +67,7 @@ public class TransactionController(ITransactionService transactionsService, IVie
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateTransaction([FromBody]  ApiRequest<TransactionDTO> transaction)
+    public async Task<IActionResult> UpdateTransaction([FromBody] ApiRequest<TransactionDTO> transaction)
     {
         await _transactionService.UpdateTransactionAsync(transaction.Data);
 
@@ -80,7 +81,72 @@ public class TransactionController(ITransactionService transactionsService, IVie
 
         return Ok(listTransactionResponse);
     }
-    
+
+    [HttpGet("topupHistory")]
+    public async Task<IActionResult> GetUserTransactions(
+   [FromQuery] DateTime? fromDate,
+   [FromQuery] DateTime? toDate,
+   [FromHeader] string authorization)
+    {
+        if (_transactionService == null)
+        {
+            return StatusCode(500, new ApiResponse<string>
+            {
+                Data = null,
+                Message = "Transaction service is not initialized.",
+                Status = 500,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+
+        if (string.IsNullOrEmpty(authorization) || !authorization.StartsWith("Bearer "))
+        {
+            return BadRequest(new ApiResponse<string>
+            {
+                Data = null,
+                Message = "Invalid authorization format.",
+                Status = 400,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+
+        var accessToken = authorization.Split(" ")[1];
+
+        try
+        {
+            var transactions = await _transactionService.GetUserTransactionsAsync(fromDate, toDate, accessToken);
+
+            if (transactions == null || !transactions.Any())
+            {
+                return Ok(new ApiResponse<List<TransactionResponse>>
+                {
+                    Data = null,
+                    Message = "No transactions found for this user.",
+                    Status = 204,
+                    Timestamp = DateTime.Now.Ticks
+                });
+            }
+
+            return Ok(new ApiResponse<List<TransactionResponse>>
+            {
+                Data = transactions,
+                Message = "Fetched user transactions successfully.",
+                Status = 200,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<string>
+            {
+                Data = null,
+                Message = ex.Message,
+                Status = 500,
+                Timestamp = DateTime.Now.Ticks
+            });
+        }
+    }
+
     [HttpGet("vietQR/{userId}")]
     public async Task<IActionResult> GetVietQRUrl(string userId)
     {

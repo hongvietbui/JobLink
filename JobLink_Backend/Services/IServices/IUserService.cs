@@ -20,17 +20,18 @@ namespace JobLink_Backend.Services.IServices
         Task<UserDTO> GetUserByAccessToken(string accessToken);
         Task<string?> RefreshTokenAsync(string refreshToken);
         Task<UserHompageDTO> GetUserHompageAsync(string accessToken);
-        Task<User> GetUserByWorkerId(Guid workerId);
+        Task<User> GetUserByWorkerIdAsync(Guid workerId);
+        Task<Worker> GetWorkerByUserIdAsync(Guid userId);
         Task<User> GetUserByJobOwnerId(Guid jobOwnerId);
         
         //mine
         Task AddNotificationAsync(string username, string message);
         Task<List<NotificationResponse>> GetUserNotificationsAsync(string username);
-        Task<List<TransactionResponse>> GetTransactionsAsync(TransactionsRequest request);
-        Task<bool> UploadNationalIdAsync(IdRequest idRequest);
+        Task<NationalIdResponse> UploadNationalIdAsync(string accessToken, IFormFile nationalIdFront, IFormFile nationalIdBack);
         Task<List<UserNationalIdDTO>> GetPendingNationalIdsAsync();
         Task<UserNationalIdDTO> GetNationalIdDetailAsync(Guid userId);
         Task<bool> ApproveNationalIdAsync(Guid userId);
         Task<bool> RejectNationalIdAsync(Guid userId);
+        Task<bool> UpdateUserAsync(Guid id, UpdateUserDTO data);
     }
 }

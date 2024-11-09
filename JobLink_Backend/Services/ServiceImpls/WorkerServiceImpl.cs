@@ -4,18 +4,19 @@ using JobLink_Backend.Services.IServices;
 
 namespace JobLink_Backend.Services.ServiceImpls
 {
-    public class WorkerServiceImpl : IWorkerService
+    public class WorkerServiceImpl(IUnitOfWork unitOfWork) : IWorkerService
     {
-        private readonly IWorkerRepository _workerRepository;
-        public WorkerServiceImpl(IWorkerRepository workerRepository) 
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+
+        public async Task<Worker> GetWorkerByIdAsync(Guid senderId)
         {
-            _workerRepository = workerRepository;
+            return await _unitOfWork.Repository<Worker>().GetByIdAsync(senderId);
         }
 
-        public async Task<Worker> GetWorkerBySenderIdAsync(Guid senderId)
+        public async Task<string> getWorkerIdByUserIdAsync(Guid userId)
         {
-            return await _workerRepository.GetByIdAsync(senderId);
+            var workers = await _unitOfWork.Repository<Worker>().FindByConditionAsync(w => w.UserId == userId);
+            return (workers != null && workers.Any()) ? workers.First().Id.ToString() : "";
         }
-
     }
 }

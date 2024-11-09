@@ -27,19 +27,20 @@ import {
 } from "../ui/alert-dialog";
 import useAuthStore from "@/stores/useAuthStore";
 import LoadingCustom from "../ui/loading/LoadingCustom";
+import { useNavigate } from "react-router-dom";
 
 const MoneyWithdrawal = () => {
   const [amount, setAmount] = useState("");
   const [bankNumber, setbankNumber] = useState("");
   const [bankName, setbankName] = useState("");
   const [userReceive, setUserReceive] = useState("");
-  const { accountBalance, refreshUserData, email } = useAuthStore();
+  const { accountBalance, refreshUserData, email, id } = useAuthStore();
   const [isOpen, setIsOpen] = useState();
   const [loading, setLoading] = useState(false); // Loading state
   const [otp, setOtp] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false); // Track if OTP has been sent
   const [isValidOtp, setIsValidOtp] = useState(false); // Track if OTP is valid
-
+  const navigate = useNavigate();
   const handleSendOtp = async () => {
     try {
       if (isOtpSent) {
@@ -47,9 +48,11 @@ const MoneyWithdrawal = () => {
       }
       await agent.EmailInput.OtpSend({ email }); // Call your API to send the OTP
       setIsOtpSent(true); // Mark OTP as sent
-      toast.success("Mã OTP đã được gửi đến email của bạn!");
+      toast.success("OTP code has been sent to your email!");
     } catch (error) {
-      toast.error("Có lỗi xảy ra khi gửi mã OTP. Vui lòng thử lại.");
+      toast.error(
+        "An error occurred while sending the OTP code. Please try again."
+      );
     }
   };
 
@@ -61,7 +64,7 @@ const MoneyWithdrawal = () => {
       setIsValidOtp(true);
       handleSubmit(); // Call handleSubmit after validating OTP
     } catch (error) {
-      toast.error("Mã OTP không hợp lệ. Vui lòng thử lại.");
+      toast.error("OTP code is not valid. Please try again.");
     }
   };
 
@@ -73,25 +76,25 @@ const MoneyWithdrawal = () => {
       Number(amount) < 10000 ||
       amount > accountBalance
     ) {
-      toast.error("Vui lòng nhập số tiền hợp lệ.");
+      toast.error("Please enter a valid amount.");
       setIsOpen(false);
       return;
     }
 
     if (!bankName) {
-      toast.error("Vui lòng chọn ngân hàng.");
+      toast.error("Please select a bank.");
       setIsOpen(false);
       return;
     }
 
     if (!bankNumber) {
-      toast.error("Vui lòng nhập số tài khoản.");
+      toast.error("Please enter account number.");
       setIsOpen(false);
       return;
     }
 
     if (!userReceive) {
-      toast.error("Vui lòng nhập tên người nhận.");
+      toast.error("Please enter the recipient's name.");
       setIsOpen(false);
       return;
     }
@@ -102,20 +105,21 @@ const MoneyWithdrawal = () => {
       userReceive,
       transactionDate: new Date(),
       paymentType: 0,
-      userId: "FF41A35A-868D-47E9-902B-F1687FA16A4A",
+      userId: id,
     };
 
+    console.log(formData);
     try {
       setLoading(true);
       await agent.Transaction.createWithdraw(formData);
-      toast.success("Rút tiền thành công!");
+      toast.success("Withdraw money successfully!");
       setIsOpen(false);
 
       // Await refreshUserData to ensure it's completed
       await refreshUserData();
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Có lỗi xảy ra! Vui lòng thử lại.");
+      toast.error("An error occurred! Please try again.");
       setIsOpen(false);
     } finally {
       setLoading(false); // Set loading to false after the request completes
@@ -130,7 +134,7 @@ const MoneyWithdrawal = () => {
         <Card className="bg-[#584287] text-white">
           <CardContent className="p-4 flex flex-col items-center justify-center">
             <Wallet className="mb-2" />
-            <p className="text-sm">Số dư tài khoản</p>
+            <p className="text-sm">Account balance</p>
             <p className="font-bold">
               {" "}
               {Number(accountBalance).toLocaleString("vi-VN")} đ
@@ -140,30 +144,35 @@ const MoneyWithdrawal = () => {
         <Card className="bg-[rgb(245,200,66)] text-white">
           <CardContent className="p-4 flex flex-col items-center justify-center">
             <Clock className="mb-2" />
-            <p className="text-sm">Lịch sử</p>
-            <p className="font-bold">Rút tiền</p>
+            <p
+              onClick={() => navigate("/TransactionHistory")}
+              className="text-sm"
+            >
+              History
+            </p>
+            <p className="font-bold">Withdraw money</p>
           </CardContent>
         </Card>
       </div>
 
       <Card className="bg-red-100 text-red-800 mb-4">
         <CardContent className="p-4 text-sm">
-          <p className="font-bold mb-2">Lưu ý:</p>
-          <p>- Số tiền rút tối thiểu là 10.000 VND</p>
-          <p>- Joblink sẽ chuyển tiền tới bạn trong 2-7 ngày làm việc</p>
+          <p className="font-bold mb-2">Note:</p>
+          <p>- Minimum withdrawal amount is 10,000 VND</p>
+          <p>- Joblink will transfer money to you in 2-7 working days</p>
           <p>
-            - Rút Tiền sẽ bị trừ 10% số tiền rút ví dụ rút 100.000 thì nhận được
-            90.000
+            - Withdrawals will be deducted 10% of the withdrawal amount. For
+            example, if you withdraw 100,000, you will receive 90,000
           </p>
         </CardContent>
       </Card>
 
       <div className="space-y-4">
         <div>
-          <p className="font-semibold mb-2">Thông tin thanh toán</p>
+          <p className="font-semibold mb-2">Payment information</p>
           <Select className="mb-2" onValueChange={setbankName} value={bankName}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Chọn ngân hàng" />
+              <SelectValue placeholder="Choose a bank" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="Mb">MB - NH TMCP QUAN DOI</SelectItem>
@@ -269,7 +278,7 @@ const MoneyWithdrawal = () => {
           <Input
             className="my-4"
             type="number"
-            placeholder="Số tiền muốn rút"
+            placeholder="Amount you want to withdraw"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
@@ -277,14 +286,14 @@ const MoneyWithdrawal = () => {
           <Input
             className="my-4"
             type="number"
-            placeholder="Số tài khoản"
+            placeholder="Account number"
             value={bankNumber}
             onChange={(e) => setbankNumber(e.target.value)}
           />
           <Input
             className="my-4"
             type="text"
-            placeholder="Tên chủ tài khoản"
+            placeholder="Account holder name"
             value={userReceive}
             onChange={(e) => setUserReceive(e.target.value)}
           />
@@ -292,24 +301,24 @@ const MoneyWithdrawal = () => {
 
         <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
           <AlertDialogTrigger>
-            <Button onClick={() => handleSendOtp()}>Rút tiền</Button>
+            <Button onClick={() => handleSendOtp()}>Withdraw money</Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                {isOtpSent ? "Xác thực mã OTP" : "Xác thực mã OTP"}
+                {isOtpSent ? "Verify OTP code" : "Verify OTP code"}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 {isOtpSent
-                  ? "Nhập mã OTP đã được gửi đến email của bạn."
-                  : "Đang thực hiện gửi mã OTP xác thực tới email của bạn"}
+                 ? "Enter the OTP code sent to your email."
+                 : "Sending authentication OTP code to your email"}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <CardContent>
               {isOtpSent && (
                 <Input
                   type="text"
-                  placeholder="Nhập mã OTP"
+                  placeholder="Enter OTP code"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
                   className="my-4"
@@ -318,15 +327,15 @@ const MoneyWithdrawal = () => {
             </CardContent>
             <AlertDialogFooter>
               <AlertDialogCancel onClick={() => setIsOpen(false)}>
-                Hủy
+                Cancel
               </AlertDialogCancel>
               {isOtpSent ? (
                 <AlertDialogAction onClick={(e) => handleVerifyOtp(e)}>
-                  Xác nhận
+                  Confirm
                 </AlertDialogAction>
               ) : (
                 <AlertDialogAction disabled={!isOtpSent}>
-                  Đang gửi OTP
+                  Sending OTP
                 </AlertDialogAction>
               )}
             </AlertDialogFooter>

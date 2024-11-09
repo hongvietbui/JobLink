@@ -12,7 +12,10 @@ public class JobLinkContext : DbContext
     public DbSet<Role> Roles { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Review> Reviews { get; set; }
-
+    public DbSet<SupportRequest> SupportRequests { get; set; }
+    public DbSet<Conversation> Conversations { get; set; }
+    public DbSet<Message> Messages { get; set; }
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Job>()
@@ -87,5 +90,40 @@ public class JobLinkContext : DbContext
             .WithMany(r => r.Reviews)
             .HasForeignKey(r => r.JobId)
             .OnDelete(DeleteBehavior.NoAction);
+        
+        modelBuilder.Entity<SupportRequest>()
+            .HasOne(t => t.User)
+            .WithMany(u => u.UserSystemRequest)
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<SupportRequest>()
+            .HasOne(t => t.Job)
+            .WithMany(u => u.SupportRequests)
+            .HasForeignKey(t => t.JobId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Conversation>()
+            .HasOne(c => c.JobOwner)
+            .WithMany(u => u.OwnerConversations)
+            .HasForeignKey(c => c.JobOwnerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Conversation>()
+            .HasOne(c => c.Worker)
+            .WithMany(u => u.WorkerConversations)
+            .HasForeignKey(c => c.WorkerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Message>()
+            .HasOne(m => m.Sender)
+            .WithMany()
+            .HasForeignKey(m => m.SenderId);
+
+        modelBuilder.Entity<Message>()
+            .HasOne(m => m.Conversation)
+            .WithMany(c => c.Messages)
+            .HasForeignKey(m => m.ConversationId);
     }
 }

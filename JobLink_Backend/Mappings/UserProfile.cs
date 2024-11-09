@@ -11,7 +11,9 @@ public class UserProfile : MapProfile
     {
         CreateMap<User, UserDTO>()
             .ForMember(dto => dto.Status, opt => opt.MapFrom(src => src.Status.GetStringValue()))
+            .ForMember(dto => dto.RoleList, opt => opt.MapFrom(src => src.Roles))
             .ReverseMap()
-            .ForMember(u => u.Status, opt => opt.MapFrom(src => src.Status.GetEnumValue<UserStatus>()));
+            .ForMember(u => u.Status, opt => opt.MapFrom(src => src.Status.GetEnumValue<UserStatus>()))
+            .ForMember(u => u.Roles, opt => opt.MapFrom(src => src.RoleList));
     }
 }
