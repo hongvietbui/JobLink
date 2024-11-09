@@ -349,6 +349,21 @@ function ApplicantsList({ jobId, jobStatus, onAccept }) {
                   size="sm"
                   variant="outline"
                   className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 transition-colors duration-200"
+                  onClick={() => agent.CompleteJob.complete(jobId)}
+                  disabled={actionLoading === applicant.workerId}
+                >
+                  {actionLoading === applicant.workerId ? (
+                    "Processing..."
+                  ) : (
+                    <>
+                      <MessageCircle className="w-4 h-4 mr-2" /> Complete
+                    </>
+                  )}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 transition-colors duration-200"
                   onClick={() => initiateChat(applicant.workerId)}
                   disabled={actionLoading === applicant.workerId}
                 >
