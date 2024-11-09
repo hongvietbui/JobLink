@@ -500,6 +500,7 @@ public class UserServiceImpl(
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null) throw new ArgumentException("User not found");
         user.NationalIdStatus = NationalIdStatus.Approved;
+        user.Status = UserStatus.Active;
         _userRepository.Update(user);
         await _userRepository.SaveChangeAsync();
         return true;
@@ -511,6 +512,7 @@ public class UserServiceImpl(
         if (user == null) throw new ArgumentException("User not found");
         user.NationalIdFrontUrl = null;
         user.NationalIdBackUrl = null;
+        user.Status = UserStatus.PendingVerification;
         user.NationalIdStatus = NationalIdStatus.Rejected;
         _userRepository.Update(user);
         await _unitOfWork.SaveChangesAsync();
