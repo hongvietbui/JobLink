@@ -83,6 +83,8 @@ export default function CreateJob() {
     try {
       const response = await agent.Job.createJob(payload);
       alert("Job created successfully!");
+      localStorage.removeItem("jobData");
+      navigate("/jobmanage");
     } catch (error) {
       const { status, message } = error;
 
@@ -90,7 +92,7 @@ export default function CreateJob() {
         alert("Invalid request. Please check your inputs.");
       } else if (status == 402) {
         alert("Insufficient funds. Redirecting to recharge page...");
-        navigate("/login"); // Điều hướng tới trang nạp tiền
+        navigate("/topup"); // Điều hướng tới trang nạp tiền
       } else {
         console.error("Unexpected error:", error);
         alert("Network or server error occurred. Please try again later.");
@@ -310,7 +312,7 @@ export default function CreateJob() {
           <div className="sticky bottom-0 bg-background p-4 border-t">
             <div className="flex items-center justify-between mb-4">
               <span className="text-lg font-semibold">Total</span>
-              <span className="text-2xl font-bold">{calculateTotalPrice().toFixed(2)} VND</span>
+              <span className="text-2xl font-bold">{calculateTotalPrice().toFixed(2)} $</span>
             </div>
             <Button className="w-full" size="lg" onClick={handleCreateJob}>
               Book Package

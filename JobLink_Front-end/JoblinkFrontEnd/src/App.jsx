@@ -138,6 +138,9 @@ function App() {
             <a href="/listJob" className="text-sm font-medium">
               Find job
             </a>
+            <a href="/createjob" className="text-sm font-medium">
+              Create job
+            </a>
             <a href="/dashboard" className="text-sm font-medium">
               Dashboard
             </a>
