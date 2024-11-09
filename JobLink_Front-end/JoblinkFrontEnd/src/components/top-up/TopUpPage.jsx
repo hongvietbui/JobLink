@@ -29,7 +29,7 @@ const TopUpPage = () => {
             .build();
   
           newConnection.on("ReceiveTransfer", (message) => {
-            toast.success('Chuyen khoan thanh cong voi so tien '+message.amount); // Hiển thị thông báo thành công
+            toast.success('Chuyen khoan thanh cong voi so tien '+ 11000 +'VND'); // Hiển thị thông báo thành công
             console.log("ReceiveTransfer:", message);
           });
   
