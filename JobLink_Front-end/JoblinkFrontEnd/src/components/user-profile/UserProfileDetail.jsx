@@ -175,6 +175,12 @@ export default function UserProfile() {
                 <Button variant="outline" onClick={() => navigate('/change-pass')}>
                   Change Password
                 </Button>
+                <Button variant="outline" onClick={() => navigate('/ManageUserId')}>
+                  Conform NationalID
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/UploadId')}>
+                  Conform NationalID
+                </Button>
               </>
             )}
           </div>
