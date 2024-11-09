@@ -193,7 +193,7 @@ const Job = {
 
 const Transaction = {
   createWithdraw: (body) => requests.post('http://localhost:8080/api/transaction', body),
-
+  getQRCodeByUserId: (userId) => requests.get('http://localhost:8080/api/transaction/vietQR/' + userId),
 }
 
 
@@ -236,7 +236,19 @@ const NationalId = {
       formData.append("nationalIdFront", frontImage); 
       formData.append("nationalIdBack", backImage);
       return requests.postFile('http://localhost:8080/api/User/nationalId/upload', formData);
-  }
+  },
+  
+  getPendingNationalIds: async () => {
+    return requests.get("http://localhost:8080/api/User/pending-national-ids");
+  },
+
+  approveNationalId: (userId) => {
+    return requests.post(`http://localhost:8080/api/User/national-id/${userId}/approve`);
+  },
+
+  rejectNationalId: (userId) => {
+    return requests.post(`http://localhost:8080/api/User/national-id/${userId}/reject`);
+  },
 }
 
 const ListJobUserCreated = {
@@ -317,8 +329,11 @@ const agent = {
   acceptWorker,
   RejectWorker,
   JobandOwnerViewDetail,
+  SupportRequest,
+  Transaction,
   Chat,
-  WorkerAssign,owner
+  WorkerAssign,
+  owner
 }
 
 export default agent
