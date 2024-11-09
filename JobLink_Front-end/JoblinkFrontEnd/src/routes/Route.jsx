@@ -21,6 +21,7 @@ import IDCardManagement from "@/components/NationalID/ManageUserID";
 import TopUpHistory from "@/components/TopUpHistory/TopUpHistory";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import JobDashboard from "@/components/ManageUserJob/JobManage"
+import TopUpPage from "@/components/top-up/TopUpPage";
 const RoutesConfig = () => {
   return (
     <Router>
@@ -45,6 +46,7 @@ const RoutesConfig = () => {
         <Route path="/ManageUserId" element={<IDCardManagement />} />
         <Route path="/TransactionHistory" element={<TopUpHistory/>}/>
         <Route path="/JobManage" element={<JobDashboard />} />
+        <Route path="/topUp" element={<TopUpPage />} />
         {/* <Route path="/chat" element={<Chat />} /> */}
       </Routes>
       <AddSupportRequest />

@@ -200,7 +200,7 @@ const Job = {
 
 const Transaction = {
   createWithdraw: (body) => requests.post('http://localhost:8080/api/transaction', body),
-
+  getQRCodeByUserId: (userId) => requests.get('http://localhost:8080/api/transaction/vietQR/' + userId),
 }
 
 
@@ -310,7 +310,8 @@ const agent = {
   acceptWorker,
   RejectWorker,
   JobandOwnerViewDetail,
-  SupportRequest
+  SupportRequest,
+  Transaction
 }
 
 export default agent
