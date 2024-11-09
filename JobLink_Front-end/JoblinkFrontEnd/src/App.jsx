@@ -68,7 +68,7 @@ function App() {
   ];
 
   const { setAuthData } = useAuthStore();
-
+  const [isAdmin, setIsAdmin] = useState(false);
   useEffect(() => {
     agent.User.me()
       .then((response) => {
@@ -83,6 +83,17 @@ function App() {
           response.refreshToken,
           response.accountBalance
         );
+
+        const hasAdminRole = response.roleList.some(
+          (role) => role.name == "Admin"
+        );
+
+        if (hasAdminRole) {
+          console.log("dsfd");
+          // Redirect sang trang khác nếu người dùng có role "Admin"
+          setIsAdmin(true);
+          console.log(isAdmin);
+        }
       })
       .catch((error) => {
         // console.error("Error:", error);
@@ -99,9 +110,8 @@ function App() {
     // Kiểm tra token trong localStorage khi component được mount
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
-  },[]);
+  }, []);
 
-  
   const handleLogout = () => {
     localStorage.removeItem("token");
     window.location.href = "/";
@@ -144,6 +154,11 @@ function App() {
             <a href="/dashboard" className="text-sm font-medium">
               Dashboard
             </a>
+            {isAdmin && (
+              <a href="/ManageUserId" className="text-sm font-medium">
+                Manage National ID
+              </a>
+            )}
             <a href="#" className="text-sm font-medium">
               Why JobLink
             </a>
