@@ -50,21 +50,24 @@ export default function Dashboard() {
             <div>
               <p className="font-bold">{userData?.userName}</p>
               <p className="mt-2">
-                Số dư:{" "}
+                Balance:{" "}
                 <span className="font-bold">
                   {userData?.accountBalance} VND
                 </span>
               </p>
-              <p>
-                Đã hoàn hôm nay:{" "}
-                <span className="font-bold">{userData?.totalJobDone}</span>
-              </p>
-              <Button className="mt-2 mr-4  hover:opacity-100">Nạp tiền</Button>
+
+              <Button className="mt-2 mr-4  hover:opacity-100">Deposit</Button>
               <Button
                 onClick={() => navigate("/withdraw-money")}
                 className="mt-2  hover:opacity-100"
               >
-                Rút tiền
+                Withdraw
+              </Button>
+              <Button
+                className="mt-2 ml-4  hover:opacity-100"
+                onClick={() => navigate("/profile")}
+              >
+                Profile
               </Button>
             </div>
           </CardContent>
@@ -74,7 +77,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Số tiền kiếm được hôm nay
+              Money earned today
             </CardTitle>
             <DollarSign className="h-4 w-4 text-blue-500" />
           </CardHeader>
@@ -87,7 +90,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Số tiền kiếm được tháng này
+              Amount earned this month
             </CardTitle>
             <BarChart2 className="h-4 w-4 text-blue-500" />
           </CardHeader>
@@ -100,7 +103,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Tổng nạp trong tháng
+            Total recharge during the month
             </CardTitle>
             <Wallet className="h-4 w-4 text-blue-500" />
           </CardHeader>
@@ -112,9 +115,9 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Số công việc tạo ra trong tháng
+            Number of jobs created during the month
             </CardTitle>
-            <DollarSign className="h-4 w-4 text-blue-500" />
+            <Wallet className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -125,7 +128,7 @@ export default function Dashboard() {
 
         <Card className="col-span-1 md:col-span-4">
           <CardHeader>
-            <CardTitle>Danh sách việc trong hôm nay</CardTitle>
+            <CardTitle>Doing list for today</CardTitle>
           </CardHeader>
           <CardContent className="flex justify-around">
             <TaskDone />

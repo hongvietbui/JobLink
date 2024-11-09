@@ -1,33 +1,91 @@
-import { Button } from "@/components/ui/button";
+// src/components/Chat.js
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import * as signalR from "@microsoft/signalr";
+import useAuthStore from "@/stores/useAuthStore";
 import agent from "@/lib/axios";
-import { useState } from "react";
 
 const Home = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const { conversationId } = useParams();
+  const [connection, setConnection] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [message, setMessage] = useState("");
+  const { id } = useAuthStore();
+  useEffect(() => {
+    const newConnection = new signalR.HubConnectionBuilder()
+      .withUrl(
+        `http://localhost:8080/hub/conversation?conversationId=${conversationId}`
+      )
+      .withAutomaticReconnect()
+      .build();
 
-  const handleClick = () => {
-    setIsLoading(true);
-    // Giả lập quá trình tải (thay thế bằng xử lý thực tế)
-    setTimeout(() => {
-      setIsLoading(false); // Dừng spinner sau 2 giây
-    }, 10000);
+    setConnection(newConnection);
+  }, [id]);
+
+  useEffect(() => {
+    if (connection) {
+      connection
+        .start()
+        .then(() => {
+          console.log("Connected to SignalR");
+
+          connection.on("ReceiveNewMessage", (senderId, receivedMessage) => {
+            setMessages((prevMessages) => [
+              ...(prevMessages || []),
+              { senderId, content: message },
+            ]);
+          });
+        })
+        .catch((error) => console.error("Connection failed: ", error));
+    }
+  }, [connection]);
+
+  useEffect(() => {
+    console.log('sdfdsf')
+    const fetchMessages = async () => {
+      try {
+        const response = await agent.Chat.getAllMessage(conversationId);
+        setMessages(response);
+      } catch (error) {
+        console.error("Failed to load messages", error);
+      }
+    };
+    fetchMessages();
+  }, [conversationId]);
+
+  const sendMessage = async () => {
+    if (connection) {
+      try {
+        await connection.invoke("SendNewMessage", conversationId, id, message);
+        setMessages((prev) => [...prev, { senderId: id, content: message }]);
+        setMessage("");
+      } catch (error) {
+        console.error("Failed to send message", error);
+      }
+    }
   };
 
   return (
-    <>
-      {isLoading ? (
-        <img
-          src="https://scontent.fhan5-11.fna.fbcdn.net/v/t39.30808-1/440879710_1311365576486302_465885895535459738_n.jpg?stp=dst-jpg_s200x200&_nc_cat=100&ccb=1-7&_nc_sid=0ecb9b&_nc_eui2=AeFwMNEk_sQdV-RfB0sm4YE1ZNm2NsCaeAlk2bY2wJp4CbaqoySVisau52pRC-dwipFqTIGn9kjUzVvfdl1wv1yx&_nc_ohc=GHKL1dbACacQ7kNvgHBnwsJ&_nc_ht=scontent.fhan5-11.fna&_nc_gid=AFBdI2BRhRsrNe9D7x8JTwR&oh=00_AYDck-Ngnn3cZdmFksNqIpxI9VaFecv11eq0IhKrWFYgzQ&oe=671C7DCF"
-          alt="Loading..."
-          className="w-[100px] h-[100px] mr-2 inline-block animate-spin rounded-full shadow-lg duration-500 hover:scale-110 hover:shadow-2xl"
-        />
-      ) : (
-        <p>Click me</p>
-      )}
-      <Button onClick={handleClick} disabled={isLoading}>
-        Click me
-      </Button>
-    </>
+    <div>
+      <h2>Chat</h2>
+      <div className="message-list">
+        {messages?.map((msg, index) => (
+          <div
+            key={index}
+            className={msg.senderId === id ? "sent" : "received"}
+          >
+            {msg.content}
+          </div>
+        ))}
+      </div>
+      <input
+        type="text"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Type a message..."
+      />
+      <button onClick={sendMessage}>Send</button>
+    </div>
   );
 };
 

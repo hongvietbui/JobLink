@@ -6,6 +6,7 @@ namespace JobLink_Backend.Services.IServices
     {
         Task<JobOwner> GetJobOwnerByIdAsync(Guid id);
         Task<string> GetJobOwnerIdByUserIdAsync(Guid userId);
+        Task<JobOwner> GetJobOwnerByJobIdAsync(Guid jobId);
         
         Task<string> GetUserIdByJobOwnerIdAsync(Guid jobOwnerId);
     }

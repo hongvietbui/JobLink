@@ -161,7 +161,6 @@ namespace JobLink_Backend.Controllers
 		}
 
 		[HttpGet("pending-national-ids")]
-		[AllowAnonymous]
 		public async Task<IActionResult> GetPendingNationalIds()
 		{
 			var pendingNationalIds = await _userService.GetPendingNationalIdsAsync();
@@ -176,26 +175,6 @@ namespace JobLink_Backend.Controllers
 				Status = 200,
 				Timestamp = DateTime.Now.Ticks
 			});
-		}
-
-		[HttpGet("national-id/{userId}")]
-		public async Task<IActionResult> GetNationalIdDetails(Guid userId)
-		{
-			try
-			{
-				var nationalIdDetail = await _userService.GetNationalIdDetailAsync(userId);
-				return Ok(new ApiResponse<UserNationalIdDTO>
-				{
-					Data = nationalIdDetail,
-					Message = "Get national ID detail successfully!",
-					Status = 200,
-					Timestamp = DateTime.Now.Ticks
-				});
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(new { message = ex.Message });
-			}
 		}
 
 		[HttpPost("national-id/{userId}/approve")]
@@ -371,7 +350,7 @@ namespace JobLink_Backend.Controllers
                 return Ok(new ApiResponse<string>
                 {
                     Data = ownerId,
-                    Message = "Get worker id successfully!",
+                    Message = "Get owner id successfully!",
                     Status = 200,
                     Timestamp = DateTime.Now.Ticks
                 });

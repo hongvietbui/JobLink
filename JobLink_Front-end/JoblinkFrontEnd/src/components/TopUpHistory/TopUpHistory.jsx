@@ -33,8 +33,8 @@ const paymentStatusMap = {
 };
 
 const paymentTypeMap = {
-    1: "Deposit",
-    2: "Withdraw",
+    0: "Deposit",
+    1: "Withdraw",
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -179,7 +179,7 @@ export default function TransactionHistory() {
                                     transactions.map((transaction) => (
                                         <TableRow key={transaction.id} className="hover:bg-gray-50">
                                             <TableCell className="py-4 px-6 text-sm font-medium text-gray-900">{format(new Date(transaction.date), "MM/dd/yyyy HH:mm")}</TableCell>
-                                            <TableCell className="py-4 px-6 text-sm text-gray-500">${transaction.amount.toFixed(2)}</TableCell>
+                                            <TableCell className="py-4 px-6 text-sm text-gray-500">{transaction.amount.toFixed(2)} VND</TableCell>
                                             <TableCell className="py-4 px-6 text-sm text-gray-500">{transaction.paymentType}</TableCell>
                                             <TableCell className="py-4 px-6 text-sm">
                                                 <span className={cn(
